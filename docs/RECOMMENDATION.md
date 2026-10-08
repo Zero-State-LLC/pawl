@@ -48,7 +48,7 @@ package and an isolation re-run of up to 10 failed IDs.
 ### 1. Install and initialize
 
 ```bash
-pip install "pawl-gate @ git+https://github.com/Zero-State-LLC/pawl@v0.1.0"
+pip install "pawl-gate==0.1.1"
 pawl init --runner pytest
 ```
 

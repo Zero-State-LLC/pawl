@@ -15,6 +15,10 @@ All notable changes to this project are documented here. The format follows
   package. The source repository is not public; access is on request.
 - Package metadata: the project URL is now the PyPI page, because the
   GitHub Source and Issues URLs are not reachable by the public.
+- The workflow written by `pawl init --github` (and
+  `integrations/github/pawl.yml`) installs `pawl-gate==0.1.1` from PyPI
+  instead of `git+https` from the private repository, so it works without
+  credentials. `docs/RECOMMENDATION.md` uses the same install line.
 
 ## [0.1.0] - 2026-10-08
 
