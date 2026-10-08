@@ -1,4 +1,14 @@
 # Lint, types, and tests. Actions are pinned by commit SHA.
+#
+# Runs on the org self-hosted Macs ([self-hosted, macOS], the same label set
+# Zero-State-LLC uses for non-iOS jobs, e.g. Hexwire hexwire-ci.yml hygiene):
+# GitHub-hosted jobs are refused while org Actions billing is blocked.
+#
+# Python comes from uv (python-build-standalone, relocatable, user space)
+# instead of actions/setup-python: on self-hosted macOS setup-python runs
+# `sudo installer -pkg` and needs /Users/runner/hostedtoolcache. Each job gets
+# a throwaway venv under RUNNER_TEMP so nothing leaks between runs on the
+# persistent machine.
 name: ci
 
 on:
@@ -15,24 +25,33 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: "3.13"
-      - run: python -m pip install -e ".[dev]"
+          version: "0.12.23"
+          enable-cache: false
+      - name: Python 3.13 venv (uv-managed, job-local)
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.tool_cache }}/uv-python
+        run: |
+          uv venv --managed-python --python 3.13 --seed "$RUNNER_TEMP/venv"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - run: python -VV && python -m pip install -e ".[dev]"
       - run: ruff check .
       - run: ruff format --check .
       - run: mypy
       - name: No em dashes
-        run: "! grep -rn --exclude-dir=.git $'\u2014' ."
+        # printf octal keeps this portable to macOS /bin/bash 3.2 and BSD grep.
+        run: "! LC_ALL=C grep -rn --exclude-dir=.git \"$(printf '\\342\\200\\224')\" ."
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS]
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -42,9 +61,23 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: ${{ matrix.python-version }}
-      - run: python -m pip install -e ".[dev]"
-      - name: Tests with coverage (go, cargo, and node runtimes come with the runner image)
+          version: "0.12.23"
+          enable-cache: false
+      - name: Python ${{ matrix.python-version }} venv (uv-managed, job-local)
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.tool_cache }}/uv-python
+          PY: ${{ matrix.python-version }}
+        run: |
+          uv venv --managed-python --python "$PY" --seed "$RUNNER_TEMP/venv"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - run: python -VV && python -m pip install -e ".[dev]"
+      - name: Runtime receipt (tests/test_runtimes.py skips any that are missing)
+        run: |
+          for t in go cargo node; do
+            if command -v "$t" >/dev/null 2>&1; then echo "$t: $(command -v "$t")"; else echo "$t: not installed (its runtime test will skip)"; fi
+          done
+      - name: Tests with coverage
         run: python -m pytest --cov=pawl --cov-report=term

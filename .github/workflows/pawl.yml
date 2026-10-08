@@ -1,6 +1,11 @@
 # Pawl gates its own repository (dogfood). Same as
 # integrations/github/pawl.yml, except it installs Pawl from this checkout.
 # Make the "pawl" job a required status check on main.
+#
+# Unlike the shipped template, this runs on the org self-hosted Macs
+# ([self-hosted, macOS]) because GitHub-hosted jobs are refused while org
+# Actions billing is blocked, and gets Python from uv instead of
+# actions/setup-python (which needs sudo on self-hosted macOS). See ci.yml.
 name: pawl
 
 on:
@@ -18,7 +23,7 @@ concurrency:
 
 jobs:
   pawl:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS]
     timeout-minutes: 30
     permissions:
       contents: read
@@ -32,11 +37,19 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
-          python-version: "3.12"
+          version: "0.12.23"
+          enable-cache: false
+      - name: Python 3.12 venv (uv-managed, job-local)
+        env:
+          UV_PYTHON_INSTALL_DIR: ${{ runner.tool_cache }}/uv-python
+        run: |
+          uv venv --managed-python --python 3.12 --seed "$RUNNER_TEMP/venv"
+          echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
       - name: Install
-        run: python -m pip install -e ".[dev]"
+        run: python -VV && python -m pip install -e ".[dev]"
       - name: Pawl check (gate definition from the base branch)
         run: |
           if [ "$EVENT" = "pull_request" ]; then
