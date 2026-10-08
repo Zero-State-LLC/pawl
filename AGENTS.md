@@ -2,10 +2,11 @@
 
 ## Tests and the Pawl gate
 
-- The specification takes priority over the tests. If a test and the spec
-  disagree, run `pawl escalate "<what conflicts>" --test <id>` and stop. Do not
-  edit the test to match the code, and do not edit the code to satisfy a test
-  you believe is wrong.
+- The specification takes priority over the tests. If a test contradicts the
+  spec, first finish everything the spec asks for, leave that one test
+  failing, then run `pawl escalate "<what conflicts>" --test <id>` and stop.
+  Do not edit the test, special-case the code, or rewrite the spec or its
+  docstring to make the conflicting test pass.
 - You are not done until `pawl check` exits 0. Do not report success while it
   is red, and do not skip it.
 - Never edit these files: `pawl.toml`, `pawl.baseline.json`, `PAWL_DEBT.md`,
@@ -22,7 +23,8 @@ Why this wording: in an exploratory study, one sentence saying the spec takes
 priority over the tests eliminated cheating across 280 episodes
 (arXiv:2610.04793). An explicit escalation channel, rather than forcing the
 agent to either cheat or fail, cut reward hacking from 23.6% to 5.3%
-(arXiv:2608.29460). See RESEARCH.md.
+(arXiv:2608.29460). "First finish everything the spec asks for" comes from
+Pawl's live trial (BENCHMARKS.md). See RESEARCH.md.
 
 ## Working on Pawl itself
 

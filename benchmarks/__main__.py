@@ -38,6 +38,9 @@ def main() -> int:
     results = [effectiveness.Result(**r) for r in data.get("effectiveness", [])] or None
     live_path = Path(__file__).resolve().parent / "live_trial.md"
     live = live_path.read_text(encoding="utf-8") if live_path.is_file() else ""
+    notes_path = live_path.with_name("live_trial_notes.md")
+    if live and notes_path.is_file():
+        live += "\n" + notes_path.read_text(encoding="utf-8")
     path = report.write(results, data.get("performance"), live, data.get("machine"))
     print(f"wrote {path}")
     return 0

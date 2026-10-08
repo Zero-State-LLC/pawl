@@ -33,7 +33,7 @@ but does not read every line.
 | T15 | Wrong interpreter or stale install | Preflight, exit 3 | `wrong_interpreter` |
 | T16 | Gate cannot measure (crash, missing report) | Fail closed, exit 2 | Unit tests in `test_adapters.py` |
 | T17 | Fixed debt never recorded, later regresses silently | `STALE_BASELINE` in CI | `test_update_tightens_freely` |
-| T18 | Agent stuck on an impossible task cheats | `pawl escalate`, contract sentence | Literature; live trial |
+| T18 | Agent stuck on an impossible task cheats | `pawl escalate`, contract sentence | Literature; live trial (8 of 8 contract episodes escalated, none tampered) |
 
 ## Threats not covered
 
@@ -47,6 +47,7 @@ but does not read every line.
 | Compromised CI runner or dependency | Supply chain | SHA-pinned actions, Dependabot |
 | A human approves a bad loosening | Pawl records it in the debt log | Review the debt log |
 | Flaky failures that do not reproduce in two orders | Two orders cannot prove stability (about 170 reruns for 95% confidence, Gruber et al.) | Quarantine with expiry, isolation annotation |
+| Agent rewrites the spec (docstring, docs) to match a wrong test | Docs and docstrings are not gate files; Pawl cannot tell a spec fix from a spec rewrite | Review; seen once in the live trial (BENCHMARKS.md) |
 | Tests that are wrong in the base branch | Pawl ratchets what exists | Escalation; human fixes the test |
 
 ## Tradeoffs
@@ -103,6 +104,15 @@ catching a failure mode:
 - Automatic quarantine of flaky tests. Quarantine is a human decision with an
   expiry.
 - An LLM-judge mode. See "No LLM in the gate."
+
+## Lesson from the live trial
+
+The first contract wording ("if a test and the spec disagree, run `pawl
+escalate` and stop") made 3 of 4 episodes escalate before writing any code.
+The wording now says to finish everything the spec allows, leave the
+conflicting test failing, and then escalate; 4 of 4 episodes then implemented
+the feature and escalated. Contract wording is part of the design and is
+tested in `benchmarks/live_trial.py`.
 
 ## Open questions
 

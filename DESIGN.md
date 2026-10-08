@@ -142,7 +142,9 @@ check from Baker et al. (2025).
 and tells the agent to stop. The guard blocks merge while an entry added in the
 branch is open, and blocks an agent from closing one. Studies show agents cheat
 less when they have a sanctioned way to report a broken test
-(arXiv:2608.29460).
+(arXiv:2608.29460). The contract tells the agent to finish the work the spec
+allows before escalating; without that clause, agents in the live trial
+escalated before writing any code (BENCHMARKS.md).
 
 ## Holdouts and mutation
 

@@ -28,7 +28,9 @@ All notable changes to this project are documented here. The format follows
 - Integrations for GitHub Actions, pre-commit, Claude Code, Codex, Cursor,
   Hermes, and an `AGENTS.md` contract.
 - Benchmarks (`python -m benchmarks run`) for effectiveness and performance,
-  and a live-agent trial.
+  and a live-agent trial (`python -m benchmarks.live_trial`).
+- The agent contract says to finish the possible work before escalating, based
+  on the live trial.
 
 [Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/releases/tag/v0.1.0
