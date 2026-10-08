@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - unreleased
+
+### Changed
+
+- README rewritten for PyPI readers: install with `pip install pawl-gate`,
+  absolute links only, and no references to files that are not in the
+  package. The source repository is not public; access is on request.
+- Package metadata: the project URL is now the PyPI page, because the
+  GitHub Source and Issues URLs are not reachable by the public.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added
@@ -32,5 +42,6 @@ All notable changes to this project are documented here. The format follows
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/releases/tag/v0.1.0
