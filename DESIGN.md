@@ -72,6 +72,9 @@ Pawl never reports green when it could not measure.
   must agree. If pytest exits 1 and no failure is parsed, the result is an
   error, not a pass.
 - An unknown config key is an error.
+- A metric command must exit with one of its `ok_exit_codes` (default `[0]`).
+  A crashed linter prints no findings; counting them would read 0 and look
+  like an improvement.
 
 ## Preflight
 

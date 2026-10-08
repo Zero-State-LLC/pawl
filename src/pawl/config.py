@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import shlex
 import tomllib
 from dataclasses import dataclass, field
@@ -71,6 +72,9 @@ class MetricConfig:
     extract: str
     timeout: float = 1800.0
     ci_only: bool = False
+    ok_exit_codes: tuple[int, ...] = (0,)
+    cwd: str = "."
+    tolerance: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -205,7 +209,21 @@ def _parse_metric(raw: Any, index: int) -> MetricConfig:
     where = f"metric[{index}]"
     if not isinstance(raw, dict):
         raise ConfigError(f"{where}: must be a table")
-    _check_keys(raw, {"name", "command", "direction", "extract", "timeout", "ci_only"}, where)
+    _check_keys(
+        raw,
+        {
+            "name",
+            "command",
+            "direction",
+            "extract",
+            "timeout",
+            "ci_only",
+            "ok_exit_codes",
+            "cwd",
+            "tolerance",
+        },
+        where,
+    )
     direction = _str(raw, "direction", where)
     if direction not in DIRECTIONS:
         raise ConfigError(f"{where}: direction must be 'down' or 'up'")
@@ -221,7 +239,32 @@ def _parse_metric(raw: Any, index: int) -> MetricConfig:
         extract=extract,
         timeout=float(raw.get("timeout", 1800)),
         ci_only=bool(raw.get("ci_only", False)),
+        ok_exit_codes=_exit_codes(raw.get("ok_exit_codes", [0]), where),
+        cwd=_str(raw, "cwd", where, "."),
+        tolerance=_tolerance(raw.get("tolerance", 0), where),
     )
+
+
+def _exit_codes(value: Any, where: str) -> tuple[int, ...]:
+    """Exit codes that mean the metric command ran. Any other code is an error."""
+    if (
+        not isinstance(value, list)
+        or not value
+        or not all(isinstance(v, int) and not isinstance(v, bool) for v in value)
+    ):
+        raise ConfigError(f"{where}: ok_exit_codes must be a non-empty list of integers")
+    return tuple(value)
+
+
+def _tolerance(value: Any, where: str) -> float:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
+        raise ConfigError(f"{where}: tolerance must be a finite number >= 0")
+    return float(value)
 
 
 def _parse_preflight(raw: Any) -> PreflightConfig:
