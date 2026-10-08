@@ -27,6 +27,7 @@ from typing import Any
 from pawl import __version__
 from pawl.baseline import Quarantine, parse_baseline
 from pawl.config import Config
+from pawl.contract import SCHEMA_VERSION, exit_code_for
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
 
@@ -115,10 +116,12 @@ class GuardReport:
 
     def to_json(self) -> dict[str, Any]:
         return {
+            "schema_version": SCHEMA_VERSION,
             "tool": "pawl",
             "version": __version__,
             "kind": "guard",
             "status": self.status,
+            "exit_code": exit_code_for(self.status),
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "base": self.base,
             "approved": self.approved,

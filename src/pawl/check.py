@@ -12,6 +12,7 @@ from pawl import __version__
 from pawl.adapters import SuiteRun, isolate, run_suite
 from pawl.baseline import Baseline, SuiteBaseline
 from pawl.config import Config, MetricConfig, SuiteConfig
+from pawl.contract import SCHEMA_VERSION, exit_code_for
 from pawl.metrics import measure, metric_delta
 
 MAX_LISTED = 25
@@ -62,13 +63,18 @@ class Report:
     config_source: str = ""
     error: str = ""
     approval: dict[str, Any] | None = None
+    exit_code: int | None = None  # set for preflight failures (3); else derived from status
 
     def to_json(self) -> dict[str, Any]:
         return {
+            "schema_version": SCHEMA_VERSION,
             "tool": "pawl",
             "version": __version__,
             "kind": "check",
             "status": self.status,
+            "exit_code": self.exit_code
+            if self.exit_code is not None
+            else exit_code_for(self.status),
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "config_source": self.config_source,
             "approval": self.approval,

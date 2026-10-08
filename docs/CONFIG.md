@@ -95,6 +95,8 @@ Default tests: `tests/**`, `test/**`, `**/test_*.py`, `**/*_test.py`,
 
 ## Exit codes
 
+See [JSON.md](JSON.md) for the full machine-readable contract.
+
 | Code | Meaning |
 | --- | --- |
 | 0 | Pass |

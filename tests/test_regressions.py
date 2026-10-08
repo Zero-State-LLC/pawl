@@ -206,3 +206,19 @@ def test_label_left_on_the_pr_does_not_approve_later_pushes(
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
     assert main(["--root", str(repo), "guard", "--base", "main"]) == 1
     assert main(["--root", str(repo), "check", "--trusted-ref", "main"]) == 1
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_report_exit_status_reflects_a_failed_check(tmp_path: Path) -> None:
+    """'pawl report' exited 0 even when the last check failed; there was no way
+    to gate on it. 'report --exit-status' now exits with the worst result."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _pytest_project(repo)
+    (repo / "tests" / "test_ab.py").write_text(
+        TESTS_AB.replace("def test_b():\n    assert True", "def test_b():\n    assert False"),
+        encoding="utf-8",
+    )
+    assert main(["--root", str(repo), "check"]) == 1
+    assert main(["--root", str(repo), "report", "--exit-status"]) == 1
+    assert main(["--root", str(repo), "report"]) == 0  # the renderer default is unchanged
