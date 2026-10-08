@@ -39,7 +39,7 @@ jobs:
           python -m pip install --upgrade pip
           # Replace with your project's install step so tests can import it.
           if [ -f pyproject.toml ]; then pip install -e .; fi
-          pip install "pawl-gate @ git+https://github.com/Zero-State-LLC/pawl@v0.1.0"
+          pip install "pawl-gate==0.1.1"
       - name: Pawl check (gate definition from the base branch)
         run: |
           if [ "$EVENT" = "pull_request" ]; then

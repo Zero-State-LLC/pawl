@@ -2,10 +2,10 @@
 
 **Code can only move forward.**
 
-[![CI](https://github.com/Zero-State-LLC/pawl/actions/workflows/ci.yml/badge.svg)](https://github.com/Zero-State-LLC/pawl/actions/workflows/ci.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
-[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
-[![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen)](pyproject.toml)
+[![PyPI](https://img.shields.io/pypi/v/pawl-gate)](https://pypi.org/project/pawl-gate/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://pypi.org/project/pawl-gate/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-green)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen)](https://pypi.org/project/pawl-gate/)
 
 Pawl is a ratchet gate for automated coding work. A change passes only if no
 test that passed now fails, no test disappeared or got skipped, and nobody
@@ -37,12 +37,12 @@ $ pawl guard --base main --replay
   - `tests/test_calc.py::test_add_negative`
 ```
 
-(Real output from `examples/demo`; run `examples/run_demo.sh` to see it.)
+(Real output from the demo project in the Pawl source repository.)
 
 ## Quick start
 
 ```bash
-pip install "pawl-gate @ git+https://github.com/Zero-State-LLC/pawl@v0.1.0"
+pip install pawl-gate
 pawl init --github      # detects pytest, jest, vitest, go, or cargo
 git add pawl.toml pawl.baseline.json PAWL_DEBT.md .github/workflows/pawl.yml
 git commit -m "Add Pawl ratchet gate"
@@ -50,13 +50,11 @@ git commit -m "Add Pawl ratchet gate"
 
 `pawl init` writes `pawl.toml`, runs your suite in two orders, records the
 baseline, and (with `--github`) writes a workflow. Then make the `pawl` job a
-required status check and add CODEOWNERS for the gate files
-([docs/REPO_SETTINGS.md](docs/REPO_SETTINGS.md)).
+required status check and add CODEOWNERS for the gate files.
 
-While this repository is private, installing from Git needs credentials
-(for example a fine-grained read-only token in CI). The package is named
-`pawl-gate` because `pawl` is taken on PyPI. The import
-and the command are `pawl`.
+The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
+and the command are `pawl`. It needs Python 3.11 or newer and has no runtime
+dependencies.
 
 ## How it works
 
@@ -99,13 +97,12 @@ The authority is CI, not the agent's machine. In CI, `pawl check` loads
 base and branch baselines, so a branch cannot lower its own bar. `pawl guard`
 blocks changes to gate files unless a human adds the `pawl-approved` label.
 Harness hooks give the agent the same answer earlier, but they run where the
-agent can edit them, so they are a convenience. See
-[docs/RECOMMENDATION.md](docs/RECOMMENDATION.md).
+agent can edit them, so they are a convenience.
 
 ## Results
 
 On a synthetic corpus of 19 agent cheats and 6 clean changes, run against a
-project with one known failing test ([BENCHMARKS.md](BENCHMARKS.md)):
+project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
 | --- | --- | --- |
@@ -123,31 +120,35 @@ In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once
 and rewrote the spec docstring once. Pawl's stop hook and CI gate caught the
 test edit and missed the docstring rewrite. With the contract, all 8 episodes
-left the impossible test alone and escalated; none tampered. Details and
-limits are in [BENCHMARKS.md](BENCHMARKS.md).
+left the impossible test alone and escalated; none tampered.
 
 ## Documentation
 
-- [docs/WHY_PAWL.md](docs/WHY_PAWL.md): who it is for and how it compares.
-- [docs/CONFIG.md](docs/CONFIG.md): every `pawl.toml` key.
-- [DESIGN.md](DESIGN.md): how it works and why.
-- [RESEARCH.md](RESEARCH.md): the literature behind each mechanism.
-- [docs/ARCHITECTURE_REVIEW.md](docs/ARCHITECTURE_REVIEW.md): threats covered
-  and not covered.
-- [docs/RECOMMENDATION.md](docs/RECOMMENDATION.md): where enforcement lives,
-  and migrating from the Abraxas ratchet script.
-- [integrations/](integrations/): Claude Code, Codex, Cursor, Hermes, GitHub
-  Actions, pre-commit, and an `AGENTS.md` contract.
+Run `pawl --help` and `pawl <command> --help` for usage. The Pawl source
+repository is not public; access to it, including the full documentation
+below, is available on request:
+
+- Why Pawl: who it is for and how it compares.
+- Configuration reference: every `pawl.toml` key.
+- Design notes: how it works and why.
+- Research notes: the literature behind each mechanism.
+- Architecture review: threats covered and not covered.
+- Recommendation: where enforcement lives, and migrating from the Abraxas
+  ratchet script.
+- Benchmarks: methods, results, and limits.
+- Integrations: Claude Code, Codex, Cursor, Hermes, GitHub Actions,
+  pre-commit, and an `AGENTS.md` contract.
 
 ## Credits
 
 - The Abraxas `test_ratchet.sh` script, which Pawl generalizes.
 - ImpossibleBench (Zhong, Raghunathan, Carlini), EvilGenie, METR's reward
-  hacking reports, and the papers in [RESEARCH.md](RESEARCH.md).
+  hacking reports, and the papers in the research notes.
 - Ratchet tools that came first: Betterer, ESLint bulk suppressions,
   basedpyright baselines, mypy-baseline, and ratchet-gate.
 - A pawl is the hinged catch that lets a ratchet wheel turn one way only.
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0. The license text ships with the package; see also
+<https://www.apache.org/licenses/LICENSE-2.0>.
