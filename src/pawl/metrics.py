@@ -1,0 +1,55 @@
+"""Generic numeric metrics: lint counts, type errors, coverage, architecture violations."""
+
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+from pawl.config import MetricConfig
+from pawl.errors import ParseError
+from pawl.runner import run
+
+
+def extract(metric: MetricConfig, stdout: str, stderr: str) -> float:
+    """Extract one number from command output. No match is an error, never zero."""
+    spec = metric.extract
+    text = stdout + "\n" + stderr
+    if spec == "count-lines":
+        return float(sum(1 for line in stdout.splitlines() if line.strip()))
+    if spec.startswith("count-regex:"):
+        return float(len(re.findall(spec.split(":", 1)[1], text, flags=re.MULTILINE)))
+    if spec.startswith("regex:"):
+        pattern = spec.split(":", 1)[1]
+        matches = re.findall(pattern, text, flags=re.MULTILINE)
+        if not matches:
+            raise ParseError(f"metric {metric.name}: pattern {pattern!r} matched nothing")
+        last = matches[-1]
+        value = last if isinstance(last, str) else last[0]
+        try:
+            return float(value)
+        except ValueError as exc:
+            raise ParseError(f"metric {metric.name}: {value!r} is not a number") from exc
+    if spec.startswith("json:"):
+        try:
+            node: object = json.loads(stdout)
+        except json.JSONDecodeError as exc:
+            raise ParseError(f"metric {metric.name}: output is not JSON") from exc
+        for key in spec.split(":", 1)[1].split("."):
+            if key == "length()" and isinstance(node, list):
+                node = len(node)
+            elif isinstance(node, dict) and key in node:
+                node = node[key]
+            elif isinstance(node, list) and key.isdigit() and int(key) < len(node):
+                node = node[int(key)]
+            else:
+                raise ParseError(f"metric {metric.name}: JSON path {spec} not found")
+        if not isinstance(node, (int, float)) or isinstance(node, bool):
+            raise ParseError(f"metric {metric.name}: JSON value is not a number")
+        return float(node)
+    raise ParseError(f"metric {metric.name}: unknown extract {spec}")
+
+
+def measure(metric: MetricConfig, root: Path) -> float:
+    done = run(metric.command, root, metric.timeout)
+    return extract(metric, done.stdout, done.stderr)

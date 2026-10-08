@@ -1,0 +1,22 @@
+# Pawl gate for the demo project. Changes here need human approval.
+[pawl]
+baseline = "pawl.baseline.json"
+debt_log = "PAWL_DEBT.md"
+lock_in_ci = true
+
+[[suite]]
+name = "tests"
+adapter = "pytest"
+command = ["python", "-m", "pytest", "tests", "-q"]
+identity = "ids"
+check_orders = 2
+
+[[suite]]
+name = "holdout"
+adapter = "pytest"
+command = ["python", "-m", "pytest", "holdout", "-q"]
+ci_only = true
+
+[preflight]
+python = "python"
+imports = [{ module = "calc", expect_under = "." }]

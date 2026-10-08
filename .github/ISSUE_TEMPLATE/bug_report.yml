@@ -1,0 +1,30 @@
+name: Bug report
+description: Pawl did the wrong thing.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command you ran, the output, and the exit code.
+      render: console
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versions
+      description: Output of `pawl --version`, Python version, and test runner version.
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: pawl.toml
+      render: toml

@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# Benchmark port of the Abraxas scripts/test_ratchet.sh ratchet (Abraxas repo, 2026-10).
+# Changes from the original, all mechanical: the baselines are template values, the
+# preflight probes "calc" instead of "core", and the pytest command runs the demo's
+# tests/ directory. "-v" stands in for the "-v" that Abraxas sets in pytest addopts;
+# without it pytest -q prints no "collected N items" line and the floor reads 0.
+# Fails if the test suite regresses past the recorded baselines.
+#
+# TWO baselines live here, so CI and humans read the same numbers:
+#
+#   BASELINE_FAILURES   may only ever DECREASE. Lower it in the same commit that fixes
+#                       a cluster. Mirrors tests/test_coupling_lint.py
+#                       (MAX_ALLOWED_VIOLATIONS).
+#
+#   BASELINE_COLLECTED  may only ever INCREASE. Raise it when tests are added.
+#                       A DROP means tests stopped being COLLECTED -- which produces no
+#                       FAILED and no ERROR line, so BASELINE_FAILURES cannot see it.
+#                       Without this floor a whole module can silently stop running
+#                       and the ratchet still reports OK.
+#
+# See docs/TEST_DEBT.md for the cluster breakdown behind the current numbers.
+#
+# Usage: bash scripts/test_ratchet.sh
+set -uo pipefail
+
+BASELINE_FAILURES=@FAILURES@
+# Collected total (passed + xfailed + deselected), NOT the passed count -- read it off
+# the "collected N items" line, not the summary line. Take that line VERBATIM: the summary's
+# passed+skipped+xfailed does NOT reconcile with it (measured: 3504 passed, 4 skipped, 9 xfailed
+# vs collected 3515 items). Raise the floor when tests are added; never lower it
+# without saying why.
+BASELINE_COLLECTED=@COLLECTED@
+OUT="$(mktemp)"
+RETRY="$(mktemp)"
+
+cd "$(dirname "$0")/.." || exit 2
+
+# ---------------------------------------------------------------------------
+# Preflight: confirm `core` resolves to THIS repo.
+#
+# `core/` here is a NAMESPACE package (no __init__.py). A stale editable install
+# (abraxas-v2) puts another checkout on sys.path whose `core/` is a REGULAR package,
+# and a regular package beats a namespace portion regardless of sys.path order. On
+# such an interpreter every `import core.*` resolves into that other checkout and 28
+# test modules fail to collect with a bare ModuleNotFoundError -- which reads like a
+# broken repo rather than the wrong interpreter.
+#
+# The check compares each candidate search location against <repo>/core, which works
+# for namespace packages too (their `origin` is None, so checking `origin` would be
+# wrong here).
+# ---------------------------------------------------------------------------
+if ! python -c '
+import importlib.util as u, os, sys
+s = u.find_spec("calc")
+locs = [os.path.realpath(p) for p in (s.submodule_search_locations or [])] if s else []
+want = os.path.realpath(os.path.join(os.getcwd(), "calc"))
+sys.exit(0 if want in locs else 1)
+'
+then
+  echo "PREFLIGHT FAILED: wrong interpreter." >&2
+  echo "  'core' does not resolve to <repo>/core on this python." >&2
+  echo "  Use the Hermes toolchain interpreter (bare 'python' on this host):" >&2
+  echo "    ~/.hermes/tools/python-*/bin/python3" >&2
+  exit 1
+fi
+
+# NOTE: `abraxas/evidence/` is included because CI's "Run core tests" step names those five files
+# explicitly and this gate did not run them. On 2026-10-07 a real regression shipped through that gap:
+# `noesis`'s `produce_evidence` was changed to return the canonical `EvidenceEnvelope` (the correct fix
+# -- it had returned a bare dict), which broke `abraxas/evidence/test_noesis_q1.py`, whose assertions
+# subscripted the result. The ratchet stayed green because it never looked there; CI went red on main.
+# A gate that does not cover what CI covers is not a gate.
+python -m pytest tests/ -q -v --no-header -p no:cacheprovider > "$OUT" 2>&1
+
+failures=$(grep -cE '^(FAILED|ERROR) ' "$OUT")
+collected=$(grep -oE 'collected [0-9]+ items' "$OUT" | grep -oE '[0-9]+' | head -1)
+collected=${collected:-0}
+summary=$(tail -1 "$OUT")
+
+echo "$summary"
+echo "failures=$failures baseline=$BASELINE_FAILURES  collected=$collected floor=$BASELINE_COLLECTED"
+
+status=0
+
+if [ "$failures" -gt "$BASELINE_FAILURES" ]; then
+  echo "REGRESSION: $failures failures exceeds baseline $BASELINE_FAILURES" >&2
+  grep -E '^(FAILED|ERROR) ' "$OUT" >&2
+
+  # Diagnostic: a failure that PASSES when run alone is not a reproducible regression.
+  # That fingerprint means shared mutable state -- most often a concurrent suite run in
+  # the same working tree touching out/, data/ or .aal/ -- or a collection-order
+  # dependency. Report which kind of red this is.
+  #
+  # This ANNOTATES only. The run still fails closed below; it must never turn a red run
+  # green. Node-ids are collected into an array (not word-split) because parametrized
+  # ids can contain spaces. Capped at 10 so a broad breakage cannot stall the ratchet.
+  nids=0
+  while IFS= read -r _nid; do
+    [ -n "$_nid" ] || continue
+    ids[$nids]="$_nid"
+    nids=$((nids + 1))
+  done < <(grep -E '^FAILED ' "$OUT" | awk '{print $2}' | head -10)
+
+  if [ "$nids" -gt 0 ]; then
+    echo "--- re-running $nids failed node-id(s) in isolation ---" >&2
+    if python -m pytest "${ids[@]}" -q -p no:cacheprovider > "$RETRY" 2>&1; then
+      echo "NOTE: every failed node-id PASSES in isolation. This is NOT a reproducible" >&2
+      echo "      regression -- suspect a concurrent run, or shared out/ state. Re-run" >&2
+      echo "      with nothing else using this working tree before treating it as real." >&2
+    else
+      echo "NOTE: the failure REPRODUCES in isolation -- this is a real regression." >&2
+      tail -3 "$RETRY" >&2
+    fi
+  fi
+
+  status=1
+fi
+
+if [ "$collected" -lt "$BASELINE_COLLECTED" ]; then
+  echo "COLLECTION DROP: $collected collected is below the floor $BASELINE_COLLECTED" >&2
+  echo "  Tests stopped being collected. That yields no FAILED/ERROR line, so the" >&2
+  echo "  failure ratchet cannot detect it. Check for a concurrent writer in this" >&2
+  echo "  working tree, a collection error, or a test file that was removed/renamed." >&2
+  echo "  If tests were legitimately removed, lower BASELINE_COLLECTED in the same" >&2
+  echo "  commit and say why." >&2
+  status=1
+fi
+
+if [ "$status" -eq 0 ]; then
+  echo "OK: within baseline"
+fi
+exit "$status"

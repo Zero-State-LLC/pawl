@@ -1,0 +1,11 @@
+# Merge into the Hermes profile config.yaml. Reference: hooks.md under
+# website/docs/user-guide/features/ in the hermes-agent repository.
+hooks:
+  pre_tool_call:
+    - matcher: "terminal|write_file|patch|execute_code"
+      command: "python3 -m pawl hook protect --format hermes"
+      timeout: 10
+      fail_closed: true
+  pre_verify:
+    - command: "python3 -m pawl hook stop --format hermes --base origin/main"
+      timeout: 300

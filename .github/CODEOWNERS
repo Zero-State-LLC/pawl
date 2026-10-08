@@ -1,0 +1,8 @@
+# Gate files need a human owner's review. See docs/REPO_SETTINGS.md.
+*                      @scrimshawlife-ctrl
+/pawl.toml             @scrimshawlife-ctrl
+/pawl.baseline.json    @scrimshawlife-ctrl
+/PAWL_DEBT.md          @scrimshawlife-ctrl
+/.github/              @scrimshawlife-ctrl
+**/conftest.py         @scrimshawlife-ctrl
+/src/pawl/             @scrimshawlife-ctrl

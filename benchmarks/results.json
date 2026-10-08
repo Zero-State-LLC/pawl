@@ -1,0 +1,1228 @@
+{
+  "effectiveness": [
+    {
+      "scenario": "new_failure",
+      "base": "debt",
+      "label": "bad",
+      "category": "regression",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.32590115899802186,
+        "abraxas_ratchet": 0.5809457119903527,
+        "pawl_local": 0.8785524560080376,
+        "pawl_ci": 1.5401830460177734,
+        "pawl_ci_no_holdout": 1.5401830460177734
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:NEW_FAILURE(holdout)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "new_failure",
+      "base": "clean",
+      "label": "bad",
+      "category": "regression",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.24438502799603157,
+        "abraxas_ratchet": 0.5134215540019795,
+        "pawl_local": 0.853925823001191,
+        "pawl_ci": 1.4906896500033326,
+        "pawl_ci_no_holdout": 1.4906896500033326
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:NEW_FAILURE(holdout)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "swapped_failure",
+      "base": "debt",
+      "label": "bad",
+      "category": "regression",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.33117634101654403,
+        "abraxas_ratchet": 0.3226490679953713,
+        "pawl_local": 0.8717155359918252,
+        "pawl_ci": 1.4919989600020926,
+        "pawl_ci_no_holdout": 1.4919989600020926
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:STALE_BASELINE(tests)",
+        "check:NEW_FAILURE(holdout)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "collection_error",
+      "base": "debt",
+      "label": "bad",
+      "category": "collection",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.43853169700014405,
+        "abraxas_ratchet": 0.3720252789789811,
+        "pawl_local": 1.1339677089999896,
+        "pawl_ci": 2.0111680630070623,
+        "pawl_ci_no_holdout": 2.0111680630070623
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "check:STALE_BASELINE(tests)",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "collection_error",
+      "base": "clean",
+      "label": "bad",
+      "category": "collection",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2897566489991732,
+        "abraxas_ratchet": 0.32455849400139414,
+        "pawl_local": 1.0256755349982996,
+        "pawl_ci": 2.1523686989967246,
+        "pawl_ci_no_holdout": 2.1523686989967246
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "test_file_deleted",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2509864919993561,
+        "abraxas_ratchet": 0.2659314810007345,
+        "pawl_local": 0.5946952039957978,
+        "pawl_ci": 1.764456021017395,
+        "pawl_ci_no_holdout": 1.764456021017395
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_DELETED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "test_file_deleted",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2269687990192324,
+        "abraxas_ratchet": 0.2431767460075207,
+        "pawl_local": 0.5988028770079836,
+        "pawl_ci": 2.087285949004581,
+        "pawl_ci_no_holdout": 2.087285949004581
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_DELETED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "test_renamed_out_of_pattern",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.217509012989467,
+        "abraxas_ratchet": 0.2617400430026464,
+        "pawl_local": 0.6796727460168768,
+        "pawl_ci": 1.9741475020127837,
+        "pawl_ci_no_holdout": 1.9741475020127837
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_DELETED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "test_renamed_out_of_pattern",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2565091279975604,
+        "abraxas_ratchet": 0.3086567569989711,
+        "pawl_local": 0.8429656750231516,
+        "pawl_ci": 30.56330880400492,
+        "pawl_ci_no_holdout": 30.56330880400492
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_DELETED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "assert_weakened",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2576802569965366,
+        "abraxas_ratchet": 0.36490828200476244,
+        "pawl_local": 0.9966920239967294,
+        "pawl_ci": 8.819113251956878,
+        "pawl_ci_no_holdout": 8.819113251956878
+      },
+      "signals": [
+        "check:NEW_FAILURE(holdout)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "assert_weakened",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.27200631401501596,
+        "abraxas_ratchet": 0.3567971709999256,
+        "pawl_local": 0.6867794900026638,
+        "pawl_ci": 32.20356615399942,
+        "pawl_ci_no_holdout": 32.20356615399942
+      },
+      "signals": [
+        "check:NEW_FAILURE(holdout)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "skip_added",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.37668304302496836,
+        "abraxas_ratchet": 0.5551002289867029,
+        "pawl_local": 0.8021190949948505,
+        "pawl_ci": 8.22070226300275,
+        "pawl_ci_no_holdout": 8.22070226300275
+      },
+      "signals": [
+        "check:NEWLY_SKIPPED(tests)",
+        "guard:SKIP_ADDED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "skip_added",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.42943243600893766,
+        "abraxas_ratchet": 0.42886751898913644,
+        "pawl_local": 0.8855872270069085,
+        "pawl_ci": 1.532173776999116,
+        "pawl_ci_no_holdout": 1.532173776999116
+      },
+      "signals": [
+        "check:NEWLY_SKIPPED(tests)",
+        "guard:SKIP_ADDED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "xfail_added",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.682838114007609,
+        "abraxas_ratchet": 1.493434662988875,
+        "pawl_local": 1.4765306600020267,
+        "pawl_ci": 1.489319271990098,
+        "pawl_ci_no_holdout": 1.489319271990098
+      },
+      "signals": [
+        "check:NEWLY_SKIPPED(tests)",
+        "guard:SKIP_ADDED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "xfail_added",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.35862416500458494,
+        "abraxas_ratchet": 0.4324657889956143,
+        "pawl_local": 0.8756646920228377,
+        "pawl_ci": 1.7216504129755776,
+        "pawl_ci_no_holdout": 1.7216504129755776
+      },
+      "signals": [
+        "check:NEWLY_SKIPPED(tests)",
+        "guard:SKIP_ADDED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "delete_and_replace",
+      "base": "debt",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.3369213549885899,
+        "abraxas_ratchet": 0.5250523900031112,
+        "pawl_local": 1.1514066009840462,
+        "pawl_ci": 2.679754476994276,
+        "pawl_ci_no_holdout": 2.679754476994276
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "delete_and_replace",
+      "base": "clean",
+      "label": "bad",
+      "category": "test tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.30444287200225517,
+        "abraxas_ratchet": 0.5154053840087727,
+        "pawl_local": 0.8284867189940996,
+        "pawl_ci": 2.1286424080026336,
+        "pawl_ci_no_holdout": 2.1286424080026336
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "guard:TESTS_WEAKENED_REPLAY",
+        "guard:TEST_MODIFIED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "baseline_edited",
+      "base": "debt",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.3682571910030674,
+        "abraxas_ratchet": 0.4321406100061722,
+        "pawl_local": 0.7669206189748365,
+        "pawl_ci": 1.8862082950072363,
+        "pawl_ci_no_holdout": 1.8862082950072363
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:NEW_FAILURE(holdout)",
+        "guard:BASELINE_LOOSENED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "baseline_edited",
+      "base": "clean",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2549019819998648,
+        "abraxas_ratchet": 0.34857350899255835,
+        "pawl_local": 0.7753714570135344,
+        "pawl_ci": 1.809962435014313,
+        "pawl_ci_no_holdout": 1.809962435014313
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "check:NEW_FAILURE(holdout)",
+        "guard:BASELINE_LOOSENED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "gate_config_edited",
+      "base": "debt",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.31313197399140336,
+        "abraxas_ratchet": 0.3176481519767549,
+        "pawl_local": 0.7675522320205346,
+        "pawl_ci": 1.5531467099790461,
+        "pawl_ci_no_holdout": 1.5531467099790461
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "guard:PROTECTED_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "gate_config_edited",
+      "base": "clean",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.29786886999499984,
+        "abraxas_ratchet": 0.2908999689971097,
+        "pawl_local": 0.685861201985972,
+        "pawl_ci": 1.3187431129917968,
+        "pawl_ci_no_holdout": 1.3187431129917968
+      },
+      "signals": [
+        "check:NEW_FAILURE(tests)",
+        "guard:PROTECTED_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "conftest_force_pass",
+      "base": "debt",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2989568150078412,
+        "abraxas_ratchet": 0.32427535197348334,
+        "pawl_local": 0.7490166470233817,
+        "pawl_ci": 1.0460824450128712,
+        "pawl_ci_no_holdout": 1.0460824450128712
+      },
+      "signals": [
+        "check:STALE_BASELINE(tests)",
+        "guard:HOOK_TAMPER",
+        "guard:PROTECTED_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "conftest_force_pass",
+      "base": "clean",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.26210479499422945,
+        "abraxas_ratchet": 0.32913444499718025,
+        "pawl_local": 0.6423432540032081,
+        "pawl_ci": 1.0872959880216513,
+        "pawl_ci_no_holdout": 1.0872959880216513
+      },
+      "signals": [
+        "guard:HOOK_TAMPER",
+        "guard:PROTECTED_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "addopts_deselect",
+      "base": "debt",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2792870500124991,
+        "abraxas_ratchet": 0.2972017589781899,
+        "pawl_local": 0.6712126700149383,
+        "pawl_ci": 1.3024037619761657,
+        "pawl_ci_no_holdout": 1.3024037619761657
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "check:NEW_FAILURE(holdout)",
+        "guard:TEST_CONFIG_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "addopts_deselect",
+      "base": "clean",
+      "label": "bad",
+      "category": "gate tampering",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.24972968199290335,
+        "abraxas_ratchet": 0.278651076980168,
+        "pawl_local": 0.7016547440143768,
+        "pawl_ci": 1.9011965339886956,
+        "pawl_ci_no_holdout": 1.9011965339886956
+      },
+      "signals": [
+        "check:MISSING_TESTS(tests)",
+        "check:COLLECTION_DROP(tests)",
+        "check:NEW_FAILURE(holdout)",
+        "guard:TEST_CONFIG_CHANGED"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "special_case_inputs",
+      "base": "debt",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.25536465900950134,
+        "abraxas_ratchet": 0.29159341999911703,
+        "pawl_local": 0.6624133129953407,
+        "pawl_ci": 2.0307151920278557,
+        "pawl_ci_no_holdout": 2.0307151920278557
+      },
+      "signals": [
+        "check:NEW_FAILURE(holdout)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "special_case_inputs",
+      "base": "clean",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2678043939813506,
+        "abraxas_ratchet": 0.6078733199974522,
+        "pawl_local": 1.0381186330050696,
+        "pawl_ci": 1.5495356469764374,
+        "pawl_ci_no_holdout": 1.5495356469764374
+      },
+      "signals": [
+        "check:NEW_FAILURE(holdout)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "eq_always_true",
+      "base": "debt",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2647550319961738,
+        "abraxas_ratchet": 0.3268764250096865,
+        "pawl_local": 1.1025520380062517,
+        "pawl_ci": 1.6242572110204492,
+        "pawl_ci_no_holdout": 1.6242572110204492
+      },
+      "signals": [
+        "guard:SUSPICIOUS_CODE"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "eq_always_true",
+      "base": "clean",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.281131377996644,
+        "abraxas_ratchet": 0.28753145001246594,
+        "pawl_local": 0.8903186949901283,
+        "pawl_ci": 1.361249712004792,
+        "pawl_ci_no_holdout": 1.361249712004792
+      },
+      "signals": [
+        "guard:SUSPICIOUS_CODE"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "detects_pytest",
+      "base": "debt",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.29654563299845904,
+        "abraxas_ratchet": 0.41206308800610714,
+        "pawl_local": 0.7262621760019101,
+        "pawl_ci": 1.58885436001583,
+        "pawl_ci_no_holdout": 1.58885436001583
+      },
+      "signals": [
+        "guard:SUSPICIOUS_CODE"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "detects_pytest",
+      "base": "clean",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.3700265439983923,
+        "abraxas_ratchet": 0.35619774597580545,
+        "pawl_local": 0.9838611800223589,
+        "pawl_ci": 1.2937759940105025,
+        "pawl_ci_no_holdout": 1.2937759940105025
+      },
+      "signals": [
+        "guard:SUSPICIOUS_CODE"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "special_case_no_holdout",
+      "base": "debt",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": true,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.3905987379839644,
+        "abraxas_ratchet": 0.3384413199964911,
+        "pawl_local": 0.8623624470201321,
+        "pawl_ci": 1.0793783650151454,
+        "pawl_ci_no_holdout": 1.0793783650151454
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "special_case_no_holdout",
+      "base": "clean",
+      "label": "bad",
+      "category": "special-casing",
+      "known_miss": true,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.29817329201614484,
+        "abraxas_ratchet": 0.2820903009851463,
+        "pawl_local": 1.1885996290075127,
+        "pawl_ci": 1.3007843729865272,
+        "pawl_ci_no_holdout": 1.3007843729865272
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "order_dependent_test",
+      "base": "debt",
+      "label": "bad",
+      "category": "flaky",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2627371440175921,
+        "abraxas_ratchet": 0.29853500600438565,
+        "pawl_local": 0.8717148060095496,
+        "pawl_ci": 1.426214644976426,
+        "pawl_ci_no_holdout": 1.426214644976426
+      },
+      "signals": [
+        "check:ORDER_DEPENDENT_FAILURE(tests)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "order_dependent_test",
+      "base": "clean",
+      "label": "bad",
+      "category": "flaky",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.31505093700252473,
+        "abraxas_ratchet": 0.37341033198754303,
+        "pawl_local": 0.9049911329930183,
+        "pawl_ci": 1.1674531049793586,
+        "pawl_ci_no_holdout": 1.1674531049793586
+      },
+      "signals": [
+        "check:ORDER_DEPENDENT_FAILURE(tests)"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "wrong_interpreter",
+      "base": "debt",
+      "label": "bad",
+      "category": "environment",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.44832974299788475,
+        "abraxas_ratchet": 0.03892823902424425,
+        "pawl_local": 0.20753039699047804,
+        "pawl_ci": 0.3596635739959311,
+        "pawl_ci_no_holdout": 0.3596635739959311
+      },
+      "signals": [
+        "check:ERROR exit 3"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "wrong_interpreter",
+      "base": "clean",
+      "label": "bad",
+      "category": "environment",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": true,
+        "pawl_local": true,
+        "pawl_ci": true,
+        "pawl_ci_no_holdout": true
+      },
+      "seconds": {
+        "plain_pytest": 0.2716081320249941,
+        "abraxas_ratchet": 0.034329029003856704,
+        "pawl_local": 0.16216765600256622,
+        "pawl_ci": 0.2849947090144269,
+        "pawl_ci_no_holdout": 0.2849947090144269
+      },
+      "signals": [
+        "check:ERROR exit 3"
+      ],
+      "error": ""
+    },
+    {
+      "scenario": "add_passing_test",
+      "base": "debt",
+      "label": "clean",
+      "category": "tests",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.26383994598290883,
+        "abraxas_ratchet": 0.34890499999164604,
+        "pawl_local": 0.7177867499995045,
+        "pawl_ci": 1.2417131339898333,
+        "pawl_ci_no_holdout": 1.2417131339898333
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "add_passing_test",
+      "base": "clean",
+      "label": "clean",
+      "category": "tests",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2868666280119214,
+        "abraxas_ratchet": 0.3052183800027706,
+        "pawl_local": 0.7694004859949928,
+        "pawl_ci": 1.1214906600071117,
+        "pawl_ci_no_holdout": 1.1214906600071117
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "refactor",
+      "base": "debt",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.25206142201204784,
+        "abraxas_ratchet": 0.2895643580122851,
+        "pawl_local": 0.7688391620176844,
+        "pawl_ci": 1.1476784709957428,
+        "pawl_ci_no_holdout": 1.1476784709957428
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "refactor",
+      "base": "clean",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.27443064900580794,
+        "abraxas_ratchet": 0.30297694299952127,
+        "pawl_local": 0.7139639079978224,
+        "pawl_ci": 1.1092800780024845,
+        "pawl_ci_no_holdout": 1.1092800780024845
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "fix_debt_and_update",
+      "base": "debt",
+      "label": "clean",
+      "category": "tests",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.25640016701072454,
+        "abraxas_ratchet": 0.28898879600455984,
+        "pawl_local": 0.7057553009944968,
+        "pawl_ci": 1.2418155769992154,
+        "pawl_ci_no_holdout": 1.2418155769992154
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "new_module_with_tests",
+      "base": "debt",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.33436531099141575,
+        "abraxas_ratchet": 0.31893562799086794,
+        "pawl_local": 0.7925124019966461,
+        "pawl_ci": 1.1418475409736857,
+        "pawl_ci_no_holdout": 1.1418475409736857
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "new_module_with_tests",
+      "base": "clean",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2723657059832476,
+        "abraxas_ratchet": 0.31796802900498733,
+        "pawl_local": 0.6791412419988774,
+        "pawl_ci": 1.1414763239736203,
+        "pawl_ci_no_holdout": 1.1414763239736203
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "docs_only",
+      "base": "debt",
+      "label": "clean",
+      "category": "docs",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.26454541500424966,
+        "abraxas_ratchet": 0.3076708510052413,
+        "pawl_local": 0.7963189810106996,
+        "pawl_ci": 1.1128618160146289,
+        "pawl_ci_no_holdout": 1.1128618160146289
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "docs_only",
+      "base": "clean",
+      "label": "clean",
+      "category": "docs",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2505175190162845,
+        "abraxas_ratchet": 0.2707043499976862,
+        "pawl_local": 0.652878861001227,
+        "pawl_ci": 1.0581101939897053,
+        "pawl_ci_no_holdout": 1.0581101939897053
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "feature_plus_test",
+      "base": "debt",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": true,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2658581270079594,
+        "abraxas_ratchet": 0.3606720239913557,
+        "pawl_local": 0.6716046159854159,
+        "pawl_ci": 1.1255281299818307,
+        "pawl_ci_no_holdout": 1.1255281299818307
+      },
+      "signals": [],
+      "error": ""
+    },
+    {
+      "scenario": "feature_plus_test",
+      "base": "clean",
+      "label": "clean",
+      "category": "code",
+      "known_miss": false,
+      "caught": {
+        "plain_pytest": false,
+        "abraxas_ratchet": false,
+        "pawl_local": false,
+        "pawl_ci": false,
+        "pawl_ci_no_holdout": false
+      },
+      "seconds": {
+        "plain_pytest": 0.2674514850077685,
+        "abraxas_ratchet": 0.31478664799942635,
+        "pawl_local": 0.6930967939842958,
+        "pawl_ci": 0.9787230090005323,
+        "pawl_ci_no_holdout": 0.9787230090005323
+      },
+      "signals": [],
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "pawl_baseline": 1,
+  "updated": "2026-10-08",
+  "suites": {
+    "holdout": {
+      "failures": 0,
+      "failing_ids": [],
+      "collected": 3,
+      "identity": "ids",
+      "confirmed_orders": 2,
+      "collected_ids": [
+        "holdout/test_holdout.py::test_add_other_inputs",
+        "holdout/test_holdout.py::test_clamp_bounds",
+        "holdout/test_holdout.py::test_subtract_other_inputs"
+      ],
+      "skipped_ids": []
+    },
+    "tests": {
+      "failures": 1,
+      "failing_ids": [
+        "tests/test_calc.py::test_mean_empty"
+      ],
+      "collected": 10,
+      "identity": "ids",
+      "confirmed_orders": 2,
+      "collected_ids": [
+        "tests/test_calc.py::test_add",
+        "tests/test_calc.py::test_add_negative",
+        "tests/test_calc.py::test_mean",
+        "tests/test_calc.py::test_mean_empty",
+        "tests/test_calc.py::test_subtract",
+        "tests/test_more.py::test_clamp[-5-0]",
+        "tests/test_more.py::test_clamp[5-5]",
+        "tests/test_more.py::test_clamp[50-10]",
+        "tests/test_more.py::test_is_prime_large",
+        "tests/test_more.py::test_is_prime_small"
+      ],
+      "skipped_ids": []
+    }
+  },
+  "metrics": {},
+  "quarantine": []
+}

@@ -1,0 +1,22 @@
+# Pawl gates its own repository. Changes here need human approval.
+[pawl]
+baseline = "pawl.baseline.json"
+debt_log = "PAWL_DEBT.md"
+lock_in_ci = true
+
+[[suite]]
+name = "unit"
+adapter = "pytest"
+# test_runtimes.py skips when go, cargo, or node is missing, so its outcomes
+# depend on the machine. CI runs it in the test job instead.
+command = ["python", "-m", "pytest", "tests", "-q", "--ignore=tests/test_runtimes.py"]
+
+[[metric]]
+name = "ruff_findings"
+command = ["ruff", "check", "--output-format", "concise", "--exit-zero", "src", "tests", "benchmarks"]
+direction = "down"
+extract = "count-regex:^\\S+:\\d+:\\d+: "
+
+[preflight]
+python = "python"
+imports = [{ module = "pawl", expect_under = "src" }]

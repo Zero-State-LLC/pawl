@@ -1,0 +1,16 @@
+name: Missed cheat (non-security)
+description: A known-limit bypass or a cheat Pawl should catch. Report exploitable bypasses privately (see SECURITY.md).
+labels: [detection]
+body:
+  - type: textarea
+    id: cheat
+    attributes:
+      label: The change Pawl let through
+      description: A minimal diff or steps. Which commands did you run (check, guard, hook)?
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Where it was seen
+      description: An agent transcript, a paper, or a hypothetical.

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# pre-push hook: refuse to push a branch whose gate is red.
+# Install: ln -sf ../../integrations/pre-commit/pre-push .git/hooks/pre-push
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+exec python3 -m pawl check

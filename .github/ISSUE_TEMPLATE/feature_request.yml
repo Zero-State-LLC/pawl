@@ -1,0 +1,17 @@
+name: Feature request
+description: Suggest a change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: failure
+    attributes:
+      label: Which failure mode does this catch?
+      description: Pawl only adds features that catch a real failure mode or remove setup friction.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true

@@ -1,0 +1,65 @@
+"""Files that ``pawl init`` can write. Kept identical to integrations/ (a test checks)."""
+
+GITHUB_WORKFLOW = """\
+# Pawl ratchet gate. Make the "pawl" job a required status check on main.
+# Actions are pinned by commit SHA. Dependabot keeps the pins current.
+name: pawl
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pawl-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      pull-requests: write # only for the report comment
+    env:
+      BASE_REF: ${{ github.base_ref }}
+      EVENT: ${{ github.event_name }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install the project and Pawl
+        run: |
+          python -m pip install --upgrade pip
+          # Replace with your project's install step so tests can import it.
+          if [ -f pyproject.toml ]; then pip install -e .; fi
+          pip install "pawl-gate @ git+https://github.com/Zero-State-LLC/pawl@v0.1.0"
+      - name: Pawl check (gate definition from the base branch)
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            pawl check --ci --trusted-ref "origin/$BASE_REF"
+          else
+            pawl check --ci
+          fi
+      - name: Pawl guard (tamper detection and test replay)
+        if: always() && github.event_name == 'pull_request'
+        run: pawl guard --ci --replay --base "origin/$BASE_REF"
+      - name: Post the report on the pull request
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true # fork PRs get a read-only token
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pawl report --format md > pawl-report.md
+          gh pr comment "$PR_NUMBER" --body-file pawl-report.md --edit-last \\
+            || gh pr comment "$PR_NUMBER" --body-file pawl-report.md
+"""
