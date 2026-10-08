@@ -194,6 +194,29 @@ def stricter(a: Baseline, b: Baseline) -> Baseline:
             "value": pick(float(mx["value"]), float(my["value"])),
             "direction": mx["direction"],
         }
-    keys_b = {(q.suite, q.test_id) for q in b.quarantine}
-    out.quarantine = [q for q in a.quarantine if (q.suite, q.test_id) in keys_b]
+    # A quarantine counts only if both sides have it, and then with the earlier expiry.
+    in_b = {(q.suite, q.test_id): q for q in b.quarantine}
+    out.quarantine = [
+        min(q, in_b[(q.suite, q.test_id)], key=lambda x: x.expires)
+        for q in a.quarantine
+        if (q.suite, q.test_id) in in_b
+    ]
     return out
+
+
+def check_quarantine(
+    baseline: Baseline, max_days: int, today: dt.date, source: str = "baseline"
+) -> None:
+    """Fail closed on a quarantine that runs past ``quarantine_max_days`` from today.
+
+    ``pawl quarantine`` caps the expiry, but the baseline is a JSON file that can
+    be edited by hand; an expiry of 2099-12-31 would excuse a test forever.
+    """
+    limit = today + dt.timedelta(days=max_days)
+    for q in baseline.quarantine:
+        if dt.date.fromisoformat(q.expires) > limit:
+            raise ConfigError(
+                f"{source}: quarantine of {q.test_id} in {q.suite} expires {q.expires}, more "
+                f"than quarantine_max_days ({max_days}) from today ({today.isoformat()}). "
+                "A human shortens or removes it."
+            )

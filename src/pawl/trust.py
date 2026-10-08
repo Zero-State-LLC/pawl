@@ -18,11 +18,12 @@ config was used).
 
 from __future__ import annotations
 
+import datetime as dt
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from pawl.baseline import Baseline, load_baseline, parse_baseline, stricter
+from pawl.baseline import Baseline, check_quarantine, load_baseline, parse_baseline, stricter
 from pawl.config import CONFIG_NAME, Config, load_config, parse_config
 from pawl.errors import ConfigError
 from pawl.gitutil import merge_base, prefix, show
@@ -68,6 +69,7 @@ def resolve(
     approved: bool = False,
     bootstrap: bool = False,
     need_baseline: bool = True,
+    today: dt.date | None = None,
 ) -> TrustedGate:
     """Resolve the trusted gate definition for ``root``.
 
@@ -76,6 +78,30 @@ def resolve(
     flag; the approval label is read here. Raises ConfigError (exit 2) when the
     gate definition cannot be established.
     """
+    today = today or dt.date.today()
+    gate = _resolve(
+        root,
+        ref,
+        approved=approved,
+        bootstrap=bootstrap,
+        need_baseline=need_baseline,
+        today=today,
+    )
+    if gate.baseline is not None:
+        # The trusted config's limit applies to every baseline this run reads.
+        check_quarantine(gate.baseline, gate.config.quarantine_max_days, today, gate.source)
+    return gate
+
+
+def _resolve(
+    root: Path,
+    ref: str | None,
+    *,
+    approved: bool,
+    bootstrap: bool,
+    need_baseline: bool,
+    today: dt.date,
+) -> TrustedGate:
     head = load_config(root)
     head_bl = load_baseline(head.baseline_path) if head.baseline_path.is_file() else None
 
@@ -119,6 +145,8 @@ def resolve(
     if bl_text is None:
         raise ConfigError(f"{ref} has {where} but no {bl_where}")
     base_bl = parse_baseline(bl_text, f"{ref}:{bl_where}")
+    if head_bl is not None:
+        check_quarantine(head_bl, base_cfg.quarantine_max_days, today, "head baseline")
     if head_bl is None:
         return TrustedGate(
             base_cfg,

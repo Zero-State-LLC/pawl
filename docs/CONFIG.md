@@ -14,7 +14,7 @@ repository root. Unknown keys are errors.
 | `baseline` | `"pawl.baseline.json"` | Baseline path |
 | `debt_log` | `"PAWL_DEBT.md"` | Append-only log of baseline changes |
 | `lock_in_ci` | `true` | In CI, a baseline failure that now passes is `STALE_BASELINE` |
-| `quarantine_max_days` | `30` | Longest allowed quarantine |
+| `quarantine_max_days` | `30` | Longest allowed quarantine. Enforced whenever a baseline is read: an expiry further out than this from today is an error |
 
 ## `[[suite]]` (one or more)
 

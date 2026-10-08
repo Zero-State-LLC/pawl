@@ -133,3 +133,52 @@ def test_trusted_ref_without_a_config_is_refused(tmp_path: Path) -> None:
     assert main(["--root", str(repo), "guard", "--base", "main"]) == 2
     # The explicit escape hatch for the change that adds Pawl.
     assert main(["--root", str(repo), "check", "--trusted-ref", "main", "--bootstrap"]) == 0
+
+
+def _quarantined_repo(tmp_path: Path) -> Path:
+    """A repo on branch 'agent' whose main has a 7-day quarantine for test_b."""
+    repo = tmp_path / "q"
+    repo.mkdir()
+    _pytest_project(repo)
+    (repo / "tests" / "test_ab.py").write_text(
+        TESTS_AB.replace("def test_b():\n    assert True", "def test_b():\n    assert False"),
+        encoding="utf-8",
+    )
+    reason = ["--reason", "flaky", "--days", "7", "--suite", "tests"]
+    assert main(["--root", str(repo), "quarantine", "tests/test_ab.py::test_b", *reason]) == 0
+    git(repo, "init", "-q", "-b", "main")
+    commit(repo, "base with a quarantine")
+    git(repo, "checkout", "-qb", "agent")
+    return repo
+
+
+def _edit_quarantine(repo: Path, **fields: str) -> None:
+    path = repo / "pawl.baseline.json"
+    data = json.loads(path.read_text())
+    data["quarantine"][0].update(fields)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_quarantine_extension_is_flagged(tmp_path: Path) -> None:
+    """F3: extending a quarantine expiry in the baseline produced no guard finding."""
+    repo = _quarantined_repo(tmp_path)
+    _edit_quarantine(repo, expires="2099-12-31", reason="forever")
+    commit(repo, "extend the quarantine")
+    assert main(["--root", str(repo), "guard", "--base", "main"]) == 1
+    guard = json.loads((repo / ".pawl" / "last-guard.json").read_text())
+    blocks = {f["rule"] for f in guard["findings"] if f["severity"] == "block"}
+    assert {"BASELINE_LOOSENED", "PROTECTED_CHANGED"} <= blocks
+    # A hand-written expiry past quarantine_max_days is refused when the baseline is read.
+    assert main(["--root", str(repo), "check"]) == 2
+    report = json.loads((repo / ".pawl" / "last-report.json").read_text())
+    assert "quarantine_max_days" in report["error"]
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_quarantine_reason_change_is_flagged(tmp_path: Path) -> None:
+    """F3: quarantine entries were compared by test ID only."""
+    repo = _quarantined_repo(tmp_path)
+    _edit_quarantine(repo, reason="rewritten")
+    commit(repo, "rewrite the reason")
+    assert main(["--root", str(repo), "guard", "--base", "main"]) == 1

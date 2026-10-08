@@ -39,7 +39,9 @@ forward.
 and per metric, the value and the direction (`down` means lower is better).
 
 Quarantine entries excuse a flaky test until an expiry date, at most
-`quarantine_max_days` (default 30).
+`quarantine_max_days` (default 30). The limit is enforced whenever a baseline
+is read, not only by `pawl quarantine`: an entry that expires further out than
+that from today is an error (exit 2).
 
 ## Check rules
 
@@ -120,8 +122,8 @@ label (it changes protected files, so it needs the label anyway), or runs with
 
 | Rule | Fires when |
 | --- | --- |
-| `PROTECTED_CHANGED` | A gate file changed: `pawl.toml`, the baseline, workflows, CODEOWNERS, `conftest.py`, `pytest.ini`, `tox.ini`, `sitecustomize`, `.pth` files |
-| `BASELINE_LOOSENED` | The baseline lost a failing-ID restriction, a test, or a metric bound (tightening is reported as info) |
+| `PROTECTED_CHANGED` | A gate file changed: `pawl.toml`, the baseline, workflows, CODEOWNERS, `conftest.py`, `pytest.ini`, `tox.ini`, `sitecustomize`, `.pth` files. For the baseline it is always reported: as a block when anything loosened, as info when the change is only a recognized tightening (what an honest `pawl update` writes) |
+| `BASELINE_LOOSENED` | Any baseline change that is not a recognized tightening: a failing ID added, a test or suite removed, a metric bound or direction changed, fewer confirmed orders, a quarantine added or changed (compared whole: suite, ID, reason, expiry) |
 | `DEBT_LOG_REWRITTEN` | Lines were removed from the debt log |
 | `TEST_DELETED` | A test file was deleted or renamed away |
 | `TEST_MODIFIED` | Existing test lines were changed or removed (adding tests is fine) |
