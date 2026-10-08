@@ -49,7 +49,8 @@ PAWL_DEBT.md         @scrimshawlife-ctrl
 
 Create a label named `pawl-approved` (or whatever `approval_label` is set to).
 Only maintainers should apply it. Adding it re-runs the workflow and turns
-gate-change blocks into approved findings.
+gate-change blocks into approved findings for the commit the label was applied
+at. A later push needs a fresh approval: remove the label and add it again.
 
 ## Actions
 

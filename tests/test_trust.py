@@ -10,9 +10,17 @@ from pawl.errors import ConfigError
 from pawl.trust import resolve
 
 
-def _label_event(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, label: str) -> None:
+def _label_event(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, label: str, repo: Path | None = None
+) -> None:
+    sha = git(repo, "rev-parse", "HEAD").strip() if repo else ""
+    payload = {
+        "action": "labeled",
+        "label": {"name": label},
+        "pull_request": {"labels": [{"name": label}], "head": {"sha": sha}},
+    }
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"pull_request": {"labels": [{"name": label}]}}))
+    event.write_text(json.dumps(payload))
     monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
 
 
@@ -37,7 +45,7 @@ def test_flag_approval_uses_head(demo_repo: Path) -> None:
 def test_label_approval_check_uses_head_guard_keeps_base_rules(
     demo_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    _label_event(tmp_path, monkeypatch, "pawl-approved")
+    _label_event(tmp_path, monkeypatch, "pawl-approved", demo_repo)
     check_gate = resolve(demo_repo, "main")
     assert check_gate.config.source == "pawl.toml"
     assert check_gate.approval is not None and check_gate.approval.label == "pawl-approved"
@@ -53,7 +61,7 @@ def test_label_name_comes_from_the_base(
         (demo_repo / "pawl.toml").read_text() + '\n[guard]\napproval_label = "lgtm"\n'
     )
     commit(demo_repo, "rename the label on the branch")
-    _label_event(tmp_path, monkeypatch, "lgtm")
+    _label_event(tmp_path, monkeypatch, "lgtm", demo_repo)
     assert resolve(demo_repo, "main").approval is None
 
 

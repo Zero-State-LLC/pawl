@@ -182,3 +182,27 @@ def test_quarantine_reason_change_is_flagged(tmp_path: Path) -> None:
     _edit_quarantine(repo, reason="rewritten")
     commit(repo, "rewrite the reason")
     assert main(["--root", str(repo), "guard", "--base", "main"]) == 1
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_label_left_on_the_pr_does_not_approve_later_pushes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Review F5: the label was read from the event's label list, so a label left on
+    the pull request approved every later push."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _pytest_project(repo)
+    git(repo, "init", "-q", "-b", "main")
+    commit(repo, "base")
+    git(repo, "checkout", "-qb", "agent")
+    _break_test_b_and_hide_it(repo)
+    commit(repo, "pushed after the label was applied")
+    event = tmp_path / "event.json"
+    head = git(repo, "rev-parse", "HEAD").strip()
+    labels = [{"name": "pawl-approved"}]
+    payload = {"action": "synchronize", "pull_request": {"labels": labels, "head": {"sha": head}}}
+    event.write_text(json.dumps(payload))
+    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
+    assert main(["--root", str(repo), "guard", "--base", "main"]) == 1
+    assert main(["--root", str(repo), "check", "--trusted-ref", "main"]) == 1

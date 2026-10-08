@@ -15,7 +15,6 @@ import ast
 import configparser
 import datetime as dt
 import json
-import os
 import re
 import shutil
 import tempfile
@@ -329,18 +328,6 @@ def _test_config_view(path: str, text: str | None) -> Any:
 SHARED_CONFIGS = ("pyproject.toml", "setup.cfg", "package.json", "Cargo.toml")
 
 
-def approved_by_label(label: str) -> bool:
-    event = os.environ.get("GITHUB_EVENT_PATH")
-    if not event or not Path(event).is_file():
-        return False
-    try:
-        data = json.loads(Path(event).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return False
-    labels = (data.get("pull_request") or {}).get("labels") or []
-    return any(isinstance(item, dict) and item.get("name") == label for item in labels)
-
-
 def run_guard(
     config: Config,
     base: str,
@@ -358,7 +345,6 @@ def run_guard(
     top = toplevel(root)
     pre = prefix(root)
     mb = merge_base(root, base)
-    approved = approved or approved_by_label(config.guard.approval_label)
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
     if pre:
         report.notes.append(f"root is {pre.rstrip('/')}/ inside the repository")
