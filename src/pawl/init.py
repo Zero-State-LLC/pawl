@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import urllib.request
 from pathlib import Path
 
 from pawl.errors import ConfigError
@@ -86,3 +88,34 @@ def render_config(root: Path, adapter: str) -> str:
         if found:
             preflight = PREFLIGHT_TEMPLATE.format(module=found[0], under=found[1])
     return CONFIG_TEMPLATE.format(adapter=name, command=command, preflight=preflight)
+
+
+PYPI_JSON = "https://pypi.org/pypi/pawl-gate/{version}/json"
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+
+
+def is_sha256(value: str) -> bool:
+    return bool(_SHA256.match(value))
+
+
+def pypi_hashes(version: str, timeout: float = 10.0) -> tuple[str, str]:
+    """Return (wheel sha256, sdist sha256) of a pawl-gate release on PyPI.
+
+    Raises ConfigError when PyPI cannot be reached or the release is incomplete,
+    so the caller can fall back to placeholders that make pip fail closed.
+    """
+    url = PYPI_JSON.format(version=version)
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:  # noqa: S310 (fixed https URL)
+            data = json.load(resp)
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"could not read {url}: {exc}") from exc
+    found: dict[str, str] = {}
+    for entry in data.get("urls", []) if isinstance(data, dict) else []:
+        kind = entry.get("packagetype")
+        digest = (entry.get("digests") or {}).get("sha256", "")
+        if kind in ("bdist_wheel", "sdist") and is_sha256(digest) and kind not in found:
+            found[kind] = digest
+    if set(found) != {"bdist_wheel", "sdist"}:
+        raise ConfigError(f"pawl-gate {version} on PyPI has no wheel and sdist hashes")
+    return found["bdist_wheel"], found["sdist"]

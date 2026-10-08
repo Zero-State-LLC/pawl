@@ -222,3 +222,39 @@ def test_report_exit_status_reflects_a_failed_check(tmp_path: Path) -> None:
     assert main(["--root", str(repo), "check"]) == 1
     assert main(["--root", str(repo), "report", "--exit-status"]) == 1
     assert main(["--root", str(repo), "report"]) == 0  # the renderer default is unchanged
+
+
+def _protect(repo: Path, payload: dict[str, object], monkeypatch: pytest.MonkeyPatch) -> int:
+    import io
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(payload)))
+    return main(["--root", str(repo), "hook", "protect", "--format", "claude"])
+
+
+def test_protect_hook_sees_through_dotdot_and_symlinks(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The protect hook compared the path as typed, so 'tests/../pawl.toml' or a
+    symlink to the baseline slipped past it. It now checks the resolved path."""
+    repo = tmp_path / "repo"
+    (repo / "tests").mkdir(parents=True)
+    (repo / "pawl.toml").write_text(
+        '[[suite]]\nname = "t"\nadapter = "pytest"\ncommand = ["true"]\n', encoding="utf-8"
+    )
+    (repo / "pawl.baseline.json").write_text("{}\n", encoding="utf-8")
+    (repo / "notes.txt").symlink_to("pawl.baseline.json")
+    (repo / "gate").symlink_to(".", target_is_directory=True)
+    # Sanity: an ordinary file is allowed, the plain path is blocked.
+    allowed = {"tool_name": "Write", "tool_input": {"file_path": "tests/test_x.py"}}
+    assert _protect(repo, allowed, monkeypatch) == 0
+    plain = {"tool_name": "Write", "tool_input": {"file_path": "pawl.toml"}}
+    assert _protect(repo, plain, monkeypatch) == 2
+    for path in (
+        "tests/../pawl.toml",
+        str(repo / "tests" / ".." / "pawl.baseline.json"),
+        "notes.txt",
+        str(repo / "notes.txt"),
+        "gate/pawl.toml",
+    ):
+        payload = {"tool_name": "Write", "tool_input": {"file_path": path}, "cwd": str(repo)}
+        assert _protect(repo, payload, monkeypatch) == 2, path
