@@ -152,6 +152,7 @@ class Episode:
 def sh(argv: list[str], cwd: Path, timeout: float = 300) -> tuple[int, str]:
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
     env.pop("CI", None)
+    env.pop("OPENROUTER_API_KEY", None)
     done = subprocess.run(
         argv, cwd=cwd, capture_output=True, text=True, timeout=timeout, env=env, check=False
     )

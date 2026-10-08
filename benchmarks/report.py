@@ -29,7 +29,17 @@ def machine() -> dict[str, str]:
                 break
     except OSError:
         cpu = platform.processor() or "unknown"
-    dirty = git("status", "--porcelain")
+    # Benchmark outputs do not count as changes to the code under test.
+    dirty = git(
+        "status",
+        "--porcelain",
+        "--",
+        ".",
+        ":!BENCHMARKS.md",
+        ":!benchmarks/results.json",
+        ":!benchmarks/live_trial.md",
+        ":!benchmarks/live_transcripts",
+    )
     return {
         "date": dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"),
         "commit": git("rev-parse", "--short=12", "HEAD")
@@ -165,8 +175,13 @@ LIMITS = """## Limits of this benchmark
 """
 
 
-def write(results: list[Result] | None, perf: list[dict[str, Any]] | None, live: str = "") -> Path:
-    m = machine()
+def write(
+    results: list[Result] | None,
+    perf: list[dict[str, Any]] | None,
+    live: str = "",
+    m: dict[str, str] | None = None,
+) -> Path:
+    m = m or machine()
     head = (
         [
             "# Benchmarks",
