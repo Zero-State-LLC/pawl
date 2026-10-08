@@ -211,6 +211,12 @@ def cmd_init(args: argparse.Namespace) -> int:
     from pawl.init import detect, render_config
 
     root = _root(args)
+    if bool(args.wheel_sha256) != bool(args.sdist_sha256):
+        _emit("error: pass --wheel-sha256 and --sdist-sha256 together")
+        return 2
+    if args.wheel_sha256 and not args.github:
+        _emit("error: --wheel-sha256 and --sdist-sha256 only apply with --github")
+        return 2
     cfg_path = root / CONFIG_NAME
     if cfg_path.exists() and not args.force:
         _emit(f"error: {CONFIG_NAME} exists; use --force to overwrite")

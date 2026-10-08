@@ -134,3 +134,12 @@ def test_init_rejects_a_malformed_hash(tmp_path: Path) -> None:
     repo = _init_repo(tmp_path)
     with pytest.raises(SystemExit):
         main(["--root", str(repo), "init", "--github", "--wheel-sha256", "abc"])
+
+
+def test_init_requires_both_hashes(tmp_path: Path) -> None:
+    repo = _init_repo(tmp_path)
+    args = ["--root", str(repo), "init", "--runner", "pytest", "--github", "--skip-preflight"]
+    assert main([*args, "--wheel-sha256", WHEEL]) == 2
+    assert main([*args, "--sdist-sha256", SDIST]) == 2
+    assert not (repo / "pawl.toml").exists()
+    assert not (repo / ".github").exists()
