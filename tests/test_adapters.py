@@ -148,3 +148,16 @@ def test_parse_cargo() -> None:
         parse_cargo(CARGO.replace("test tests::adds ... ok\n", ""))
     with pytest.raises(ParseError, match="no 'test result"):
         parse_cargo("error[E0425]: cannot find value")
+
+
+def test_pytest_adapter_without_report_shows_runner_output(tmp_path: Path) -> None:
+    import sys
+
+    from pawl.adapters import run_suite
+    from pawl.config import SuiteConfig
+
+    suite = SuiteConfig(
+        name="t", adapter="pytest", command=(sys.executable, "-c", "print('no pytest here')")
+    )
+    with pytest.raises(ParseError, match="no pytest here"):
+        run_suite(suite, tmp_path)

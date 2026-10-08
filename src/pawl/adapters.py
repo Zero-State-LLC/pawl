@@ -153,6 +153,8 @@ def _pytest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) ->
             raise ParseError(
                 f"pytest exited {done.returncode} (internal or usage error):\n{done.tail()}"
             )
+        if not report.is_file():
+            raise ParseError(f"pytest wrote no JUnit report. Runner output:\n{done.tail()}")
         outcomes = parse_junit(report, pytest_ids=True)
     failing = sum(1 for v in outcomes.values() if v == "failed")
     if done.returncode == 0 and failing:
