@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from pawl import __version__
-from pawl.baseline import Quarantine, parse_baseline
+from pawl.baseline import Quarantine, check_quarantine, parse_baseline
 from pawl.config import Config
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
@@ -209,6 +209,21 @@ def shadowed_tests(source: str) -> list[str]:
     return dupes
 
 
+def _quarantine_over_limit(head_text: str | None, max_days: int) -> list[str]:
+    """The trusted quarantine limit, applied to the head baseline the guard reads."""
+    if head_text is None:
+        return []
+    try:
+        head = parse_baseline(head_text, "head baseline")
+    except PawlError:
+        return []  # baseline_changes already reports an unreadable baseline
+    try:
+        check_quarantine(head, max_days, dt.date.today(), "head baseline")
+    except PawlError as exc:
+        return [str(exc)]
+    return []
+
+
 def baseline_changes(base_text: str | None, head_text: str | None) -> tuple[list[str], list[str]]:
     """Classify a baseline file change into (loosened, tightened) descriptions.
 
@@ -363,6 +378,7 @@ def run_guard(
         )
         if rel == config.baseline:
             loosened, tightened = baseline_changes(base_text, head_text)
+            loosened += _quarantine_over_limit(head_text, config.quarantine_max_days)
             for item in loosened:
                 report.findings.append(Finding("BASELINE_LOOSENED", "block", path, item))
             for item in tightened:
