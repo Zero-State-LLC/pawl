@@ -104,8 +104,15 @@ are unioned, the floor is the maximum, and each metric takes its better value.
 So a branch can tighten the bar but not lower it. The only exit is a human:
 the `pawl-approved` label (name read from the base config) or `--approved`.
 
-The first PR that adds Pawl has no base config. Pawl then uses the branch
-config and says so in the report ("bootstrap").
+The config is read from the base at the same path the root has in the working
+tree, so a root at `pkg/` reads `pkg/pawl.toml` from the base. One module
+(`pawl/trust.py`) resolves this for `check`, `guard`, and the stop hook, and
+both reports carry the same `config_source`, notes, and approval.
+
+If the base has no config, Pawl refuses (exit 2) instead of falling back to the
+branch config. The first PR that adds Pawl is approved by a human with the
+label (it changes protected files, so it needs the label anyway), or runs with
+`--bootstrap`, which the report states.
 
 ## Guard rules
 

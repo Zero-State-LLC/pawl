@@ -33,6 +33,16 @@ def show(root: Path, ref: str, path: str) -> str | None:
     return proc.stdout if proc.returncode == 0 else None
 
 
+def toplevel(root: Path) -> Path:
+    """The repository's top-level directory. Paths in git refs and diffs are relative to it."""
+    return Path(git(root, "rev-parse", "--show-toplevel").strip()).resolve()
+
+
+def prefix(root: Path) -> str:
+    """``root`` relative to the top level, with a trailing slash ("" at the top level)."""
+    return git(root, "rev-parse", "--show-prefix").strip()
+
+
 def merge_base(root: Path, base: str) -> str:
     out = git(root, "merge-base", base, "HEAD", check=False).strip()
     if not out:

@@ -19,7 +19,7 @@ from pathlib import Path
 from pawl.adapters import run_suite
 from pawl.config import Config
 from pawl.errors import ParseError, PawlError
-from pawl.gitutil import changed_files, diff_text, merge_base
+from pawl.gitutil import changed_files, diff_text, merge_base, toplevel
 from pawl.guard import matches_any
 
 _SWAP_CMP: dict[type, type] = {
@@ -134,17 +134,18 @@ def run_mutation(config: Config, base: str, limit: int) -> list[Mutant]:
         raise PawlError("mutate needs at least one [[suite]]")
     suite = config.suites[0]
     root = config.root
+    top = toplevel(root)
     mb = merge_base(root, base)
     clean = run_suite(suite, root)
     mutants: list[Mutant] = []
-    for status, rel in changed_files(root, mb):
+    for status, rel in changed_files(top, mb):
         if status == "D" or not rel.endswith(".py") or matches_any(rel, config.guard.tests):
             continue
-        lines = changed_lines(diff_text(root, mb, rel)) if status == "M" else set(range(1, 100000))
-        mutants += generate(root / rel, rel, lines)
+        lines = changed_lines(diff_text(top, mb, rel)) if status == "M" else set(range(1, 100000))
+        mutants += generate(top / rel, rel, lines)
     mutants = mutants[:limit]
     for mutant in mutants:
-        path = root / mutant.path
+        path = top / mutant.path
         original = path.read_text(encoding="utf-8")
         try:
             path.write_text(mutant.source, encoding="utf-8")
