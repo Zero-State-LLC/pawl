@@ -29,7 +29,7 @@ from pawl import __version__
 from pawl.baseline import parse_baseline
 from pawl.config import Config
 from pawl.errors import PawlError
-from pawl.gitutil import changed_files, diff_text, git, merge_base, show
+from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
 
 ESCALATIONS = ".pawl/ESCALATIONS.md"
 
@@ -107,6 +107,8 @@ class GuardReport:
     findings: list[Finding] = field(default_factory=list)
     approved: bool = False
     config_source: str = ""
+    notes: list[str] = field(default_factory=list)
+    approval: dict[str, Any] | None = None
 
     @property
     def status(self) -> str:
@@ -121,7 +123,9 @@ class GuardReport:
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "base": self.base,
             "approved": self.approved,
+            "approval": self.approval,
             "config_source": self.config_source,
+            "notes": self.notes,
             "findings": [f.to_json() for f in self.findings],
         }
 
@@ -134,6 +138,22 @@ def glob_match(path: str, pattern: str) -> bool:
 
 def matches_any(path: str, patterns: tuple[str, ...] | list[str]) -> bool:
     return any(glob_match(path, p) for p in patterns)
+
+
+def root_relative(path: str, pre: str) -> str | None:
+    """A top-level-relative git path made relative to the Pawl root, or None if outside it."""
+    if not pre:
+        return path
+    return path[len(pre) :] if path.startswith(pre) else None
+
+
+def _matches(path: str, rel: str | None, patterns: tuple[str, ...] | list[str]) -> bool:
+    """Match a changed file by its root-relative path and by its top-level path.
+
+    Top-level matching keeps repository-wide gate files (``.github/workflows/**``)
+    protected when the Pawl root is a subdirectory.
+    """
+    return (rel is not None and matches_any(rel, patterns)) or matches_any(path, patterns)
 
 
 def split_diff(diff: str) -> tuple[list[str], list[str]]:
@@ -295,31 +315,41 @@ def run_guard(
     replay: bool = False,
     ci: bool = False,
 ) -> GuardReport:
-    """Diff the working tree against ``base`` and report tampering."""
+    """Diff the working tree against ``base`` and report tampering.
+
+    Git reports paths from the repository top level. When the Pawl root is a
+    subdirectory, each path is also matched relative to the root, so
+    ``pkg/pawl.toml`` is the gate config of a root at ``pkg/``.
+    """
     root = config.root
+    top = toplevel(root)
+    pre = prefix(root)
     mb = merge_base(root, base)
     approved = approved or approved_by_label(config.guard.approval_label)
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
+    if pre:
+        report.notes.append(f"root is {pre.rstrip('/')}/ inside the repository")
     test_changes: list[str] = []
-    for status, path in changed_files(root, mb):
-        head_file = root / path
+    for status, path in changed_files(top, mb):
+        rel = root_relative(path, pre)
+        head_file = top / path
         head_text = (
             head_file.read_text(encoding="utf-8", errors="replace") if head_file.is_file() else None
         )
-        base_text = show(root, mb, path) if status != "A" else None
+        base_text = show(top, mb, path) if status != "A" else None
         removed, added = (
-            split_diff(diff_text(root, mb, path))
+            split_diff(diff_text(top, mb, path))
             if status != "A"
             else ([], (head_text or "").splitlines())
         )
-        if path == config.baseline:
+        if rel == config.baseline:
             loosened, tightened = baseline_changes(base_text, head_text)
             for item in loosened:
                 report.findings.append(Finding("BASELINE_LOOSENED", "block", path, item))
             for item in tightened:
                 report.findings.append(Finding("BASELINE_TIGHTENED", "info", path, item))
             continue
-        if path == config.debt_log:
+        if rel == config.debt_log:
             if _meaningful(removed):
                 report.findings.append(
                     Finding("DEBT_LOG_REWRITTEN", "block", path, "the debt log is append-only")
@@ -329,7 +359,7 @@ def run_guard(
                     Finding("DEBT_LOG_CHANGED", "info", path, "debt log updated")
                 )
             continue
-        if path == ESCALATIONS:
+        if rel == ESCALATIONS:
             opened = [line for line in added if re.match(r"^## .*\bopen\s*$", line)]
             closed = [line for line in removed if re.match(r"^## .*\bopen\s*$", line)]
             if closed:
@@ -351,12 +381,12 @@ def run_guard(
                     )
                 )
             continue
-        if matches_any(path, config.guard.protected):
+        if _matches(path, rel, config.guard.protected):
             verb = {"A": "added", "M": "modified", "D": "deleted"}.get(status, status)
             report.findings.append(
                 Finding("PROTECTED_CHANGED", "block", path, f"protected gate file {verb}")
             )
-        is_test = matches_any(path, config.guard.tests)
+        is_test = _matches(path, rel, config.guard.tests)
         if is_test:
             if status == "D":
                 report.findings.append(Finding("TEST_DELETED", "block", path, "test file deleted"))
@@ -426,32 +456,33 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
     """
     from pawl.check import compare, measure_all
 
-    root = config.root
-    base_baseline_text = show(root, mb, config.baseline)
+    top = toplevel(config.root)
+    pre = prefix(config.root)
+    base_baseline_text = show(top, mb, pre + config.baseline)
     if base_baseline_text is None:
         return [Finding("REPLAY_SKIPPED", "warn", "", "no baseline on the base branch")]
     tmp = Path(tempfile.mkdtemp(prefix="pawl-replay-"))
     wt = tmp / "wt"
-    git(root, "worktree", "add", "--detach", str(wt), "HEAD")
+    git(top, "worktree", "add", "--detach", str(wt), "HEAD")
     try:
-        for status, path in changed_files(root, "HEAD"):
+        for status, path in changed_files(top, "HEAD"):
             dst = wt / path
             if status == "D":
                 dst.unlink(missing_ok=True)
-            elif (root / path).is_file():
+            elif (top / path).is_file():
                 dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(root / path, dst)
+                shutil.copy2(top / path, dst)
         for path in paths:
-            content = show(root, mb, path)
+            content = show(top, mb, path)
             if content is None:
                 continue
             (wt / path).parent.mkdir(parents=True, exist_ok=True)
             (wt / path).write_text(content, encoding="utf-8")
-        cfg = replace(config, root=wt, metrics=())
+        cfg = replace(config, root=wt / pre if pre else wt, metrics=())
         m = measure_all(cfg, ci=ci, orders=1)
         result = compare(cfg, parse_baseline(base_baseline_text), m, lock=False)
     finally:
-        git(root, "worktree", "remove", "--force", str(wt), check=False)
+        git(top, "worktree", "remove", "--force", str(wt), check=False)
         shutil.rmtree(tmp, ignore_errors=True)
     findings = []
     for p in result.problems:

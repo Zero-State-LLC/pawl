@@ -19,8 +19,8 @@ from pathlib import Path
 from pawl.adapters import run_suite
 from pawl.config import Config
 from pawl.errors import ParseError, PawlError
-from pawl.gitutil import changed_files, diff_text, merge_base
-from pawl.guard import matches_any
+from pawl.gitutil import changed_files, diff_text, merge_base, prefix, toplevel
+from pawl.guard import matches_any, root_relative
 
 _SWAP_CMP: dict[type, type] = {
     ast.Eq: ast.NotEq,
@@ -134,17 +134,24 @@ def run_mutation(config: Config, base: str, limit: int) -> list[Mutant]:
         raise PawlError("mutate needs at least one [[suite]]")
     suite = config.suites[0]
     root = config.root
+    top = toplevel(root)
     mb = merge_base(root, base)
     clean = run_suite(suite, root)
     mutants: list[Mutant] = []
-    for status, rel in changed_files(root, mb):
-        if status == "D" or not rel.endswith(".py") or matches_any(rel, config.guard.tests):
+    pre = prefix(root)
+    for status, changed in changed_files(top, mb):
+        # Only files under the Pawl root; test patterns are root-relative.
+        rel = root_relative(changed, pre)
+        if rel is None or status == "D" or not rel.endswith(".py"):
             continue
-        lines = changed_lines(diff_text(root, mb, rel)) if status == "M" else set(range(1, 100000))
-        mutants += generate(root / rel, rel, lines)
+        if matches_any(rel, config.guard.tests):
+            continue
+        diff = diff_text(top, mb, changed)
+        lines = changed_lines(diff) if status == "M" else set(range(1, 100000))
+        mutants += generate(top / changed, changed, lines)
     mutants = mutants[:limit]
     for mutant in mutants:
-        path = root / mutant.path
+        path = top / mutant.path
         original = path.read_text(encoding="utf-8")
         try:
             path.write_text(mutant.source, encoding="utf-8")

@@ -61,6 +61,7 @@ class Report:
     isolation: dict[str, dict[str, str]] = field(default_factory=dict)
     config_source: str = ""
     error: str = ""
+    approval: dict[str, Any] | None = None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -70,6 +71,7 @@ class Report:
             "status": self.status,
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "config_source": self.config_source,
+            "approval": self.approval,
             "error": self.error,
             "problems": [p.to_json() for p in self.problems],
             "notes": self.notes,

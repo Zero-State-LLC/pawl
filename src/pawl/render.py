@@ -7,8 +7,21 @@ from typing import Any
 ICON = {"pass": "PASS", "fail": "FAIL", "error": "ERROR"}
 
 
+def _provenance(data: dict[str, Any]) -> list[str]:
+    """The same 'where did the gate come from' lines for check and guard."""
+    out = []
+    if data.get("config_source"):
+        out.append(f"Gate definition: `{data['config_source']}`")
+    approval = data.get("approval")
+    if approval:
+        how = f"label `{approval.get('label')}`" if approval.get("source") == "label" else "flag"
+        out.append(f"Approved by {how}")
+    return [*out, ""] if out else []
+
+
 def check_markdown(data: dict[str, Any]) -> str:
     out = [f"### Pawl check: {ICON.get(data['status'], data['status'])}", ""]
+    out += _provenance(data)
     if data.get("error"):
         out += [f"Error (fail closed): `{data['error']}`", ""]
     if data.get("suites"):
@@ -40,6 +53,7 @@ def check_markdown(data: dict[str, Any]) -> str:
 
 def guard_markdown(data: dict[str, Any]) -> str:
     out = [f"### Pawl guard: {ICON.get(data['status'], data['status'])} (base {data['base']})", ""]
+    out += _provenance(data)
     if data.get("approved"):
         out += ["Approved by label or flag. Blocking findings are listed for the record.", ""]
     shown = [f for f in data["findings"] if f["severity"] != "info"]
@@ -49,4 +63,6 @@ def guard_markdown(data: dict[str, Any]) -> str:
         out.append(f"- **{f['rule']}** ({f['severity']}) `{f['path']}`: {f['message']}")
         for i in f.get("ids", [])[:10]:
             out.append(f"  - `{i}`")
+    for n in data.get("notes", []):
+        out.append(f"- Note: {n}")
     return "\n".join(out) + "\n"

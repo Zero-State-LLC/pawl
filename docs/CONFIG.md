@@ -1,6 +1,11 @@
 # Configuration reference
 
-`pawl.toml` lives at the repository root. Unknown keys are errors.
+`pawl.toml` lives at the Pawl root: the repository root, or a subdirectory
+passed with `--root`. With `--trusted-ref` or `--base`, the base config is
+read from the same path (`pkg/pawl.toml` for `--root pkg`), and paths in
+`baseline`, `debt_log`, `protected`, and `tests` are relative to the Pawl
+root. Repository-wide paths such as `.github/workflows/**` also match from the
+repository root. Unknown keys are errors.
 
 ## `[pawl]`
 

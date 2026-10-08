@@ -10,20 +10,13 @@ import sys
 from pathlib import Path
 
 from pawl import __version__
-from pawl.baseline import (
-    Baseline,
-    Quarantine,
-    load_baseline,
-    parse_baseline,
-    stricter,
-    write_baseline,
-)
+from pawl.baseline import Quarantine, load_baseline, write_baseline
 from pawl.check import Measurement, Report, compare, in_ci, measure_all, report_path
-from pawl.config import CONFIG_NAME, Config, load_config, parse_config
-from pawl.errors import ConfigError, PawlError, PreflightError
-from pawl.gitutil import merge_base, show
+from pawl.config import CONFIG_NAME, Config, load_config
+from pawl.errors import PawlError, PreflightError
 from pawl.guard import ESCALATIONS, GuardReport, run_guard
 from pawl.render import check_markdown, guard_markdown
+from pawl.trust import resolve
 from pawl.update import Delta, append_debt_log, compute, default_orders
 
 EXIT = {"pass": 0, "fail": 1, "error": 2}
@@ -31,45 +24,6 @@ EXIT = {"pass": 0, "fail": 1, "error": 2}
 
 def _root(args: argparse.Namespace) -> Path:
     return Path(args.root).resolve()
-
-
-def load_trusted(root: Path, ref: str | None, approved: bool) -> tuple[Config, Baseline, list[str]]:
-    """Load config and baseline. With ``ref``, the gate definition comes from the base branch."""
-    head_cfg = load_config(root)
-    head_bl = load_baseline(head_cfg.baseline_path) if head_cfg.baseline_path.is_file() else None
-    if not ref or approved:
-        if head_bl is None:
-            raise ConfigError(f"no baseline at {head_cfg.baseline_path}; run 'pawl init'")
-        note = ["approved: using the head config and baseline"] if (ref and approved) else []
-        return head_cfg, head_bl, note
-    mb = merge_base(root, ref)
-    cfg_text = show(root, mb, CONFIG_NAME)
-    if cfg_text is None:
-        if head_bl is None:
-            raise ConfigError("no baseline on the head branch or the base branch")
-        return head_cfg, head_bl, [f"bootstrap: no {CONFIG_NAME} on {ref}; using the head config"]
-    cfg = parse_config(cfg_text, root, source=f"{ref}:{CONFIG_NAME}")
-    bl_text = show(root, mb, cfg.baseline)
-    if bl_text is None:
-        raise ConfigError(f"{ref} has {CONFIG_NAME} but no {cfg.baseline}")
-    base_bl = parse_baseline(bl_text, f"{ref}:{cfg.baseline}")
-    if head_bl is None:
-        return cfg, base_bl, [f"gate definition from {ref}; head baseline missing"]
-    return (
-        cfg,
-        stricter(base_bl, head_bl),
-        [f"gate definition from {ref}; stricter of base and head baselines"],
-    )
-
-
-def _approval_label(root: Path, ref: str | None) -> str:
-    """The approval label name. With a trusted ref it comes from the base config, so a
-    branch cannot rename the label to one it controls."""
-    if ref:
-        text = show(root, merge_base(root, ref), CONFIG_NAME)
-        if text is not None:
-            return parse_config(text, root, source=f"{ref}:{CONFIG_NAME}").guard.approval_label
-    return load_config(root).guard.approval_label
 
 
 def _emit(text: str) -> None:
@@ -81,10 +35,10 @@ def cmd_check(args: argparse.Namespace) -> int:
     report = Report()
     code = 0
     try:
-        from pawl.guard import approved_by_label
-
-        approved = args.approved or approved_by_label(_approval_label(root, args.trusted_ref))
-        config, baseline, notes = load_trusted(root, args.trusted_ref, approved)
+        gate = resolve(root, args.trusted_ref, approved=args.approved, bootstrap=args.bootstrap)
+        config, notes = gate.config, list(gate.notes)
+        assert gate.baseline is not None
+        baseline = gate.baseline
         report.config_source = config.source
         ci = args.ci or in_ci()
         lock = args.lock if args.lock is not None else (config.lock_in_ci and ci)
@@ -95,6 +49,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         m = measure_all(config, ci, args.orders)
         report = compare(config, baseline, m, lock)
         report.notes = notes + report.notes
+        report.approval = gate.approval.to_json() if gate.approval else None
         code = EXIT[report.status]
     except PreflightError as exc:
         report.status, report.error, code = "error", str(exc), 3
@@ -221,13 +176,18 @@ def cmd_init(args: argparse.Namespace) -> int:
 def cmd_guard(args: argparse.Namespace) -> int:
     root = _root(args)
     try:
-        head = load_config(root)
-        config = head
-        if not args.approved:
-            text = show(root, merge_base(root, args.base), CONFIG_NAME)
-            if text is not None:
-                config = parse_config(text, root, source=f"{args.base}:{CONFIG_NAME}")
-        report = run_guard(config, args.base, args.approved, args.replay, args.ci or in_ci())
+        gate = resolve(
+            root, args.base, approved=args.approved, bootstrap=args.bootstrap, need_baseline=False
+        )
+        report = run_guard(
+            gate.config,
+            args.base,
+            gate.approval is not None,
+            args.replay,
+            args.ci or in_ci(),
+        )
+        report.notes = gate.notes + report.notes
+        report.approval = gate.approval.to_json() if gate.approval else report.approval
     except PawlError as exc:
         data = {
             "tool": "pawl",
@@ -414,12 +374,11 @@ def cmd_hook(args: argparse.Namespace) -> int:
         return code
     reason: str | None = None
     try:
-        if args.base:
-            # Same trust model as CI: the gate definition comes from the base ref.
-            config, baseline, _ = load_trusted(root, args.base, approved=False)
-        else:
-            config = load_config(root)
-            baseline = load_baseline(config.baseline_path)
+        # With --base, the same trust model as CI: the gate definition comes from the base ref.
+        gate = resolve(root, args.base)
+        config = gate.config
+        assert gate.baseline is not None
+        baseline = gate.baseline
         from pawl.preflight import run_preflight
 
         run_preflight(config)
@@ -480,6 +439,11 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--no-lock", dest="lock", action="store_false")
     c.add_argument("--orders", type=int, help="run each suite in N orders (default: check_orders)")
     c.add_argument("--skip-preflight", action="store_true")
+    c.add_argument(
+        "--bootstrap",
+        action="store_true",
+        help="allow a trusted ref with no pawl.toml (the change that adds Pawl)",
+    )
     c.set_defaults(func=cmd_check)
 
     u = sub.add_parser("update", help="record the current state; only tightening unless --loosen")
@@ -506,6 +470,11 @@ def build_parser() -> argparse.ArgumentParser:
     g.add_argument("--approved", action="store_true", help="a human approved this change")
     g.add_argument("--json", action="store_true")
     g.add_argument("--ci", action="store_true")
+    g.add_argument(
+        "--bootstrap",
+        action="store_true",
+        help="allow a base ref with no pawl.toml (the change that adds Pawl)",
+    )
     g.set_defaults(func=cmd_guard)
 
     r = sub.add_parser("report", help="render the last check and guard reports")

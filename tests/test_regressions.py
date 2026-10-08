@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from tests.conftest import commit, git
 
 from pawl.cli import main
 
@@ -53,3 +54,82 @@ def test_real_regression_still_fails(tmp_path: Path) -> None:
     repo = _repo(tmp_path, "count-regex:WARN")
     (repo / "product.py").write_text("N = 50  # more findings\n", encoding="utf-8")
     assert main(["--root", str(repo), "check"]) == 1
+
+
+TESTS_AB = "def test_a():\n    assert True\n\n\ndef test_b():\n    assert True\n"
+
+
+def _pytest_project(where: Path) -> None:
+    (where / "tests").mkdir(parents=True)
+    (where / "tests" / "test_ab.py").write_text(TESTS_AB, encoding="utf-8")
+    (where / "pawl.toml").write_text(
+        "[[suite]]\n"
+        'name = "tests"\n'
+        'adapter = "pytest"\n'
+        f'command = [{json.dumps(sys.executable)}, "-m", "pytest", "-q"]\n',
+        encoding="utf-8",
+    )
+    assert main(["--root", str(where), "update"]) == 0
+
+
+def _break_test_b_and_hide_it(where: Path) -> None:
+    """Break test_b and add it to the head baseline's known failures."""
+    (where / "tests" / "test_ab.py").write_text(
+        TESTS_AB.replace("def test_b():\n    assert True", "def test_b():\n    assert False"),
+        encoding="utf-8",
+    )
+    path = where / "pawl.baseline.json"
+    data = json.loads(path.read_text())
+    suite = data["suites"]["tests"]
+    suite["failing_ids"] = ["tests/test_ab.py::test_b"]
+    suite["failures"] = 1
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+@pytest.fixture
+def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.delenv("GITHUB_EVENT_PATH", raising=False)
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_subdirectory_root_uses_the_base_gate(tmp_path: Path) -> None:
+    """F2: with pawl.toml in pkg/, the trusted ref was looked up at the top level,
+    missed, and the head config and baseline were used ("bootstrap")."""
+    repo = tmp_path / "mono"
+    pkg = repo / "pkg"
+    pkg.mkdir(parents=True)
+    _pytest_project(pkg)
+    git(repo, "init", "-q", "-b", "main")
+    commit(repo, "base")
+    git(repo, "checkout", "-qb", "agent")
+    _break_test_b_and_hide_it(pkg)
+    commit(repo, "break test_b and add it to the head baseline")
+    root = ["--root", str(pkg)]
+    assert main([*root, "check", "--trusted-ref", "main"]) == 1
+    report = json.loads((pkg / ".pawl" / "last-report.json").read_text())
+    assert report["config_source"] == "main:pkg/pawl.toml"
+    assert "NEW_FAILURE" in [p["code"] for p in report["problems"]]
+    assert main([*root, "guard", "--base", "main"]) == 1
+    guard = json.loads((pkg / ".pawl" / "last-guard.json").read_text())
+    blocks = {f["rule"] for f in guard["findings"] if f["severity"] == "block"}
+    assert {"BASELINE_LOOSENED", "TEST_MODIFIED"} <= blocks
+
+
+@pytest.mark.usefixtures("clean_env")
+def test_trusted_ref_without_a_config_is_refused(tmp_path: Path) -> None:
+    """F2: a trusted ref with no pawl.toml silently fell back to the head config."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "README.md").write_text("x\n", encoding="utf-8")
+    git(repo, "init", "-q", "-b", "main")
+    commit(repo, "base without pawl")
+    git(repo, "checkout", "-qb", "agent")
+    _pytest_project(repo)
+    commit(repo, "add pawl")
+    assert main(["--root", str(repo), "check", "--trusted-ref", "main"]) == 2
+    report = json.loads((repo / ".pawl" / "last-report.json").read_text())
+    assert "no pawl.toml" in report["error"]
+    assert main(["--root", str(repo), "guard", "--base", "main"]) == 2
+    # The explicit escape hatch for the change that adds Pawl.
+    assert main(["--root", str(repo), "check", "--trusted-ref", "main", "--bootstrap"]) == 0
