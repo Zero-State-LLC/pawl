@@ -10,6 +10,7 @@ from pawl.adapters import SuiteRun
 from pawl.baseline import Baseline, SuiteBaseline
 from pawl.check import Measurement, suite_baseline_from_run
 from pawl.config import Config, SuiteConfig
+from pawl.metrics import metric_delta
 
 DEBT_HEADER = """# Pawl debt log
 
@@ -80,14 +81,22 @@ def compute(
                 new.metrics[metric.name] = prev_m
             continue
         value = m.metrics[metric.name]
-        new.metrics[metric.name] = {"value": value, "direction": metric.direction}
         if prev_m is None:
+            new.metrics[metric.name] = {"value": value, "direction": metric.direction}
             delta.tightened.append(f"{metric.name}: recorded {value:g}")
             continue
         before = float(prev_m["value"])
-        if value == before:
+        change = metric_delta(metric, value, before)
+        if change == "same" and prev_m.get("direction") == metric.direction:
+            new.metrics[metric.name] = prev_m  # within tolerance: keep the recorded value
             continue
-        worse = value > before if metric.direction == "down" else value < before
+        new.metrics[metric.name] = {"value": value, "direction": metric.direction}
+        if prev_m.get("direction") != metric.direction:
+            delta.loosened.append(
+                f"{metric.name}: direction changed {prev_m.get('direction')} -> {metric.direction}"
+            )
+            continue
+        worse = change == "worse"
         line = f"{metric.name}: {before:g} -> {value:g}"
         (delta.loosened if worse else delta.tightened).append(line)
     configured = {s.name for s in config.suites} | {x.name for x in config.metrics}

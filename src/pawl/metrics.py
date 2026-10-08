@@ -12,7 +12,12 @@ from pawl.runner import run
 
 
 def extract(metric: MetricConfig, stdout: str, stderr: str) -> float:
-    """Extract one number from command output. No match is an error, never zero."""
+    """Extract one number from command output.
+
+    ``regex:`` and ``json:`` fail when nothing matches. The count modes return 0
+    for output with no matching lines, which is why ``measure`` checks the exit
+    code first.
+    """
     spec = metric.extract
     text = stdout + "\n" + stderr
     if spec == "count-lines":
@@ -51,5 +56,31 @@ def extract(metric: MetricConfig, stdout: str, stderr: str) -> float:
 
 
 def measure(metric: MetricConfig, root: Path) -> float:
-    done = run(metric.command, root, metric.timeout)
+    """Run the metric command and extract its value. Fails closed.
+
+    A command that exits with a code outside ``ok_exit_codes`` did not measure
+    anything, even if its output happens to parse (a crashed linter prints no
+    findings, which a count would read as 0).
+    """
+    done = run(metric.command, root / metric.cwd, metric.timeout)
+    if done.returncode not in metric.ok_exit_codes:
+        allowed = ", ".join(str(c) for c in metric.ok_exit_codes)
+        raise ParseError(
+            f"metric {metric.name}: command exited {done.returncode} (allowed: {allowed}); "
+            f"the metric was not measured:\n{done.tail()}"
+        )
     return extract(metric, done.stdout, done.stderr)
+
+
+def metric_delta(metric: MetricConfig, value: float, baseline: float) -> str:
+    """Classify ``value`` against ``baseline``: 'worse', 'better', or 'same'.
+
+    Differences within ``metric.tolerance`` count as the same, so float noise
+    (coverage 85.79 vs 85.78) neither fails the gate nor forces a baseline update.
+    """
+    diff = value - baseline if metric.direction == "up" else baseline - value
+    if diff < -metric.tolerance:
+        return "worse"
+    if diff > metric.tolerance:
+        return "better"
+    return "same"

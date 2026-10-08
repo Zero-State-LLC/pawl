@@ -47,9 +47,21 @@ Adapter notes:
 | `command` | Command to run |
 | `direction` | `"down"` (lower is better) or `"up"` |
 | `extract` | `count-lines`, `count-regex:<re>`, `regex:<re with one group>`, or `json:<dotted.path>` (append `.length()` to count a list) |
+| `ok_exit_codes` | Exit codes that mean the command ran. Default `[0]`. Any other exit code is an error (exit 2), never a value |
+| `cwd` | Working directory relative to the root. Default `"."` |
+| `tolerance` | Differences up to this amount count as unchanged: no `METRIC_REGRESSION`, no `STALE_BASELINE`, and `pawl update` keeps the recorded value. Default `0` |
 | `timeout`, `ci_only` | As for suites |
 
-If extraction finds nothing, the metric is an error, not zero.
+The metric fails closed:
+
+- The command must exit with one of `ok_exit_codes`. A linter that exits
+  non-zero when it finds problems needs `ok_exit_codes = [0, 1]` or its own
+  "exit zero" flag (for example `ruff check --exit-zero`). A crash or a
+  configuration error usually exits with another code and stops the gate.
+- `regex:` and `json:` are errors when nothing matches.
+- `count-lines` and `count-regex:` read output with no matching lines as 0.
+  That is why the exit code check matters: without it, a crashed tool reads
+  as "0 findings", which looks like an improvement.
 
 ## `[preflight]` (optional)
 

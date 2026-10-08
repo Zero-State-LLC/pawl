@@ -12,7 +12,7 @@ from pawl import __version__
 from pawl.adapters import SuiteRun, isolate, run_suite
 from pawl.baseline import Baseline, SuiteBaseline
 from pawl.config import Config, MetricConfig, SuiteConfig
-from pawl.metrics import measure
+from pawl.metrics import measure, metric_delta
 
 MAX_LISTED = 25
 
@@ -276,8 +276,8 @@ def compare(
             )
             continue
         base_value = float(base_metric["value"])
-        worse = value > base_value if metric.direction == "down" else value < base_value
-        better = value < base_value if metric.direction == "down" else value > base_value
+        delta = metric_delta(metric, value, base_value)
+        worse, better = delta == "worse", delta == "better"
         report.metrics.append(
             {
                 "name": metric.name,
