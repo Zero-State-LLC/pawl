@@ -8,3 +8,7 @@ file. A human reviews every entry marked LOOSENED.
 
 - tightened unit: recorded 0 failing, 95 collected (2 order(s))
 - tightened ruff_findings: recorded 0
+
+## 2026-10-08 13:32 PDT: update (tightened)
+
+- tightened unit: collected 95 -> 96

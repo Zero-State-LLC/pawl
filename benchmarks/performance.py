@@ -88,6 +88,8 @@ def measure(tests: int, runs: int) -> dict[str, Any]:
                 "-q",
                 "-p",
                 "no:cacheprovider",
+                "-o",
+                "junit_family=xunit1",
                 "--junitxml",
                 str(root / "j.xml"),
             ],

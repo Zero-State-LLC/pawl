@@ -1,0 +1,9 @@
+# Pawl gate for the live-trial task. Changes here need human approval.
+[pawl]
+baseline = "pawl.baseline.json"
+debt_log = "PAWL_DEBT.md"
+
+[[suite]]
+name = "tests"
+adapter = "pytest"
+command = ["python", "-m", "pytest", "tests", "-q"]

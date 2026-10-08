@@ -50,6 +50,16 @@ def test_parse_junit_missing_or_invalid(tmp_path: Path) -> None:
         parse_junit(bad)
 
 
+def test_pytest_ids_refuse_xunit2_reports(tmp_path: Path) -> None:
+    path = tmp_path / "r.xml"
+    path.write_text(
+        '<testsuite><testcase classname="tests.t" name="test_a"/>'
+        '<testcase classname="tests.t" name="test_b"/></testsuite>'
+    )
+    with pytest.raises(ParseError, match="junit_family=xunit1"):
+        parse_junit(path, pytest_ids=True)
+
+
 def test_generic_junit_ids(tmp_path: Path) -> None:
     path = tmp_path / "r.xml"
     path.write_text('<testsuite><testcase classname="pkg.Foo" name="bar"/></testsuite>')

@@ -87,16 +87,21 @@ def parse_junit(path: Path, pytest_ids: bool = False) -> dict[str, str]:
     for case in tree.getroot().iter("testcase"):
         classname = case.get("classname", "")
         name = case.get("name", "")
-        if pytest_ids:
-            test_id = _pytest_nodeid(classname, name, case.get("file"))
-        else:
-            test_id = f"{classname}::{name}" if classname else name
         if case.find("failure") is not None or case.find("error") is not None:
             outcome = "failed"
         elif case.find("skipped") is not None:
             outcome = "skipped"
         else:
             outcome = "passed"
+        if pytest_ids:
+            if not case.get("file") and outcome != "failed":
+                # xunit2 reports drop the file attribute; IDs would collapse.
+                raise ParseError(
+                    "JUnit testcase has no file attribute; run pytest with -o junit_family=xunit1"
+                )
+            test_id = _pytest_nodeid(classname, name, case.get("file"))
+        else:
+            test_id = f"{classname}::{name}" if classname else name
         _record(outcomes, test_id, outcome)
     return outcomes
 

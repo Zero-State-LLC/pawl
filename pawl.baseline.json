@@ -5,7 +5,7 @@
     "unit": {
       "failures": 0,
       "failing_ids": [],
-      "collected": 95,
+      "collected": 96,
       "identity": "ids",
       "confirmed_orders": 2,
       "collected_ids": [
@@ -16,6 +16,7 @@
         "tests/test_adapters.py::test_parse_junit_missing_or_invalid",
         "tests/test_adapters.py::test_parse_junit_pytest_ids",
         "tests/test_adapters.py::test_pytest_base_strips_paths",
+        "tests/test_adapters.py::test_pytest_ids_refuse_xunit2_reports",
         "tests/test_adapters.py::test_pytest_nodeid_without_class",
         "tests/test_baseline.py::test_inconsistent_baselines_are_rejected[not json]",
         "tests/test_baseline.py::test_inconsistent_baselines_are_rejected[{\"pawl_baseline\": 1, \"metrics\": {\"m\": {\"value\": \"x\", \"direction\": \"down\"}}}]",
