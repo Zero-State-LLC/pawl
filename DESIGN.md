@@ -41,7 +41,9 @@ and per metric, the value and the direction (`down` means lower is better).
 Quarantine entries excuse a flaky test until an expiry date, at most
 `quarantine_max_days` (default 30). The limit is enforced whenever a baseline
 is read, not only by `pawl quarantine`: an entry that expires further out than
-that from today is an error (exit 2).
+that from today is an error (exit 2) for `check` and `update`, and a
+`BASELINE_LOOSENED` block for `guard`, so the guard's other findings stay
+visible.
 
 ## Check rules
 
