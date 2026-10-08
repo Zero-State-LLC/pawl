@@ -76,3 +76,31 @@ def test_report_exit_status(demo_repo: Path, capsys: pytest.CaptureFixture[str])
     assert main([*root, "report", "--format", "json"]) == 0
     data = _json(capsys)
     assert data["kind"] == "report" and data["exit_code"] == 0
+
+
+def test_guard_error_document_has_the_full_guard_shape(
+    demo_repo: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = ["--root", str(demo_repo)]
+    assert main([*root, "guard", "--base", "main", "--json"]) == 0
+    ok = _json(capsys)
+    assert main([*root, "guard", "--base", "no-such-ref", "--json"]) == 2
+    error = _json(capsys)
+    assert set(ok) <= set(error)
+    assert error["approved"] is False and error["approval"] is None
+    assert error["config_source"] == "" and error["findings"] == []
+
+
+def test_report_envelope_exit_code_is_what_the_command_returned(
+    demo_repo: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    root = ["--root", str(demo_repo)]
+    (demo_repo / "tests" / "test_more.py").unlink()
+    assert main([*root, "guard", "--base", "main"]) == 1
+    capsys.readouterr()
+    assert main([*root, "report", "--format", "json"]) == 0
+    data = _json(capsys)
+    assert data["status"] == "fail" and data["worst_exit_code"] == 1 and data["exit_code"] == 0
+    assert main([*root, "report", "--format", "json", "--exit-status"]) == 1
+    data = _json(capsys)
+    assert data["exit_code"] == 1 and data["worst_exit_code"] == 1

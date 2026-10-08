@@ -273,9 +273,12 @@ def cmd_guard(args: argparse.Namespace) -> int:
             "exit_code": EXIT_ERROR,
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "error": str(exc),
-            "findings": [],
-            "notes": [],
             "base": args.base,
+            "approved": False,
+            "approval": None,
+            "config_source": "",
+            "notes": [],
+            "findings": [],
         }
         with contextlib.suppress(OSError):
             report_path(root, "last-guard.json").write_text(
@@ -297,9 +300,10 @@ def cmd_guard(args: argparse.Namespace) -> int:
 def cmd_report(args: argparse.Namespace) -> int:
     """Render the last check and guard reports.
 
-    Exits 0 by default (it is a renderer, used to post comments). With
-    --exit-status it exits with the worst exit code of the reports it read, so
-    a script can gate on it: 0 only if every report passed.
+    Exits 0 by default (it is a renderer, used to post comments), and 2 when
+    there is no report to render. With --exit-status it exits with the worst
+    exit code of the reports it read, so a script can gate on it: 0 only if
+    every report passed.
     """
     root = _root(args)
     parts = []
@@ -315,6 +319,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         return EXIT_ERROR
     worst = max(int(p.get("exit_code", exit_code_for(str(p.get("status"))))) for p in parts)
     status = {EXIT_PASS: "pass", EXIT_FAIL: "fail"}.get(worst, "error")
+    returned = worst if args.exit_status else EXIT_PASS
     if args.format == "json":
         _emit(
             json.dumps(
@@ -324,7 +329,8 @@ def cmd_report(args: argparse.Namespace) -> int:
                     "version": __version__,
                     "kind": "report",
                     "status": status,
-                    "exit_code": worst,
+                    "exit_code": returned,
+                    "worst_exit_code": worst,
                     "reports": parts,
                 },
                 indent=2,
@@ -339,7 +345,7 @@ def cmd_report(args: argparse.Namespace) -> int:
                 and (p.get("status") != "error" or p.get("kind") == "check")
             )
         )
-    return worst if args.exit_status else EXIT_PASS
+    return returned
 
 
 def cmd_quarantine(args: argparse.Namespace) -> int:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import shlex
 import tomllib
 from dataclasses import dataclass, field
@@ -256,8 +257,13 @@ def _exit_codes(value: Any, where: str) -> tuple[int, ...]:
 
 
 def _tolerance(value: Any, where: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
-        raise ConfigError(f"{where}: tolerance must be a number >= 0")
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
+        raise ConfigError(f"{where}: tolerance must be a finite number >= 0")
     return float(value)
 
 

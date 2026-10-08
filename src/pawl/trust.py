@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from pawl.baseline import Baseline, check_quarantine, load_baseline, parse_baseline, stricter
-from pawl.config import CONFIG_NAME, Config, load_config, parse_config
+from pawl.config import CONFIG_NAME, Config, GuardConfig, load_config, parse_config
 from pawl.errors import ConfigError
 from pawl.gitutil import git, merge_base, prefix, show
 
@@ -107,6 +107,9 @@ class TrustedGate:
     approval: Approval | None = None
 
 
+DEFAULT_APPROVAL_LABEL = GuardConfig().approval_label
+
+
 def resolve(
     root: Path,
     ref: str | None,
@@ -164,8 +167,9 @@ def _resolve(
         parse_config(base_text, root, source=f"{ref}:{where}") if base_text is not None else None
     )
     # The label name comes from the base config, so a branch cannot rename the
-    # label to one it controls.
-    label = (base_cfg or head).guard.approval_label
+    # label to one it controls. With no base config (a branch adding Pawl), the
+    # head config is untrusted too, so only the default label counts.
+    label = base_cfg.guard.approval_label if base_cfg is not None else DEFAULT_APPROVAL_LABEL
     label_note: list[str] = []
     if approved:
         approval: Approval | None = Approval("flag", git(root, "rev-parse", "HEAD").strip())

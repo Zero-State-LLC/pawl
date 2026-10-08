@@ -16,8 +16,8 @@ a version; removing a field, renaming a code, or changing a meaning bumps
 
 `pawl report` exits 0 by default because it is a renderer (the workflow uses
 it to post a comment even when the gate is red). `pawl report --exit-status`
-exits with the worst `exit_code` of the reports it read (3 > 2 > 1 > 0), and
-2 when there is no report. `pawl hook stop` and `pawl hook protect` follow
+exits with the worst `exit_code` of the reports it read (3 > 2 > 1 > 0).
+Both forms exit 2 when there is no report to render. `pawl hook stop` and `pawl hook protect` follow
 each harness's own protocol, not this table.
 
 ## Common fields
@@ -83,5 +83,12 @@ Finding rules (stable):
 
 ## `pawl report --format json`
 
-`{schema_version, tool, version, kind: "report", status, exit_code, reports}`,
-where `reports` holds the last check and guard documents as written.
+`{schema_version, tool, version, kind: "report", status, exit_code,
+worst_exit_code, reports}`, where `reports` holds the last check and guard
+documents as written. `status` and `worst_exit_code` describe the worst of
+those reports; `exit_code` is what this command returned (0 without
+`--exit-status`).
+
+A guard that cannot establish the gate still writes a full guard document:
+`status` `error`, `error` set, `approved` false, `approval` null,
+`config_source` empty, and no findings.
