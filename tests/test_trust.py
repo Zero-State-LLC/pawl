@@ -88,3 +88,23 @@ def test_bootstrap_is_explicit(demo_repo: Path) -> None:
         resolve(demo_repo, "nopawl")
     gate = resolve(demo_repo, "nopawl", bootstrap=True)
     assert gate.notes[0].startswith("bootstrap:")
+
+
+def test_bootstrap_label_name_is_not_taken_from_the_head(
+    demo_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With no base config the head config is untrusted, including its label name."""
+    empty_tree = git(demo_repo, "hash-object", "-t", "tree", "/dev/null").strip()
+    root_commit = git(
+        demo_repo, "-c", "user.email=t@e", "-c", "user.name=t", "commit-tree", empty_tree, "-m", "x"
+    ).strip()
+    git(demo_repo, "branch", "-f", "nopawl", root_commit)
+    (demo_repo / "pawl.toml").write_text(
+        (demo_repo / "pawl.toml").read_text() + '\n[guard]\napproval_label = "documentation"\n'
+    )
+    commit(demo_repo, "pick a label the agent can apply")
+    _label_event(tmp_path, monkeypatch, "documentation", demo_repo)
+    with pytest.raises(ConfigError, match=r"no pawl\.toml"):
+        resolve(demo_repo, "nopawl")
+    _label_event(tmp_path, monkeypatch, "pawl-approved", demo_repo)
+    assert resolve(demo_repo, "nopawl").approval is not None

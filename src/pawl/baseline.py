@@ -212,9 +212,9 @@ def check_quarantine(
     ``pawl quarantine`` caps the expiry, but the baseline is a JSON file that can
     be edited by hand; an expiry of 2099-12-31 would excuse a test forever.
     """
-    limit = today + dt.timedelta(days=max_days)
     for q in baseline.quarantine:
-        if dt.date.fromisoformat(q.expires) > limit:
+        # Compare day counts, not dates: today + a huge max_days overflows date.
+        if (dt.date.fromisoformat(q.expires) - today).days > max_days:
             raise ConfigError(
                 f"{source}: quarantine of {q.test_id} in {q.suite} expires {q.expires}, more "
                 f"than quarantine_max_days ({max_days}) from today ({today.isoformat()}). "

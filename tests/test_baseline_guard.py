@@ -93,3 +93,26 @@ def test_check_quarantine_limit() -> None:
     long = Baseline(quarantine=[Quarantine("t", "x", "r", "2026-11-08")])
     with pytest.raises(ConfigError, match="quarantine_max_days"):
         check_quarantine(long, 30, today)
+
+
+def test_check_quarantine_huge_max_days_does_not_overflow() -> None:
+    today = dt.date(2026, 10, 8)
+    check_quarantine(Baseline(), 999_999_999, today)
+    q = Baseline(quarantine=[Quarantine("t", "x", "r", "2099-12-31")])
+    check_quarantine(q, 999_999_999, today)
+
+
+def test_guard_enforces_the_quarantine_limit_on_the_head_baseline(demo_repo: Path) -> None:
+    """Shortening a quarantine is a tightening, but the result must still be within the limit."""
+    path = demo_repo / "pawl.baseline.json"
+    data = json.loads(path.read_text())
+    suite = next(iter(data["suites"]))
+    data["quarantine"] = [
+        {"suite": suite, "id": "tests/test_x.py::t", "reason": "r", "expires": "2099-12-30"}
+    ]
+    path.write_text(json.dumps(data, indent=2) + "\n")
+    report = run_guard(load_config(demo_repo), "main")
+    blocks = [f for f in report.findings if f.severity == "block"]
+    assert any(f.rule == "BASELINE_LOOSENED" and "quarantine_max_days" in f.message for f in blocks)
+    assert ("PROTECTED_CHANGED", "block") in {(f.rule, f.severity) for f in blocks}
+    assert report.status == "fail"
