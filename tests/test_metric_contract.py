@@ -80,6 +80,8 @@ def test_tolerance_in_check_and_update(tmp_path: Path) -> None:
         ('ok_exit_codes = ["0"]', "ok_exit_codes"),
         ("tolerance = -1", "tolerance"),
         ('tolerance = "x"', "tolerance"),
+        ("tolerance = nan", "tolerance"),
+        ("tolerance = inf", "tolerance"),
     ],
 )
 def test_metric_config_validation(snippet: str, message: str) -> None:
