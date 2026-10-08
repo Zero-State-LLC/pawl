@@ -93,6 +93,7 @@ a regression test in `tests/test_regressions.py`.
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/releases/tag/v0.1.0
