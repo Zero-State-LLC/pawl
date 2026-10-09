@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.2.0] - unreleased
+## [0.2.0] - 2026-10-08
 
 Closes the findings of the 2026-10-08 architecture review (F1, F2, F3, F5,
 the report exit code, and the workflow supply chain). Each reproduced bug has
@@ -102,4 +102,4 @@ a regression test in `tests/test_regressions.py`.
 [Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/Zero-State-LLC/pawl/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Zero-State-LLC/pawl/tree/v0.1.0
