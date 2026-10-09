@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from pawl import __version__
-from pawl.baseline import Quarantine, load_baseline, write_baseline
+from pawl.baseline import Quarantine, check_quarantine, load_baseline, write_baseline
 from pawl.check import Measurement, Report, compare, in_ci, measure_all, report_path
 from pawl.config import CONFIG_NAME, Config, load_config
 from pawl.errors import PawlError, PreflightError
@@ -94,6 +94,8 @@ def cmd_update(args: argparse.Namespace) -> int:
     try:
         config = load_config(root)
         old = load_baseline(config.baseline_path) if config.baseline_path.is_file() else None
+        if old is not None:
+            check_quarantine(old, config.quarantine_max_days, dt.date.today(), config.baseline)
         if not args.skip_preflight:
             from pawl.preflight import run_preflight
 

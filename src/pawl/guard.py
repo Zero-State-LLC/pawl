@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from pawl import __version__
-from pawl.baseline import parse_baseline
+from pawl.baseline import Quarantine, check_quarantine, parse_baseline
 from pawl.config import Config
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
@@ -210,8 +210,27 @@ def shadowed_tests(source: str) -> list[str]:
     return dupes
 
 
+def _quarantine_over_limit(head_text: str | None, max_days: int) -> list[str]:
+    """The trusted quarantine limit, applied to the head baseline the guard reads."""
+    if head_text is None:
+        return []
+    try:
+        head = parse_baseline(head_text, "head baseline")
+    except PawlError:
+        return []  # baseline_changes already reports an unreadable baseline
+    try:
+        check_quarantine(head, max_days, dt.date.today(), "head baseline")
+    except PawlError as exc:
+        return [str(exc)]
+    return []
+
+
 def baseline_changes(base_text: str | None, head_text: str | None) -> tuple[list[str], list[str]]:
-    """Classify a baseline file change into (loosened, tightened) descriptions."""
+    """Classify a baseline file change into (loosened, tightened) descriptions.
+
+    Default deny: every field Pawl reads is compared, and any change that is not
+    a recognized tightening is reported as loosened.
+    """
     if head_text is None:
         return ["baseline file deleted"], []
     if base_text is None:
@@ -242,6 +261,13 @@ def baseline_changes(base_text: str | None, head_text: str | None) -> tuple[list
             loosened.append(f"{name}: identity weakened to count")
         if set(cur.order_dependent) - set(prev.order_dependent):
             loosened.append(f"{name}: order-dependent IDs added")
+        if cur.confirmed_orders < prev.confirmed_orders:
+            loosened.append(
+                f"{name}: confirmed_orders lowered {prev.confirmed_orders} -> "
+                f"{cur.confirmed_orders}"
+            )
+    for name in sorted(set(new.suites) - set(old.suites)):
+        tightened.append(f"{name}: suite added")
     for name, pm in old.metrics.items():
         cm = new.metrics.get(name)
         if cm is None:
@@ -254,10 +280,32 @@ def baseline_changes(base_text: str | None, head_text: str | None) -> tuple[list
             loosened.append(f"{name}: {before:g} -> {after:g}")
         elif after != before:
             tightened.append(f"{name}: {before:g} -> {after:g}")
-    old_q = {(q.suite, q.test_id) for q in old.quarantine}
-    for q in new.quarantine:
-        if (q.suite, q.test_id) not in old_q:
-            loosened.append(f"quarantine added: {q.test_id} until {q.expires}")
+        extra_old = {k: v for k, v in pm.items() if k not in ("value", "direction")}
+        extra_new = {k: v for k, v in cm.items() if k not in ("value", "direction")}
+        if extra_old != extra_new:
+            loosened.append(f"{name}: unrecognized metric fields changed")
+    for name in sorted(set(new.metrics) - set(old.metrics)):
+        tightened.append(f"{name}: metric added")
+
+    # Quarantine entries are compared whole: a longer expiry or a new reason is
+    # a new excuse, not the old one (review finding F3).
+    def entry(q: Quarantine) -> tuple[str, str, str, str]:
+        return (q.suite, q.test_id, q.reason, q.expires)
+
+    old_q = {entry(q) for q in old.quarantine}
+    new_q = {entry(q) for q in new.quarantine}
+    old_by_key = {(q.suite, q.test_id): q for q in old.quarantine}
+    for suite, test_id, reason, expires in sorted(new_q - old_q):
+        prev_q = old_by_key.get((suite, test_id))
+        if prev_q is not None and prev_q.reason == reason and expires < prev_q.expires:
+            tightened.append(f"quarantine shortened: {test_id} until {expires}")
+            continue
+        verb = "changed" if prev_q is not None else "added"
+        loosened.append(f"quarantine {verb}: {test_id} until {expires} ({reason})")
+    new_keys = {(q.suite, q.test_id) for q in new.quarantine}
+    for _suite, test_id, _reason, _expires in sorted(old_q - new_q):
+        if (_suite, test_id) not in new_keys:
+            tightened.append(f"quarantine removed: {test_id}")
     return loosened, tightened
 
 
@@ -344,10 +392,23 @@ def run_guard(
         )
         if rel == config.baseline:
             loosened, tightened = baseline_changes(base_text, head_text)
+            loosened += _quarantine_over_limit(head_text, config.quarantine_max_days)
             for item in loosened:
                 report.findings.append(Finding("BASELINE_LOOSENED", "block", path, item))
             for item in tightened:
                 report.findings.append(Finding("BASELINE_TIGHTENED", "info", path, item))
+            # The baseline is a gate file: every edit is on the record. Only a
+            # change that is entirely a recognized tightening (the output of an
+            # honest 'pawl update') is informational; anything else blocks.
+            report.findings.append(
+                Finding(
+                    "PROTECTED_CHANGED",
+                    "block" if loosened else "info",
+                    path,
+                    "baseline changed: "
+                    + ("loosened or unrecognized change" if loosened else "tightening only"),
+                )
+            )
             continue
         if rel == config.debt_log:
             if _meaningful(removed):
