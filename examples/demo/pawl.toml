@@ -17,6 +17,15 @@ adapter = "pytest"
 command = ["python", "-m", "pytest", "holdout", "-q"]
 ci_only = true
 
+# Open TODO/FIXME comments in calc may not grow by more than one. A crash of the
+# linter is an error, not 0 findings.
+[[metric]]
+name = "todo_comments"
+command = ["python", "tools/todo_lint.py"]
+direction = "down"
+extract = "count-regex:^\\S+:\\d+:\\d+: T001 "
+tolerance = 1
+
 [preflight]
 python = "python"
 imports = [{ module = "calc", expect_under = "." }]

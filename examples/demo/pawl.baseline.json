@@ -38,6 +38,11 @@
       "skipped_ids": []
     }
   },
-  "metrics": {},
+  "metrics": {
+    "todo_comments": {
+      "value": 1.0,
+      "direction": "down"
+    }
+  },
   "quarantine": []
 }

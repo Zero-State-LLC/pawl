@@ -15,6 +15,7 @@ def subtract(a: int, b: int) -> int:
 
 def mean(values: list[float]) -> float:
     """Return the arithmetic mean. An empty list has mean 0.0."""
+    # TODO: an empty list raises ZeroDivisionError (tests/test_calc.py::test_mean_empty).
     return sum(values) / len(values)
 
 

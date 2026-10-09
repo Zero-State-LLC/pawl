@@ -8,3 +8,7 @@ file. A human reviews every entry marked LOOSENED.
 
 - tightened tests: recorded 1 failing, 10 collected (2 order(s))
 - tightened holdout: recorded 0 failing, 3 collected (2 order(s))
+
+## 2026-10-08 17:57 PDT: update (tightened)
+
+- tightened todo_comments: recorded 1
