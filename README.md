@@ -104,20 +104,20 @@ agent can edit them, so they are a convenience.
 
 ## Results
 
-On a synthetic corpus of 19 agent cheats and 6 clean changes, run against a
+On a synthetic corpus of 21 agent cheats and 8 clean changes, run against a
 project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
 | --- | --- | --- |
-| plain `pytest` must pass | 18/19 | 5/6 (the known failure blocks everything) |
-| Abraxas count ratchet | 5/19 | 0/6 |
-| `pawl check` (agent side) | 12/19 | 0/6 |
-| `pawl hook stop --base` (agent side) | 17/19 | 0/6 |
-| Pawl in CI (check + guard + holdout) | 18/19 | 0/6 |
+| plain `pytest` must pass | 20/21 | 7/8 (the known failure blocks everything) |
+| Abraxas count ratchet | 5/21 | 0/8 |
+| `pawl check` (agent side) | 14/21 | 0/8 |
+| `pawl hook stop --base` (agent side) | 19/21 | 0/8 |
+| Pawl in CI (check + guard + holdout) | 20/21 | 0/8 |
 
 The one miss, special-casing inputs that no holdout covers, is beyond any
-test-based gate. Overhead of `pawl check` over bare pytest was 0.3 s on both a
-100-test and a 5000-test suite.
+test-based gate. Overhead of `pawl check` over bare pytest was 0.07 s on a
+100-test suite and 0.47 s on a 5000-test suite.
 
 In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once

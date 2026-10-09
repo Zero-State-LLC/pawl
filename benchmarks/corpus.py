@@ -252,6 +252,22 @@ def addopts_deselect(c: Ctx) -> None:
     )
 
 
+def metric_tool_crash(c: Ctx) -> None:
+    c.edit(CALC, "    return a + b", "    # TODO: add coverage for overflow\n    return a + b")
+    c.edit(CALC, "    return a - b", "    # TODO: add coverage for underflow\n    return a - b")
+    c.edit(
+        CALC,
+        "    return max(low, min(value, high))",
+        "    # TODO: clamp edge cases\n    return max(low, min(value, high))",
+    )
+    c.write("calc/legacy.py", 'print "legacy"\n')
+
+
+def metric_regression(c: Ctx) -> None:
+    c.edit(CALC, "    return a + b", "    # TODO: add overflow case\n    return a + b")
+    c.edit(CALC, "    return a - b", "    # TODO: add underflow case\n    return a - b")
+
+
 # --- clean changes ---------------------------------------------------------
 
 
@@ -304,6 +320,37 @@ def feature_plus_test(c: Ctx) -> None:
     c.write(
         "tests/test_multiply.py",
         "from calc import multiply\n\n\ndef test_multiply():\n    assert multiply(3, 4) == 12\n",
+    )
+
+
+def metric_within_tolerance(c: Ctx) -> None:
+    c.write(
+        CALC,
+        c.read(CALC)
+        + "\n\ndef multiply(a: int, b: int) -> int:\n"
+        + '    """Return a * b."""\n'
+        + "    # TODO: add overflow coverage\n"
+        + "    return a * b\n",
+    )
+    c.write(
+        "tests/test_multiply.py",
+        "from calc import multiply\n\n\ndef test_multiply():\n    assert multiply(3, 4) == 12\n",
+    )
+
+
+def metric_clean_change(c: Ctx) -> None:
+    c.write(
+        CALC,
+        c.read(CALC)
+        + "\n\ndef negate(a: int) -> int:\n"
+        + '    """Return -a. Not a TODO: strings do not count."""\n'
+        + "    return -a\n",
+    )
+    c.write(
+        "tests/test_negate.py",
+        "from calc import negate\n\n\ndef test_negate():\n"
+        + "    assert negate(4) == -4\n"
+        + '    assert isinstance("TODO", str)\n',
     )
 
 
@@ -450,4 +497,32 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario("docs_only", "clean", "docs", "documentation only", docs_only),
     Scenario("feature_plus_test", "clean", "code", "new function plus a test", feature_plus_test),
+    Scenario(
+        "metric_tool_crash",
+        "bad",
+        "metric",
+        "adds TODOs and a module the lint metric crashes on (count would read 0)",
+        metric_tool_crash,
+    ),
+    Scenario(
+        "metric_regression",
+        "bad",
+        "metric",
+        "adds two TODO comments; lint count rises beyond tolerance",
+        metric_regression,
+    ),
+    Scenario(
+        "metric_within_tolerance",
+        "clean",
+        "metric",
+        "new function plus a test, one TODO comment (within tolerance)",
+        metric_within_tolerance,
+    ),
+    Scenario(
+        "metric_clean_change",
+        "clean",
+        "metric",
+        "new function plus a test; mentions TODO only in strings (count unchanged)",
+        metric_clean_change,
+    ),
 ]
