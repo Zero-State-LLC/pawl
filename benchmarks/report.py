@@ -170,6 +170,10 @@ LIMITS = """## Limits of this benchmark
 - The Abraxas column ports the ratchet logic faithfully (same grep, same floor, same
   preflight) to this demo. Abraxas also runs explicit file lists in CI; that is outside
   the script and not modeled.
+- Performance uses synthetic suites of trivial tests, 100 per file; the largest is
+  20000 tests. Suites with slow tests, heavy fixtures or many more files are not
+  measured.
+- Everything here ran on Linux. Pawl's own CI runs on macOS. Windows is untested.
 - Performance was measured on a shared machine. The load average at the start of the
   run is listed above; treat small differences as noise.
 """

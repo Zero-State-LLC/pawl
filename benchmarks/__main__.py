@@ -21,7 +21,7 @@ def main() -> int:
     )
     p.add_argument("--only", choices=["effectiveness", "performance"])
     p.add_argument("--runs", type=int, default=5)
-    p.add_argument("--sizes", default="100,5000")
+    p.add_argument("--sizes", default="100,5000,20000")
     p.add_argument("--workers", type=int, default=4)
     args = p.parse_args()
     data = json.loads(RESULTS.read_text()) if RESULTS.is_file() else {}

@@ -57,7 +57,10 @@ check and add CODEOWNERS for the gate files.
 
 The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
 and the command are `pawl`. It needs Python 3.11 or newer and has no runtime
-dependencies.
+dependencies. It is tested on Linux and macOS. Windows is untested: CI runs
+only on self-hosted macOS runners, there is no Windows runner, and the
+workflow written by `pawl init --github` assumes bash and a POSIX virtual
+environment layout.
 
 ## How it works
 
@@ -116,8 +119,8 @@ project with one known failing test:
 | Pawl in CI (check + guard + holdout) | 20/21 | 0/8 |
 
 The one miss, special-casing inputs that no holdout covers, is beyond any
-test-based gate. Overhead of `pawl check` over bare pytest was 0.07 s on a
-100-test suite and 0.47 s on a 5000-test suite.
+test-based gate. Overhead of `pawl check` over bare pytest was 0.08 s on a
+100-test suite, 0.18 s on 5000 tests, and 0.75 s on 20000 tests.
 
 In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once

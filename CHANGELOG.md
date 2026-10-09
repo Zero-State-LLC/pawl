@@ -6,6 +6,23 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- `pawl guard --replay` replays only the changed test files when every changed
+  test path is a pytest test file that the base baseline attributes to a
+  pytest suite with ID identity. Otherwise it replays the whole suite, as
+  before. A narrowed replay that fails or finds a weakened test is re-run in
+  full, so a finding never rests on the narrowed run alone. The replay note
+  says which scope ran.
+
+### Added
+
+- The performance benchmark measures a 20000-test suite by default.
+
+### Documentation
+
+- Windows is documented as untested.
+
 ## [0.2.0] - 2026-10-08
 
 Closes the findings of the 2026-10-08 architecture review (F1, F2, F3, F5,
