@@ -57,7 +57,10 @@ check and add CODEOWNERS for the gate files.
 
 The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
 and the command are `pawl`. It needs Python 3.11 or newer and has no runtime
-dependencies.
+dependencies. It is tested on Linux and macOS. Windows is untested: CI runs
+only on self-hosted macOS runners, there is no Windows runner, and the
+workflow written by `pawl init --github` assumes bash and a POSIX virtual
+environment layout.
 
 ## How it works
 

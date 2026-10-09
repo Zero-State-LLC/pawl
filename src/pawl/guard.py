@@ -30,6 +30,7 @@ from pawl.config import Config
 from pawl.contract import SCHEMA_VERSION, exit_code_for
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
+from pawl.replay_scope import narrow_replay
 
 ESCALATIONS = ".pawl/ESCALATIONS.md"
 
@@ -497,12 +498,19 @@ def run_guard(
     return report
 
 
+WEAKENED_CODES = ("NEW_FAILURE", "MISSING_TESTS", "NEWLY_SKIPPED", "COLLECTION_DROP")
+
+
 def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> list[Finding]:
     """Run the base branch's versions of changed tests against the current code.
 
     If the original tests fail where the edited tests pass, the edit weakened
     the tests. This is how Baker et al. labeled cheating in agentic coding
     environments (https://arxiv.org/abs/2503.11926).
+
+    When possible, replay is narrowed to the changed test files. If the
+    narrowed replay cannot be trusted (it fails or reports a weakened-test
+    code), the full suite is replayed instead.
     """
     from pawl.check import compare, measure_all
 
@@ -514,6 +522,7 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
     tmp = Path(tempfile.mkdtemp(prefix="pawl-replay-"))
     wt = tmp / "wt"
     git(top, "worktree", "add", "--detach", str(wt), "HEAD")
+    scope = "full suite"
     try:
         for status, path in changed_files(top, "HEAD"):
             dst = wt / path
@@ -529,14 +538,39 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
             (wt / path).parent.mkdir(parents=True, exist_ok=True)
             (wt / path).write_text(content, encoding="utf-8")
         cfg = replace(config, root=wt / pre if pre else wt, metrics=())
-        m = measure_all(cfg, ci=ci, orders=1)
-        result = compare(cfg, parse_baseline(base_baseline_text), m, lock=False)
+        base = parse_baseline(base_baseline_text)
+        if pre:
+            stripped = [p[len(pre) :] for p in paths if p.startswith(pre)]
+            root_relative_paths: list[str] | None = (
+                stripped if len(stripped) == len(paths) else None
+            )
+        else:
+            root_relative_paths = list(paths)
+        narrowed = (
+            narrow_replay(cfg, base, root_relative_paths)
+            if root_relative_paths is not None
+            else None
+        )
+        if narrowed is not None:
+            ncfg, nbase = narrowed
+            try:
+                nm = measure_all(ncfg, ci=ci, orders=1)
+                nresult = compare(ncfg, nbase, nm, lock=False)
+            except PawlError:
+                nresult = None
+            if nresult is not None and not any(p.code in WEAKENED_CODES for p in nresult.problems):
+                result = nresult
+                scope = f"{len(paths)} changed test file(s)"
+            else:
+                result = compare(cfg, base, measure_all(cfg, ci=ci, orders=1), lock=False)
+        else:
+            result = compare(cfg, base, measure_all(cfg, ci=ci, orders=1), lock=False)
     finally:
         git(top, "worktree", "remove", "--force", str(wt), check=False)
         shutil.rmtree(tmp, ignore_errors=True)
     findings = []
     for p in result.problems:
-        if p.code in ("NEW_FAILURE", "MISSING_TESTS", "NEWLY_SKIPPED", "COLLECTION_DROP"):
+        if p.code in WEAKENED_CODES:
             findings.append(
                 Finding(
                     "TESTS_WEAKENED_REPLAY",
@@ -552,7 +586,7 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
                 "REPLAY_PASSED",
                 "info",
                 ", ".join(paths[:5]),
-                "original tests still pass on this code",
+                f"original tests still pass on this code (replayed {scope})",
             )
         )
     return findings
