@@ -49,8 +49,11 @@ git commit -m "Add Pawl ratchet gate"
 ```
 
 `pawl init` writes `pawl.toml`, runs your suite in two orders, records the
-baseline, and (with `--github`) writes a workflow. Then make the `pawl` job a
-required status check and add CODEOWNERS for the gate files.
+baseline, and (with `--github`) writes a workflow. The workflow installs this
+exact Pawl version first, into its own virtual environment, pinned by the
+sha256 of its PyPI files (read from PyPI at init time; pass `--wheel-sha256`
+and `--sdist-sha256` when offline). Then make the `pawl` job a required status
+check and add CODEOWNERS for the gate files.
 
 The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
 and the command are `pawl`. It needs Python 3.11 or newer and has no runtime

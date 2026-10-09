@@ -6,9 +6,11 @@ a shell can disable local hooks. CI with a required check is the authority.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import re
 import sys
+from pathlib import Path
 from typing import Any
 
 from pawl.config import Config
@@ -65,12 +67,30 @@ def _paths_from_payload(payload: dict[str, Any]) -> tuple[list[str], str]:
     return paths, command
 
 
+def _candidates(root: Path, path: str, cwd: object) -> list[str]:
+    """Root-relative spellings of a written path, as typed and as resolved.
+
+    Resolving collapses '..' and follows symlinks, so 'tests/../pawl.toml' or a
+    symlink that points at the baseline is checked as the file it really writes.
+    """
+    real_root = root.resolve()
+    raw = path.removeprefix("./")
+    out = [raw[len(str(real_root)) + 1 :] if raw.startswith(f"{real_root}/") else raw]
+    base = Path(cwd) if isinstance(cwd, str) and cwd else root
+    target = Path(path) if Path(path).is_absolute() else base / path
+    try:
+        resolved = target.resolve()
+    except (OSError, RuntimeError):  # a symlink loop: check what we have
+        return out
+    with contextlib.suppress(ValueError):
+        out.append(resolved.relative_to(real_root).as_posix())
+    return out
+
+
 def protect_decision(config: Config, payload: dict[str, Any]) -> str | None:
     """Return a block reason if the tool call would write a protected path."""
     paths, command = _paths_from_payload(payload)
-    root = str(config.root.resolve())
-    for p in paths:
-        rel = p[len(root) + 1 :] if p.startswith(root + "/") else p.removeprefix("./")
+    for rel in (r for p in paths for r in _candidates(config.root, p, payload.get("cwd"))):
         if matches_any(rel, config.guard.protected) or rel in (config.baseline,):
             return (
                 f"Pawl: {rel} is a protected gate file. Agents may not edit the baseline, "

@@ -188,7 +188,18 @@ gate that cannot go green does not trap the agent; the agent is told to report
 the red gate.
 
 `pawl hook protect` blocks tool calls that would write a protected path or run
-a human-only command (`pawl update --loosen`, `pawl quarantine`).
+a human-only command (`pawl update --loosen`, `pawl quarantine`). It checks
+each path as typed and as resolved (`..` collapsed, symlinks followed), so
+`tests/../pawl.toml` or a symlink to the baseline is treated as the gate file
+it writes. Shell commands are still matched by pattern only.
+
+The workflow from `pawl init --github` installs Pawl before the project, into
+its own virtual environment under `$RUNNER_TEMP`, with `--require-hashes
+--no-deps --only-binary :all:`, and calls it by absolute path. The project's
+dependencies cannot replace or shadow the gate, and a compromised or yanked
+release cannot be swapped in under the same version. This narrows, but does
+not remove, the exposure to code in the pull request: the tests Pawl runs are
+that code, and they run as the same user in the same job.
 
 ## What Pawl does not do
 

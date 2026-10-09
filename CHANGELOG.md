@@ -6,7 +6,60 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.1.1] - unreleased
+## [0.2.0] - unreleased
+
+Closes the findings of the 2026-10-08 architecture review (F1, F2, F3, F5,
+the report exit code, and the workflow supply chain). Each reproduced bug has
+a regression test in `tests/test_regressions.py`.
+
+### Security
+
+- The approval label counts only for the commit it was applied at. A label
+  left on a pull request no longer approves later pushes; re-apply it after
+  the last push. Reports print the approved commit. (F5)
+- The baseline guard flags every baseline edit as a protected change, compares
+  quarantine entries whole (extending an expiry or changing a reason is a
+  loosening), treats unknown metric fields and a lower `confirmed_orders` as
+  loosening, and the 30-day quarantine maximum is enforced whenever a baseline
+  is read, not only when `pawl quarantine` writes it (an error for `check` and
+  `update`, a `BASELINE_LOOSENED` block for `guard`). `stricter()` keeps the
+  earlier quarantine expiry. (F3)
+- One trust module (`pawl/trust.py`) resolves the gate definition for `check`,
+  `guard`, and `hook stop`. The trusted config is read at the Pawl root's path
+  inside the repository (subdirectory roots work), and a base ref without a
+  config is refused unless the change is approved or `--bootstrap` is passed;
+  in that case only the default `pawl-approved` label counts, never a label
+  named by the branch's own config. Check and guard reports print where the
+  gate came from. (F2)
+- `pawl hook protect` resolves `..` and symlinks before matching protected
+  paths.
+- The workflow written by `pawl init --github` installs Pawl first, into its
+  own virtual environment, hash-pinned (`--require-hashes --no-deps
+  --only-binary :all:`), at the version of the Pawl that wrote it, and calls it
+  by absolute path. `init` reads the hashes from PyPI, or takes
+  `--wheel-sha256` and `--sdist-sha256`.
+
+### Changed
+
+- Metrics fail closed: a metric command that exits outside `ok_exit_codes`
+  (default `[0]`) is an error (exit 2), never a value, including for
+  `count-regex` and `count-lines`. New metric keys `ok_exit_codes`, `cwd`, and
+  `tolerance` (finite, >= 0). (F1)
+- `pawl mutate` with a subdirectory `--root` only mutates files under that
+  root, and matches test patterns relative to it.
+- JSON reports carry `schema_version` (1), `kind`, and `exit_code`. The exit
+  codes and problem codes are documented as a stable contract in
+  `docs/JSON.md`.
+
+### Added
+
+- `pawl report --exit-status` exits with the worst exit code of the reports it
+  read (plain `pawl report` still exits 0). `report --format json` adds
+  `worst_exit_code`.
+- `pawl update --json`.
+- `--bootstrap` for `pawl check` and `pawl guard`.
+
+## [0.1.1] - 2026-10-08
 
 ### Changed
 
@@ -46,6 +99,7 @@ All notable changes to this project are documented here. The format follows
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/releases/tag/v0.1.0

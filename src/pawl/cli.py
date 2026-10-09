@@ -172,10 +172,51 @@ def cmd_update(args: argparse.Namespace) -> int:
     )
 
 
+def _write_github_workflow(root: Path, args: argparse.Namespace) -> str:
+    """Write the workflow pinned to this Pawl version and its PyPI hashes."""
+    from pawl.init import pypi_hashes
+    from pawl.templates import github_workflow
+
+    if args.wheel_sha256 and args.sdist_sha256:
+        wheel, sdist = args.wheel_sha256, args.sdist_sha256
+        note = f"Pinned pawl-gate=={__version__} to the hashes you passed."
+    else:
+        try:
+            wheel, sdist = pypi_hashes(__version__)
+            note = f"Pinned pawl-gate=={__version__} to its PyPI wheel and sdist sha256."
+        except PawlError as exc:
+            wheel = sdist = ""
+            note = (
+                f"warning: {exc}. The Pawl install step in .github/workflows/pawl.yml "
+                "has placeholder hashes and fails until they are replaced. Hashes: "
+                f"https://pypi.org/project/pawl-gate/{__version__}/#files. Or pass "
+                "--wheel-sha256 and --sdist-sha256."
+            )
+    kwargs = {"wheel_sha256": wheel, "sdist_sha256": sdist} if wheel else {}
+    wf = root / ".github" / "workflows" / "pawl.yml"
+    wf.parent.mkdir(parents=True, exist_ok=True)
+    wf.write_text(github_workflow(__version__, **kwargs), encoding="utf-8")
+    return note
+
+
+def _sha256_arg(value: str) -> str:
+    from pawl.init import is_sha256
+
+    if not is_sha256(value):
+        raise argparse.ArgumentTypeError("expected 64 lowercase hex characters")
+    return value
+
+
 def cmd_init(args: argparse.Namespace) -> int:
     from pawl.init import detect, render_config
 
     root = _root(args)
+    if bool(args.wheel_sha256) != bool(args.sdist_sha256):
+        _emit("error: pass --wheel-sha256 and --sdist-sha256 together")
+        return 2
+    if args.wheel_sha256 and not args.github:
+        _emit("error: --wheel-sha256 and --sdist-sha256 only apply with --github")
+        return 2
     cfg_path = root / CONFIG_NAME
     if cfg_path.exists() and not args.force:
         _emit(f"error: {CONFIG_NAME} exists; use --force to overwrite")
@@ -200,11 +241,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     write_baseline(config.baseline_path, new)
     append_debt_log(config.debt_log_path, "init", delta, "initial baseline from the current state")
     if args.github:
-        from pawl.templates import GITHUB_WORKFLOW
-
-        wf = root / ".github" / "workflows" / "pawl.yml"
-        wf.parent.mkdir(parents=True, exist_ok=True)
-        wf.write_text(GITHUB_WORKFLOW, encoding="utf-8")
+        notes.append(_write_github_workflow(root, args))
     for n in notes:
         _emit(n)
     _print_delta(delta)
@@ -541,6 +578,16 @@ def build_parser() -> argparse.ArgumentParser:
     i.add_argument("--runner", choices=["pytest", "jest", "vitest", "go", "cargo"])
     i.add_argument("--force", action="store_true")
     i.add_argument("--github", action="store_true", help="also write .github/workflows/pawl.yml")
+    i.add_argument(
+        "--wheel-sha256",
+        type=_sha256_arg,
+        help="with --github: pin this wheel hash instead of reading it from PyPI",
+    )
+    i.add_argument(
+        "--sdist-sha256",
+        type=_sha256_arg,
+        help="with --github: pin this sdist hash instead of reading it from PyPI",
+    )
     i.add_argument("--orders", type=int)
     i.add_argument("--ci", action="store_true")
     i.add_argument("--skip-preflight", action="store_true")
