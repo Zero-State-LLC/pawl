@@ -49,4 +49,8 @@ Coding agents working in this repository follow [AGENTS.md](AGENTS.md).
 ## Releases
 
 Maintainers bump the version in `pyproject.toml` and `src/pawl/__init__.py`,
-move `[Unreleased]` entries under the new version, and tag `vX.Y.Z`.
+move `[Unreleased]` entries under the new version, merge that to `main`, and
+push the tag `vX.Y.Z` on the merged commit. `.github/workflows/release.yml`
+then checks that the tag matches the version and is on `main`, builds,
+runs `twine check`, and (in the `pypi` environment) signs PEP 740 publish
+attestations and uploads with PyPI Trusted Publishing. No API token is used.
