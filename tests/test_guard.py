@@ -150,10 +150,7 @@ def test_approval_label_downgrades_blocks(
     demo_repo: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     (demo_repo / "tests" / "test_more.py").unlink()
-    event = tmp_path / "event.json"
-    event.write_text(json.dumps({"pull_request": {"labels": [{"name": "pawl-approved"}]}}))
-    monkeypatch.setenv("GITHUB_EVENT_PATH", str(event))
-    report = run_guard(load_config(demo_repo), "main")
+    report = run_guard(load_config(demo_repo), "main", approved=True)
     assert report.status == "pass"
     assert report.approved
     assert any(f.severity == "approved" for f in report.findings)

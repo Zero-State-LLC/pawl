@@ -15,7 +15,8 @@ def _provenance(data: dict[str, Any]) -> list[str]:
     approval = data.get("approval")
     if approval:
         how = f"label `{approval.get('label')}`" if approval.get("source") == "label" else "flag"
-        out.append(f"Approved by {how}")
+        sha = str(approval.get("sha") or "")
+        out.append(f"Approved by {how}" + (f" at commit `{sha[:12]}`" if sha else ""))
     return [*out, ""] if out else []
 
 

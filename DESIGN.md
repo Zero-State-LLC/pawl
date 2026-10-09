@@ -108,6 +108,13 @@ are unioned, the floor is the maximum, and each metric takes its better value.
 So a branch can tighten the bar but not lower it. The only exit is a human:
 the `pawl-approved` label (name read from the base config) or `--approved`.
 
+The label approves one commit. It counts only in the run that applying it
+triggered (a `labeled` event for that label) and only when the event's
+`pull_request.head.sha` is the commit being checked (in a pull request run,
+the second parent of the merge commit). A later push (`synchronize`) or a run
+triggered by another label does not inherit it; a human removes and re-applies
+the label to approve the new commit. Both reports print the approved commit.
+
 The config is read from the base at the same path the root has in the working
 tree, so a root at `pkg/` reads `pkg/pawl.toml` from the base. One module
 (`pawl/trust.py`) resolves this for `check`, `guard`, and the stop hook, and
