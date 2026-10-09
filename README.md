@@ -119,8 +119,8 @@ project with one known failing test:
 | Pawl in CI (check + guard + holdout) | 20/21 | 0/8 |
 
 The one miss, special-casing inputs that no holdout covers, is beyond any
-test-based gate. Overhead of `pawl check` over bare pytest was 0.07 s on a
-100-test suite and 0.47 s on a 5000-test suite.
+test-based gate. Overhead of `pawl check` over bare pytest was 0.08 s on a
+100-test suite, 0.18 s on 5000 tests, and 0.75 s on 20000 tests.
 
 In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once
