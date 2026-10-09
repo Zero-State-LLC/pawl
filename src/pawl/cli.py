@@ -13,13 +13,21 @@ from pawl import __version__
 from pawl.baseline import Quarantine, check_quarantine, load_baseline, write_baseline
 from pawl.check import Measurement, Report, compare, in_ci, measure_all, report_path
 from pawl.config import CONFIG_NAME, Config, load_config
+from pawl.contract import (
+    EXIT_ERROR,
+    EXIT_FAIL,
+    EXIT_PASS,
+    EXIT_PREFLIGHT,
+    SCHEMA_VERSION,
+    exit_code_for,
+)
 from pawl.errors import PawlError, PreflightError
 from pawl.guard import ESCALATIONS, GuardReport, run_guard
 from pawl.render import check_markdown, guard_markdown
 from pawl.trust import resolve
 from pawl.update import Delta, append_debt_log, compute, default_orders
 
-EXIT = {"pass": 0, "fail": 1, "error": 2}
+EXIT = {"pass": EXIT_PASS, "fail": EXIT_FAIL, "error": EXIT_ERROR}
 
 
 def _root(args: argparse.Namespace) -> Path:
@@ -52,9 +60,10 @@ def cmd_check(args: argparse.Namespace) -> int:
         report.approval = gate.approval.to_json() if gate.approval else None
         code = EXIT[report.status]
     except PreflightError as exc:
-        report.status, report.error, code = "error", str(exc), 3
+        report.status, report.error, code = "error", str(exc), EXIT_PREFLIGHT
     except PawlError as exc:
-        report.status, report.error, code = "error", str(exc), 2
+        report.status, report.error, code = "error", str(exc), EXIT_ERROR
+    report.exit_code = code
     data = report.to_json()
     with contextlib.suppress(OSError):
         report_path(root).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
@@ -89,8 +98,40 @@ def _print_delta(delta: Delta) -> None:
         _emit(f"  ORDER-DEPENDENT in {suite}: {', '.join(ids[:10])}")
 
 
+def _update_json(
+    status: str, code: int, delta: Delta | None = None, error: str = "", message: str = ""
+) -> dict[str, object]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "tool": "pawl",
+        "version": __version__,
+        "kind": "update",
+        "status": status,  # written | unchanged | refused | error
+        "exit_code": code,
+        "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+        "error": error,
+        "message": message,
+        "loosened": delta.loosened if delta else [],
+        "tightened": delta.tightened if delta else [],
+        "order_dependent": delta.order_dependent if delta else {},
+    }
+
+
 def cmd_update(args: argparse.Namespace) -> int:
     root = _root(args)
+
+    def done(status: str, code: int, delta: Delta | None, error: str = "", msg: str = "") -> int:
+        if args.json:
+            _emit(json.dumps(_update_json(status, code, delta, error, msg), indent=2))
+        else:
+            if delta is not None:
+                _print_delta(delta)
+            if error:
+                _emit(f"error: {error}")
+            if msg:
+                _emit(msg)
+        return code
+
     try:
         config = load_config(root)
         old = load_baseline(config.baseline_path) if config.baseline_path.is_file() else None
@@ -103,31 +144,32 @@ def cmd_update(args: argparse.Namespace) -> int:
         m = _measure_for_update(config, args)
         new, delta = compute(config, old, m, dt.date.today())
     except PreflightError as exc:
-        _emit(f"error: {exc}")
-        return 3
+        return done("error", EXIT_PREFLIGHT, None, str(exc))
     except PawlError as exc:
-        _emit(f"error: {exc}")
-        return 2
-    _print_delta(delta)
+        return done("error", EXIT_ERROR, None, str(exc))
     if delta.order_dependent and old is not None and not args.allow_order_dependent:
-        _emit(
-            "refused: results differ between test orders. A baseline must agree under at "
-            "least two orders. Fix the order dependence, or pass --allow-order-dependent."
+        return done(
+            "refused",
+            EXIT_FAIL,
+            delta,
+            msg="refused: results differ between test orders. A baseline must agree under at "
+            "least two orders. Fix the order dependence, or pass --allow-order-dependent.",
         )
-        return 1
     if delta.loosened and not (args.loosen and args.reason):
-        _emit(
-            "refused: this update would loosen the baseline. A human must pass "
-            '--loosen --reason "..."; the reason is written to the debt log.'
+        return done(
+            "refused",
+            EXIT_FAIL,
+            delta,
+            msg="refused: this update would loosen the baseline. A human must pass "
+            '--loosen --reason "..."; the reason is written to the debt log.',
         )
-        return 1
     if not delta.loosened and not delta.tightened and old is not None:
-        _emit("baseline unchanged")
-        return 0
+        return done("unchanged", EXIT_PASS, delta, msg="baseline unchanged")
     write_baseline(config.baseline_path, new)
     append_debt_log(config.debt_log_path, "update", delta, args.reason)
-    _emit(f"wrote {config.baseline}; logged in {config.debt_log}")
-    return 0
+    return done(
+        "written", EXIT_PASS, delta, msg=f"wrote {config.baseline}; logged in {config.debt_log}"
+    )
 
 
 def cmd_init(args: argparse.Namespace) -> int:
@@ -192,13 +234,25 @@ def cmd_guard(args: argparse.Namespace) -> int:
         report.approval = gate.approval.to_json() if gate.approval else report.approval
     except PawlError as exc:
         data = {
+            "schema_version": SCHEMA_VERSION,
             "tool": "pawl",
+            "version": __version__,
             "kind": "guard",
             "status": "error",
+            "exit_code": EXIT_ERROR,
+            "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "error": str(exc),
-            "findings": [],
             "base": args.base,
+            "approved": False,
+            "approval": None,
+            "config_source": "",
+            "notes": [],
+            "findings": [],
         }
+        with contextlib.suppress(OSError):
+            report_path(root, "last-guard.json").write_text(
+                json.dumps(data, indent=2) + "\n", encoding="utf-8"
+            )
         _emit(
             json.dumps(data, indent=2) if args.json else f"Pawl guard: ERROR (fail closed): {exc}"
         )
@@ -213,34 +267,54 @@ def cmd_guard(args: argparse.Namespace) -> int:
 
 
 def cmd_report(args: argparse.Namespace) -> int:
+    """Render the last check and guard reports.
+
+    Exits 0 by default (it is a renderer, used to post comments), and 2 when
+    there is no report to render. With --exit-status it exits with the worst
+    exit code of the reports it read, so a script can gate on it: 0 only if
+    every report passed.
+    """
     root = _root(args)
     parts = []
-    status = "pass"
     for name in ("last-report.json", "last-guard.json"):
         path = root / ".pawl" / name
         if path.is_file():
-            data = json.loads(path.read_text(encoding="utf-8"))
-            parts.append(data)
-            if data.get("status") != "pass":
-                status = (
-                    "fail"
-                    if data.get("status") == "fail" and status == "pass"
-                    else data.get("status", "error")
-                )
+            try:
+                parts.append(json.loads(path.read_text(encoding="utf-8")))
+            except json.JSONDecodeError:
+                parts.append({"kind": name, "status": "error", "error": "unreadable report"})
     if not parts:
         _emit("no report yet; run 'pawl check' or 'pawl guard'")
-        return 2
+        return EXIT_ERROR
+    worst = max(int(p.get("exit_code", exit_code_for(str(p.get("status"))))) for p in parts)
+    status = {EXIT_PASS: "pass", EXIT_FAIL: "fail"}.get(worst, "error")
+    returned = worst if args.exit_status else EXIT_PASS
     if args.format == "json":
-        _emit(json.dumps({"status": status, "reports": parts}, indent=2))
+        _emit(
+            json.dumps(
+                {
+                    "schema_version": SCHEMA_VERSION,
+                    "tool": "pawl",
+                    "version": __version__,
+                    "kind": "report",
+                    "status": status,
+                    "exit_code": returned,
+                    "worst_exit_code": worst,
+                    "reports": parts,
+                },
+                indent=2,
+            )
+        )
     else:
         _emit(
             "\n".join(
                 check_markdown(p) if p.get("kind") == "check" else guard_markdown(p)
                 for p in parts
-                if p.get("status") != "error" or p.get("kind") == "check"
+                if p.get("kind") in ("check", "guard")
+                and (p.get("status") != "error" or p.get("kind") == "check")
             )
         )
-    return 0
+    return returned
 
 
 def cmd_quarantine(args: argparse.Namespace) -> int:
@@ -298,9 +372,14 @@ def cmd_mutate(args: argparse.Namespace) -> int:
         return 2
     killed = sum(1 for m in mutants if m.status == "killed")
     score = killed / len(mutants) if mutants else 1.0
+    code = EXIT_FAIL if args.min_score is not None and score < args.min_score else EXIT_PASS
     data = {
+        "schema_version": SCHEMA_VERSION,
         "tool": "pawl",
+        "version": __version__,
         "kind": "mutate",
+        "status": "fail" if code else "pass",
+        "exit_code": code,
         "mutants": len(mutants),
         "killed": killed,
         "score": round(score, 3),
@@ -317,7 +396,7 @@ def cmd_mutate(args: argparse.Namespace) -> int:
         for m in mutants:
             if m.status == "survived":
                 _emit(f"  survived: {m.path}:{m.line} {m.description}")
-    return 1 if args.min_score is not None and score < args.min_score else 0
+    return code
 
 
 def _hook_root(args: argparse.Namespace, payload: dict[str, object]) -> Path:
@@ -455,6 +534,7 @@ def build_parser() -> argparse.ArgumentParser:
     u.add_argument("--allow-order-dependent", action="store_true")
     u.add_argument("--ci", action="store_true", help="include ci_only suites")
     u.add_argument("--skip-preflight", action="store_true")
+    u.add_argument("--json", action="store_true", help="print the result as JSON")
     u.set_defaults(func=cmd_update)
 
     i = sub.add_parser("init", help="detect the runner, write pawl.toml and the first baseline")
@@ -481,6 +561,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     r = sub.add_parser("report", help="render the last check and guard reports")
     r.add_argument("--format", choices=["md", "json"], default="md")
+    r.add_argument(
+        "--exit-status",
+        action="store_true",
+        help="exit with the worst exit code of the reports (default: always 0)",
+    )
     r.set_defaults(func=cmd_report)
 
     q = sub.add_parser("quarantine", help="excuse a flaky test until an expiry date (humans only)")
