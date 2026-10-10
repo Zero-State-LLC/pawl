@@ -14,39 +14,42 @@ All notable changes to this project are documented here. The format follows
   paths, or moves with edits, still block. A registered file that moves warns
   until `pawl contracts update` rewrites the registry.
 
-- Protected contracts: files matching `contracts`, docstrings with a
-  `pawl: contract` line, and entries in `pawl.contracts.json` are
-  normative. Adds the contract registry, the `pawl contracts` command,
-  and the `SPEC_AUTHORITY_CHANGED` finding, with a regression test for
-  the live-trial docstring rewrite.
-- Approval provenance: the actor, event, run, and PR are recorded in
-  `approval_provenance`; missing or bot senders and actors outside
-  `guard.approvers` never approve; `guard.refuse_pr_author` can refuse the
-  PR author; label removal is recorded as revocation. The `approval` object
-  is unchanged.
+## [0.3.0] - TBD
 
-### Known gaps
-
-- Unmarked docstrings are not protected. A docstring that states a contract
-  but has no `pawl: contract` line (the original live-trial `parse_duration`
-  rewrite, 3601 to 3660 seconds) still passes the default policy. Mark such
-  docstrings, or list the file in `[guard] extra_contracts`.
-- A moved or renamed contract file blocks as a delete plus an add; move
-  detection is on the backlog.
-
-## [0.2.1] - Unreleased
-
-This release hardens runner evidence validation.
+Protected normative contracts, approval provenance, and runner-evidence
+hardening. 0.3.0 also contains everything prepared for 0.2.1, which was never
+published: 0.2.0 is followed directly by 0.3.0.
 
 ### Exit codes
 
-Exit codes stay 0 (pass), 1 (block), 2 (indeterminate), 3 (preflight error);
-what changed is that malformed or inconsistent runner evidence (unknown JUnit
-roots, empty testcase names, summaries that disagree with cases, abnormal
-pytest exits, exit 5 with cases) is now rejected and exits 2 instead of being
-measured, so a pipeline that relied on such a report passing will now see exit
-2. Measurable suppression (missing tests, collection drop, newly skipped)
-still blocks with exit 1.
+Exit codes stay 0 (pass), 1 (block), 2 (indeterminate), 3 (preflight error).
+What changed: malformed or inconsistent runner evidence (unknown JUnit roots,
+empty testcase names, summaries that disagree with cases, abnormal pytest
+exits, exit 5 with cases) is now rejected and exits 2 instead of being
+measured, so a pipeline that relied on such a report passing will now see
+exit 2. Measurable suppression (missing tests, collection drop, newly
+skipped) still blocks with exit 1. A changed protected contract blocks with
+exit 1 (`SPEC_AUTHORITY_CHANGED`).
+
+### Added
+
+- Protected contracts: files matching `[guard] contracts` (default
+  `specs/**`, `docs/requirements/**`, `docs/adr/**`, `contracts/**`; plus
+  `extra_contracts`), docstrings with a `pawl: contract` line, and entries in
+  `pawl.contracts.json` are normative. Adds the contract registry (stored by
+  SHA-256, protected by default), the `pawl contracts update|show` command,
+  and the `SPEC_AUTHORITY_CHANGED` finding, which blocks until a human
+  approves that exact commit. A regression test covers the live-trial
+  docstring rewrite. This repo commits its own registry.
+- Approval provenance: the actor, event, run, and PR are recorded in a new
+  `approval_provenance` report field. A label event with no sender, a bot
+  sender, or an actor outside `[guard] approvers` never approves; label
+  removal is recorded as revocation. The `approval` object is unchanged.
+- `[guard] refuse_pr_author` refuses an approval label applied by the pull
+  request author. `approvers` and `refuse_pr_author` are read from the trusted
+  base config only; this repo ships both commented out until the agent has
+  its own account.
+- The performance benchmark measures a 20000-test suite by default.
 
 ### Hardening
 
@@ -55,8 +58,7 @@ still blocks with exit 1.
   pytest exits and exit 5 paired with test cases. Preserve optional summaries,
   real empty collection, and duplicate teardown records.
 - Add labeled attack/clean fixtures, a reproduction of the live-trial spec
-  docstring rewrite, and bounded CI trust probes. The docstring rewrite remains
-  a known miss under default policy; normative protection is planned for 0.3.0.
+  docstring rewrite, and bounded CI trust probes.
 - Record the CI permission matrix, settings blockers and receipt proposal in
   [the P0 trust review](docs/CI_TRUST_REVIEW.md). No isolation, merge, release,
   workflow or repository-settings changes are claimed.
@@ -70,14 +72,23 @@ still blocks with exit 1.
   full, so a finding never rests on the narrowed run alone. The replay note
   says which scope ran.
 - The Pawl baseline for this repo protects 197 tests (was 97).
-
-### Added
-
-- The performance benchmark measures a 20000-test suite by default.
+- This repo's CI runs on GitHub-hosted ubuntu-latest; a macOS run on the
+  self-hosted Mac is optional and manual. The Pawl report is posted by a
+  separate job, and workflow actions must be SHA-pinned and allow-listed.
 
 ### Documentation
 
 - Windows is documented as untested.
+- ADR-0001: added asserts inside an existing test are allowed.
+
+### Known gaps
+
+- Unmarked docstrings are not protected. A docstring that states a contract
+  but has no `pawl: contract` line (the original live-trial `parse_duration`
+  rewrite, 3601 to 3660 seconds) still passes the default policy. Mark such
+  docstrings, or list the file in `[guard] extra_contracts`.
+- A moved or renamed contract file blocks as a delete plus an add; move
+  detection is on the backlog.
 
 ## [0.2.0] - 2026-10-08
 
@@ -172,8 +183,8 @@ a regression test in `tests/test_regressions.py`.
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.1...HEAD
-[0.2.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...v0.2.1
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/tree/v0.1.0
