@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 import urllib.request
 from pathlib import Path
 
 from pawl.errors import ConfigError
 
 TEMPLATES = {
-    "pytest": ("pytest", '["python", "-m", "pytest", "-q"]'),
+    # pytest command is filled in render_config with sys.executable so init
+    # works on hosts that only ship ``python3``.
+    "pytest": ("pytest", ""),
     "jest": ("jest", '["npx", "jest"]'),
     "vitest": ("vitest", '["npx", "vitest", "run"]'),
     "go": ("go", '["go", "test", "./..."]'),
@@ -35,7 +38,7 @@ identity = "ids"             # track which tests fail, not only how many
 
 PREFLIGHT_TEMPLATE = """
 [preflight]
-python = "python"
+python = {python}
 imports = [{{ module = "{module}", expect_under = "{under}" }}]
 """
 
@@ -84,9 +87,16 @@ def render_config(root: Path, adapter: str) -> str:
     name, command = TEMPLATES[adapter]
     preflight = ""
     if adapter == "pytest":
+        # Absolute path of the interpreter that ran ``pawl init``. Avoids the
+        # ``python`` vs ``python3`` PATH trap on Debian/Ubuntu and macOS.
+        command = f'[{json.dumps(sys.executable)}, "-m", "pytest", "-q"]'
         found = python_package(root)
         if found:
-            preflight = PREFLIGHT_TEMPLATE.format(module=found[0], under=found[1])
+            preflight = PREFLIGHT_TEMPLATE.format(
+                python=json.dumps(sys.executable),
+                module=found[0],
+                under=found[1],
+            )
     return CONFIG_TEMPLATE.format(adapter=name, command=command, preflight=preflight)
 
 

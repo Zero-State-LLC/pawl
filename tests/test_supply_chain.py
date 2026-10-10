@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import re
+import sys
 import tomllib
 from pathlib import Path
 
@@ -56,6 +57,20 @@ def test_template_installs_pawl_first_in_its_own_venv_by_hash() -> None:
     assert set(calls) == {'"$PAWL"'}
     assert "pip install pawl-gate" not in wf
     assert '"pawl-gate==' not in wf
+
+
+def test_template_splits_report_from_the_gate_job() -> None:
+    wf = GITHUB_WORKFLOW
+    gate = wf.index("jobs:\n  pawl:")
+    report = wf.index("\n  report:")
+    assert gate < report
+    pawl_job = wf[gate:report]
+    assert "pull-requests: write" not in pawl_job
+    assert "upload-artifact@" in pawl_job
+    report_job = wf[report:]
+    assert "pull-requests: write" in report_job
+    assert "download-artifact@" in report_job
+    assert "actions/checkout@" not in report_job
 
 
 def test_integration_file_uses_placeholders_that_fail_closed() -> None:
@@ -114,6 +129,8 @@ def test_init_github_pins_the_passed_hashes(
     repo = _init_repo(tmp_path)
     args = ["--root", str(repo), "init", "--runner", "pytest", "--github", "--skip-preflight"]
     assert main([*args, "--wheel-sha256", WHEEL, "--sdist-sha256", SDIST]) == 0
+    cfg = (repo / "pawl.toml").read_text(encoding="utf-8")
+    assert f'command = [{json.dumps(sys.executable)}, "-m", "pytest", "-q"]' in cfg
     wf = (repo / ".github" / "workflows" / "pawl.yml").read_text(encoding="utf-8")
     assert wf == github_workflow(pawl.__version__, WHEEL, SDIST)
 

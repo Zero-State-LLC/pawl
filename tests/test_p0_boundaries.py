@@ -16,6 +16,7 @@ from tests.conftest import commit
 from pawl.adapters import parse_junit, run_suite
 from pawl.cli import main
 from pawl.config import SuiteConfig, load_config
+from pawl.errors import ParseError
 from pawl.guard import run_guard
 
 
@@ -34,7 +35,7 @@ def test_candidate_runner_inherits_environment_marker(
 
 
 @pytest.mark.parametrize("link_kind", ["symlink", "hardlink"])
-def test_linked_report_is_a_known_same_user_limit(tmp_path: Path, link_kind: str) -> None:
+def test_linked_report_is_rejected(tmp_path: Path, link_kind: str) -> None:
     source = tmp_path / "synthetic.xml"
     source.write_text('<testsuite><testcase name="forged"/></testsuite>')
     report = tmp_path / "report.xml"
@@ -42,7 +43,8 @@ def test_linked_report_is_a_known_same_user_limit(tmp_path: Path, link_kind: str
         report.symlink_to(source)
     else:
         os.link(source, report)
-    assert parse_junit(report) == {"forged": "passed"}
+    with pytest.raises(ParseError, match=r"must not be a hard link|not a symlink"):
+        parse_junit(report)
 
 
 def test_report_identity_is_data_not_a_shell_command(tmp_path: Path) -> None:

@@ -4,7 +4,9 @@
 
 | Version | Supported |
 | --- | --- |
-| 0.1.x | Yes |
+| 0.3.x | Yes |
+| 0.2.x | Yes until the next minor after 0.3 |
+| 0.1.x | No |
 
 ## Reporting a vulnerability
 

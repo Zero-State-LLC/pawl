@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Walk through Pawl on the demo project: a pass, a regression, a collection
-# drop, and a weakened test. Runs in a temporary copy; nothing here changes.
+# drop, a weakened test, and a protected-contract rewrite. Runs in a temporary
+# copy; nothing here changes.
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 work="$(mktemp -d)"
@@ -8,6 +9,19 @@ trap 'rm -rf "$work"' EXIT
 cp -r "$here/demo/." "$work/"
 cd "$work"
 export PYTHONDONTWRITEBYTECODE=1
+
+# Debian/Ubuntu hosts often ship only ``python3``. The demo suite command uses
+# ``python``; provide a shim when needed so the walkthrough stays portable.
+if ! command -v python >/dev/null 2>&1; then
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "error: need python or python3 on PATH" >&2
+    exit 2
+  fi
+  mkdir -p "$work/.bin"
+  ln -s "$(command -v python3)" "$work/.bin/python"
+  export PATH="$work/.bin:$PATH"
+fi
+
 git init -q -b main
 git add -A
 git -c user.email=demo@example.com -c user.name=demo commit -qm "demo base"
@@ -35,3 +49,11 @@ sed -i.bak 's/    assert add(-2, -3) == -5/    assert add(-2, -3) == 5/' tests/t
 rm -f calc/__init__.py.bak tests/test_calc.py.bak
 pawl check; echo "pawl check exit $? (the tests agree with the code)"
 pawl guard --base main --replay; echo "pawl guard exit $?"
+reset
+git checkout -q main
+
+step "5. Protected contract: rewrite a pawl: contract docstring"
+git checkout -qb contract-agent
+sed -i.bak 's/closed interval \[low, high\]/closed interval [low, high) (exclusive high)/' calc/__init__.py
+rm -f calc/__init__.py.bak
+pawl guard --base main; echo "pawl guard exit $? (SPEC_AUTHORITY_CHANGED)"
