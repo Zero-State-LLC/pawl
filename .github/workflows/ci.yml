@@ -1,14 +1,8 @@
 # Lint, types, and tests. Actions are pinned by commit SHA.
 #
-# Runs on the org self-hosted Macs ([self-hosted, macOS], the same label set
-# Zero-State-LLC uses for non-iOS jobs, e.g. Hexwire hexwire-ci.yml hygiene):
-# GitHub-hosted jobs are refused while org Actions billing is blocked.
-#
-# Python comes from uv (python-build-standalone, relocatable, user space)
-# instead of actions/setup-python: on self-hosted macOS setup-python runs
-# `sudo installer -pkg` and needs /Users/runner/hostedtoolcache. Each job gets
-# a throwaway venv under RUNNER_TEMP so nothing leaks between runs on the
-# persistent machine.
+# Runs on GitHub-hosted ubuntu-latest. macOS is optional: run the manual
+# macos.yml workflow on the org self-hosted Mac. Python comes from uv
+# (python-build-standalone) in a throwaway venv under RUNNER_TEMP.
 name: ci
 
 on:
@@ -25,7 +19,7 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,7 +45,7 @@ jobs:
         run: "! LC_ALL=C grep -rn --exclude-dir=.git \"$(printf '\\342\\200\\224')\" ."
 
   test:
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
