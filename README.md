@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Zero-State-LLC/pawl/main/docs/assets/pawl-hero.png" alt="Pawl: better code, no backsliding">
+</p>
+
 # Pawl
 
 **Code can only move forward.**
