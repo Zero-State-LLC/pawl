@@ -508,6 +508,7 @@ def _stop_budget(root: Path, payload: dict[str, object], limit: int, red: bool) 
 
 
 def cmd_hook(args: argparse.Namespace) -> int:
+    from pawl.config import CONFIG_NAME
     from pawl.hooks import (
         protect_decision,
         protect_output,
@@ -520,11 +521,31 @@ def cmd_hook(args: argparse.Namespace) -> int:
     payload = read_stdin_json()
     root = _hook_root(args, payload)
     if args.event == "protect":
-        try:
-            config = load_config(root)
-        except PawlError as exc:
-            record(root, provenance(args.format, "protect", payload, "error", str(exc)))
+        found = (
+            root
+            if (root / CONFIG_NAME).is_file()
+            else next(
+                (d for d in root.parents if (d / CONFIG_NAME).is_file()),
+                None,
+            )
+        )
+        if found is None:
+            record(root, provenance(args.format, "protect", payload, "allow", "no pawl.toml found"))
             return 0
+        try:
+            config = load_config(found)
+        except (PawlError, OSError, UnicodeDecodeError) as exc:
+            fail_reason = (
+                f"Pawl: the gate config at {found / CONFIG_NAME} could not be loaded ({exc}); "
+                "blocking writes until it is fixed (fail closed). A human must repair pawl.toml."
+            )
+            record(root, provenance(args.format, "protect", payload, "error", fail_reason))
+            out, err, code = protect_output(args.format, fail_reason)
+            if out:
+                _emit(out)
+            if err:
+                sys.stderr.write(err + "\n")
+            return code
         block = protect_decision(config, payload)
         if block is None:
             record(root, provenance(args.format, "protect", payload, "allow", None))
