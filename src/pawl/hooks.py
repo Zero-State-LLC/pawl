@@ -2,6 +2,10 @@
 
 The harness hook is a fast early check. It is not the authority: an agent with
 a shell can disable local hooks. CI with a required check is the authority.
+
+The hook log written here (``.pawl/hook-log.jsonl``) is local evidence, not
+authority: it is best-effort, agent-writable, and may be missing or tampered
+with. It records provenance only, never tool input, commands or transcripts.
 """
 
 from __future__ import annotations
@@ -10,13 +14,17 @@ import contextlib
 import json
 import re
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import pawl
+from pawl import contracts
 from pawl.config import Config
 from pawl.guard import matches_any
 
 STOP_FORMATS = ("claude", "codex", "hermes", "cursor")
+HOOK_LOG = ".pawl/hook-log.jsonl"
 WRITE_TOKENS = re.compile(
     r"((?<![\d&])>(?!&)|\btee\b|\bsed\s+-i|\brm\b|\bmv\b|\bcp\b|\btruncate\b|\bgit\s+(checkout|restore|rm)\b|"
     r"\bperl\s+-p?i|open\([^)]*['\"][wa]|write_text|\bchmod\b|\bln\b)"
@@ -97,10 +105,22 @@ def protect_decision(config: Config, payload: dict[str, Any]) -> str | None:
                 "the gate config, or conftest files. Fix the code instead, or run "
                 "'pawl escalate \"<why>\"' and stop."
             )
+        if matches_any(rel, config.guard.contracts) or rel == contracts.REGISTRY:
+            return (
+                f"Pawl: {rel} is a protected contract (spec, ADR or contract fixture). "
+                "Changing it needs a human approval bound to the commit. Stop and run "
+                "'pawl escalate \"<why>\"'."
+            )
     if command:
         if HUMAN_ONLY.search(command):
             return "Pawl: loosening the baseline or quarantining tests is for humans only."
-        protected_literals = [config.baseline, "pawl.toml", "conftest.py", ".github/workflows"]
+        protected_literals = [
+            config.baseline,
+            "pawl.toml",
+            "conftest.py",
+            ".github/workflows",
+            contracts.REGISTRY,
+        ]
         if any(lit in command for lit in protected_literals) and WRITE_TOKENS.search(command):
             return "Pawl: this command appears to modify a protected gate file. Blocked."
     return None
@@ -124,3 +144,55 @@ def protect_output(fmt: str, reason: str) -> tuple[str, str, int]:
             0,
         )
     return "", reason, 2  # Claude Code and Hermes: exit 2 blocks, stderr is the reason
+
+
+def _str_field(payload: dict[str, Any], *keys: str) -> str | None:
+    """First string value among ``keys``; anything non-string becomes None."""
+    for key in keys:
+        value = payload.get(key)
+        if isinstance(value, str):
+            return value
+    return None
+
+
+def provenance(
+    fmt: str,
+    hook: str,
+    payload: dict[str, Any],
+    decision: str,
+    reason: str | None,
+) -> dict[str, Any]:
+    """A harness-neutral provenance record for one hook decision.
+
+    Only scalar fields are copied from the payload. Tool input, commands and
+    transcript paths are deliberately excluded: they may hold secrets.
+    """
+    paths = sorted({p for p in _paths_from_payload(payload)[0] if p})
+    return {
+        "v": 1,
+        "ts": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "pawl": pawl.__version__,
+        "harness": fmt,
+        "hook": hook,
+        "event": _str_field(payload, "hook_event_name", "hookEventName"),
+        "session": _str_field(payload, "session_id", "conversation_id"),
+        "turn": _str_field(payload, "turn_id", "generation_id", "prompt_id"),
+        "agent": _str_field(payload, "agent_id", "agent_type"),
+        "tool": _str_field(payload, "tool_name", "toolName"),
+        "tool_use_id": _str_field(payload, "tool_use_id"),
+        "model": _str_field(payload, "model"),
+        "paths": paths,
+        "decision": decision,
+        "reason": reason[:500] if reason else None,
+    }
+
+
+def record(root: Path, entry: dict[str, Any]) -> None:
+    """Append one JSON line to the local hook log. Best effort, never raises."""
+    target = root / HOOK_LOG
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, sort_keys=True) + "\n")
+    except OSError:
+        return

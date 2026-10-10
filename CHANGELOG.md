@@ -8,6 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Hook provenance log across harnesses (`.pawl/hook-log.jsonl`); protect
+  hook now blocks contract paths; Claude snippet uses `onFailure` block.
+
 - Protected contracts: files matching `contracts`, docstrings with a
   `pawl: contract` line, and entries in `pawl.contracts.json` are
   normative. Adds the contract registry, the `pawl contracts` command,

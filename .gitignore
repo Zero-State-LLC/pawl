@@ -19,3 +19,4 @@ htmlcov/
 .pawl/last-*.json
 .pawl/hook-state.json
 pawl-report.md
+.pawl/hook-log.jsonl
