@@ -12,6 +12,7 @@ import ast
 import fnmatch
 import hashlib
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,27 @@ CONTRACT_MARKER = "pawl: contract"
 REGISTRY_VERSION = 1
 
 _STATUS_WORDS = {"A": "added", "M": "modified", "D": "deleted", "R": "modified"}
+
+
+@dataclass
+class Change:
+    """One changed file: path, Pawl-root-relative path, status, and texts."""
+
+    path: str
+    rel: str | None
+    status: str
+    base_text: str | None
+    head_text: str | None
+
+
+@dataclass
+class Moves:
+    """Detected contract moves: intact files, escaped files, moved docstrings."""
+
+    files: dict[str, str]
+    escaped: dict[str, str]
+    docstrings: dict[tuple[str, str], str]
+    new_docstrings: set[tuple[str, str]]
 
 
 def glob_match(path: str, pattern: str) -> bool:
@@ -86,6 +108,83 @@ def contract_docstrings(source: str) -> dict[str, str]:
         found["<module>"] = _docstring_hash(module_docstring)
     _scan(tree.body, "", found)
     return found
+
+
+def detect_moves(
+    changes: list[Change], patterns: tuple[str, ...] | list[str] = DEFAULT_CONTRACTS
+) -> Moves:
+    """Pair deleted contracts with added identical copies, and moved docstrings.
+
+    A deleted file at a protected path paired with an added file whose content hash
+    matches is a move; it lands in ``files`` when the new path is still protected and
+    in ``escaped`` otherwise. A marked docstring whose hash disappears from one
+    changed ``.py`` file and appears with the same qualname and hash in another is a
+    move; its new ``(path, qualname)`` is recorded in ``new_docstrings``.
+    """
+    files: dict[str, str] = {}
+    escaped: dict[str, str] = {}
+    adds = sorted(
+        (c for c in changes if c.status == "A" and c.head_text is not None),
+        key=lambda c: c.path,
+    )
+    used: set[str] = set()
+    dels = sorted(
+        (c for c in changes if c.status == "D" and c.base_text is not None),
+        key=lambda c: c.path,
+    )
+    for old in dels:
+        old_rel = old.rel if old.rel is not None else old.path
+        if not (matches_any(old_rel, patterns) or matches_any(old.path, patterns)):
+            continue
+        digest = file_hash(old.base_text or "")
+        for new in adds:
+            if new.path in used or new.head_text is None:
+                continue
+            if file_hash(new.head_text) != digest:
+                continue
+            new_rel = new.rel if new.rel is not None else new.path
+            protected = matches_any(new_rel, patterns) or matches_any(new.path, patterns)
+            used.add(new.path)
+            if protected:
+                files[old.path] = new.path
+            else:
+                escaped[old.path] = new.path
+            break
+
+    removed: list[tuple[str, str, str]] = []
+    added: list[tuple[str, str, str]] = []
+    for change in changes:
+        if not change.path.endswith(".py"):
+            continue
+        before = contract_docstrings(change.base_text or "")
+        after = contract_docstrings(change.head_text or "")
+        for qualname, digest in before.items():
+            if after.get(qualname) != digest:
+                removed.append((change.path, qualname, digest))
+        for qualname, digest in after.items():
+            if before.get(qualname) != digest:
+                added.append((change.path, qualname, digest))
+    removed.sort()
+    added.sort()
+    docstrings: dict[tuple[str, str], str] = {}
+    new_docstrings: set[tuple[str, str]] = set()
+    taken: set[tuple[str, str]] = set()
+    for old_path, qualname, digest in removed:
+        for new_path, new_qualname, new_digest in added:
+            if new_qualname != qualname or new_digest != digest or new_path == old_path:
+                continue
+            if (new_path, new_qualname) in taken:
+                continue
+            taken.add((new_path, new_qualname))
+            docstrings[(old_path, qualname)] = new_path
+            new_docstrings.add((new_path, qualname))
+            break
+    return Moves(
+        files=files,
+        escaped=escaped,
+        docstrings=docstrings,
+        new_docstrings=new_docstrings,
+    )
 
 
 def _read_text(path: Path) -> str | None:
@@ -159,17 +258,26 @@ def _registry_entry(registry: dict[str, Any], rel_path: str) -> str | None:
 
 
 def _docstring_findings(
-    path: str, base_text: str | None, head_text: str | None
+    path: str,
+    base_text: str | None,
+    head_text: str | None,
+    moves: Moves | None = None,
 ) -> list[tuple[str, str]]:
     base_docs = contract_docstrings(base_text or "")
     head_docs = contract_docstrings(head_text or "")
+    moved_from = moves.docstrings if moves is not None else {}
+    moved_to = moves.new_docstrings if moves is not None else set()
     findings: list[tuple[str, str]] = []
     for qualname in sorted(set(base_docs) | set(head_docs)):
         before = base_docs.get(qualname)
         after = head_docs.get(qualname)
         if before is None:
+            if (path, qualname) in moved_to:
+                continue
             findings.append((path, f"contract docstring {qualname} added"))
         elif after is None:
+            if (path, qualname) in moved_from:
+                continue
             findings.append((path, f"contract docstring {qualname} removed"))
         elif before != after:
             findings.append((path, f"contract docstring {qualname} changed"))
@@ -185,6 +293,7 @@ def contract_findings(
     head_text: str | None,
     patterns: tuple[str, ...] | list[str] = DEFAULT_CONTRACTS,
     registry: dict[str, Any] | None = None,
+    moves: Moves | None = None,
 ) -> list[tuple[str, str]]:
     """Findings for one changed file: normative text, docstrings, registry hashes."""
     rel_path = rel if rel is not None else path
@@ -192,10 +301,17 @@ def contract_findings(
     pattern_reported = in_pattern and status in _STATUS_WORDS
     findings: list[tuple[str, str]] = []
     if pattern_reported:
-        findings.append((path, f"normative contract {_STATUS_WORDS[status]}"))
+        if moves is not None and path in moves.escaped:
+            target = moves.escaped[path]
+            findings.append((path, f"normative contract moved out of protected paths to {target}"))
+        elif moves is not None and (path in moves.files or path in moves.files.values()):
+            pass
+        else:
+            findings.append((path, f"normative contract {_STATUS_WORDS[status]}"))
     if rel_path.endswith(".py"):
-        findings.extend(_docstring_findings(path, base_text, head_text))
-    if registry is not None and not pattern_reported:
+        findings.extend(_docstring_findings(path, base_text, head_text, moves))
+    moved = moves is not None and rel_path in moves.files
+    if registry is not None and not pattern_reported and not moved:
         recorded = _registry_entry(registry, rel_path)
         if recorded is not None and (
             status == "D" or head_text is None or file_hash(head_text) != recorded
