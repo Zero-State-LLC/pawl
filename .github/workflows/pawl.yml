@@ -3,6 +3,12 @@
 # Make the "pawl" job a required status check on main.
 #
 # Runs on GitHub-hosted ubuntu-latest and gets Python from uv. See ci.yml.
+#
+# Reporting is split out of the gate. The "pawl" job checks out and runs
+# candidate code, so it holds a read-only token (contents: read only): it
+# renders the report and uploads it as an artifact. The "report" job downloads
+# that artifact and posts the comment. It runs no candidate code and does not
+# check out the repository, so it is the only job granted pull-requests: write.
 name: pawl
 
 on:
@@ -24,7 +30,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      pull-requests: write # only for the report comment
     env:
       BASE_REF: ${{ github.base_ref }}
       EVENT: ${{ github.event_name }}
@@ -57,12 +62,44 @@ jobs:
       - name: Pawl guard (tamper detection and test replay)
         if: always() && github.event_name == 'pull_request'
         run: pawl guard --ci --replay --base "origin/$BASE_REF"
-      - name: Post the report on the pull request
+      - name: Render the report
         if: always() && github.event_name == 'pull_request'
-        continue-on-error: true # fork PRs get a read-only token
+        run: |
+          pawl report --format md > "$RUNNER_TEMP/pawl-report.md"
+          printf '%s\n' "$PR_NUMBER" > "$RUNNER_TEMP/pawl-pr-number.txt"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          name: pawl-report
+          path: |
+            ${{ runner.temp }}/pawl-report.md
+            ${{ runner.temp }}/pawl-pr-number.txt
+          if-no-files-found: warn
+          retention-days: 3
+
+  report:
+    needs: pawl
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write # the only job that may comment on the PR
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      # No checkout and no candidate code: this job only fetches the report
+      # artifact the "pawl" job produced, then posts it.
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pawl-report
+          path: ${{ runner.temp }}
+      - name: Post the report on the pull request
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          pawl report --format md > pawl-report.md
-          gh pr comment "$PR_NUMBER" --body-file pawl-report.md --edit-last \
-            || gh pr comment "$PR_NUMBER" --body-file pawl-report.md
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --body-file "$RUNNER_TEMP/pawl-report.md" --edit-last \
+            || gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --body-file "$RUNNER_TEMP/pawl-report.md"

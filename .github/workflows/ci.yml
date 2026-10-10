@@ -43,6 +43,8 @@ jobs:
       - name: No em dashes
         # printf octal keeps this portable to macOS /bin/bash 3.2 and BSD grep.
         run: "! LC_ALL=C grep -rn --exclude-dir=.git \"$(printf '\\342\\200\\224')\" ."
+      - name: Actions pinned and allow-listed
+        run: python scripts/check_actions.py
 
   test:
     runs-on: ubuntu-latest
