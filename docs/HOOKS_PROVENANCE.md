@@ -24,6 +24,21 @@ decided. It holds no tool input and no transcript content.
 | `decision`    | `allow`, `block`, `error` or `budget`.                     |
 | `reason`      | Short reason, truncated to 500 characters.                 |
 
+## Codex tool coverage
+
+Checked 2026-10-10 against the official Codex hooks page
+(developers.openai.com/codex/hooks). `PreToolUse` runs for shell commands
+(`Bash`, including unified exec), for file edits through `apply_patch`
+(matcher `apply_patch`, `Edit` or `Write`; input reports
+`tool_name: "apply_patch"` with the patch in `tool_input.command`), for MCP
+tools (matcher is the MCP tool name, such as `mcp__fs__write`), and for
+other local function tools. It does not run for hosted tools such as web
+search. The docs warn that some specialized tool paths can opt out and call
+tool hooks a guardrail, not a complete enforcement boundary. A hook error,
+timeout or malformed output does not block in Codex, and `ask` is not
+supported. Pawl's Codex config matches `Bash|apply_patch|Edit|Write`; MCP
+tools that write files are not matched by default. CI remains the authority.
+
 ## Where each id comes from
 
 | Harness | Session              | Turn             | Agent                     | Tool call     | Model          |
@@ -45,6 +60,18 @@ decided. It holds no tool input and no transcript content.
 The log is local, agent-writable evidence. It is not authority. It can be
 edited or deleted by the same agent it describes. Gates that must hold act
 on CI, not on this file. Treat the log as a debugging and review aid.
+
+Signing the log (so a reviewer can tell an edited log from an intact one)
+is planned for a later release. Until then it is a debugging aid only.
+
+## Fail closed
+
+`protect` looks for `pawl.toml` in the hook's working directory and then in
+each parent directory. If one is found but cannot be loaded (bad TOML,
+invalid settings, unreadable), the hook blocks every write it is asked about
+and logs decision `error`, until a human repairs the config. If no
+`pawl.toml` exists anywhere up the tree, Pawl is not set up there and the
+hook allows the call.
 
 ## Protected contract paths
 

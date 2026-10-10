@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- `pawl hook protect` fails closed: a `pawl.toml` that exists but cannot be
+  loaded blocks writes. The config is found by walking up from the working
+  directory.
+
 - Hook provenance log across harnesses (`.pawl/hook-log.jsonl`); protect
   hook now blocks contract paths; Claude snippet uses `onFailure` block.
 
