@@ -508,18 +508,28 @@ def _stop_budget(root: Path, payload: dict[str, object], limit: int, red: bool) 
 
 
 def cmd_hook(args: argparse.Namespace) -> int:
-    from pawl.hooks import protect_decision, protect_output, read_stdin_json, stop_output
+    from pawl.hooks import (
+        protect_decision,
+        protect_output,
+        provenance,
+        read_stdin_json,
+        record,
+        stop_output,
+    )
 
     payload = read_stdin_json()
     root = _hook_root(args, payload)
     if args.event == "protect":
         try:
             config = load_config(root)
-        except PawlError:
+        except PawlError as exc:
+            record(root, provenance(args.format, "protect", payload, "error", str(exc)))
             return 0
         block = protect_decision(config, payload)
         if block is None:
+            record(root, provenance(args.format, "protect", payload, "allow", None))
             return 0
+        record(root, provenance(args.format, "protect", payload, "block", block))
         out, err, code = protect_output(args.format, block)
         if out:
             _emit(out)
@@ -555,12 +565,25 @@ def cmd_hook(args: argparse.Namespace) -> int:
             )
     except PawlError as exc:
         reason = f"Pawl could not verify the work (fail closed): {exc}"
+    decision = "block" if reason else "allow"
     if not _stop_budget(root, payload, args.max_blocks, reason is not None):
         sys.stderr.write(
             f"Pawl: gate still red after {args.max_blocks} attempts; allowing the stop. "
             "Report the red gate to the human; do not claim the work is done.\n"
         )
+        original = reason
+        decision = "budget"
         reason = None
+    record(
+        root,
+        provenance(
+            args.format,
+            "stop",
+            payload,
+            decision,
+            reason if decision != "budget" else original,
+        ),
+    )
     _emit(stop_output(args.format, reason))
     return 0
 
