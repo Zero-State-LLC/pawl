@@ -6,6 +6,33 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - Unreleased
+
+This release hardens runner evidence validation.
+
+### Exit codes
+
+Exit codes stay 0 (pass), 1 (block), 2 (indeterminate), 3 (preflight error);
+what changed is that malformed or inconsistent runner evidence (unknown JUnit
+roots, empty testcase names, summaries that disagree with cases, abnormal
+pytest exits, exit 5 with cases) is now rejected and exits 2 instead of being
+measured, so a pipeline that relied on such a report passing will now see exit
+2. Measurable suppression (missing tests, collection drop, newly skipped)
+still blocks with exit 1.
+
+### Hardening
+
+- Reject JUnit reports with unknown roots, empty testcase names, or failure,
+  error and skip summaries inconsistent with the XML cases. Reject abnormal
+  pytest exits and exit 5 paired with test cases. Preserve optional summaries,
+  real empty collection, and duplicate teardown records.
+- Add labeled attack/clean fixtures, a reproduction of the live-trial spec
+  docstring rewrite, and bounded CI trust probes. The docstring rewrite remains
+  a known miss under default policy; normative protection is planned for 0.3.0.
+- Record the CI permission matrix, settings blockers and receipt proposal in
+  [the P0 trust review](docs/CI_TRUST_REVIEW.md). No isolation, merge, release,
+  workflow or repository-settings changes are claimed.
+
 ### Changed
 
 - `pawl guard --replay` replays only the changed test files when every changed
@@ -14,6 +41,7 @@ All notable changes to this project are documented here. The format follows
   before. A narrowed replay that fails or finds a weakened test is re-run in
   full, so a finding never rests on the narrowed run alone. The replay note
   says which scope ran.
+- The Pawl baseline for this repo protects 197 tests (was 97).
 
 ### Added
 
@@ -116,7 +144,8 @@ a regression test in `tests/test_regressions.py`.
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Zero-State-LLC/pawl/tree/v0.1.0

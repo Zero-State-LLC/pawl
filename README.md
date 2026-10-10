@@ -57,8 +57,8 @@ check and add CODEOWNERS for the gate files.
 
 The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
 and the command are `pawl`. It needs Python 3.11 or newer and has no runtime
-dependencies. It is tested in CI on macOS only, using self-hosted runners;
-Linux is used in development but has no CI runner, and Windows is untested.
+dependencies. CI runs on Linux (GitHub-hosted ubuntu-latest); a macOS run on
+the self-hosted Mac is optional and manual. Windows is untested.
 The workflow written by `pawl init --github` assumes bash and a POSIX virtual
 environment layout.
 
@@ -107,8 +107,8 @@ agent can edit them, so they are a convenience.
 
 ## Results
 
-On an in-repo corpus of 21 synthetic attacks and 8 clean changes, run against
-a project with one known failing test:
+In the saved 2026-10-08 benchmark, on an in-repo corpus of 21 synthetic agent
+cheats and 8 clean changes, run against a project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
 | --- | --- | --- |
@@ -132,6 +132,13 @@ test), an agent without the Pawl contract edited the conflicting test once
 and rewrote the spec docstring once. Pawl's stop hook and CI gate caught the
 test edit and missed the docstring rewrite. With the contract, all 8 episodes
 left the impossible test alone and escalated; none tampered.
+
+The [0.2.x P0 trust review](docs/CI_TRUST_REVIEW.md) adds report-tampering
+regressions and a deterministic reproduction of that spec rewrite. Default
+policy still misses normative docstring edits; explicit protected paths provide
+an existing conservative workaround. The expanded corpus records that miss
+instead of counting an unrelated baseline block as specification protection.
+The review also records unresolved CI permission and runner-isolation gaps.
 
 ## Documentation
 
