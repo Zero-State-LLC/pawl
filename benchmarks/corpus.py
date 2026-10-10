@@ -26,6 +26,13 @@ DEBT_FIX = (
     "    return sum(values) / len(values) if values else 0.0\n",
 )
 
+# Adapter threat fixtures run separately from the demo effectiveness benchmark.
+# Ground truth is in the fixture pack, not generated from detector output.
+P0_REPORT_SCENARIOS = json.loads(
+    (ROOT / "benchmarks/fixtures/p0_reports.json").read_text(encoding="utf-8")
+)
+P0_PYTEST_EXITS = (3, 4, 5, 7, 137)
+
 
 @dataclass
 class Ctx:
@@ -94,6 +101,16 @@ class Scenario:
 
 
 # --- bad changes -----------------------------------------------------------
+
+
+def spec_docstring_rewrite(c: Ctx) -> None:
+    c.edit(CALC, "An empty list has mean 0.0.", "An empty list raises ZeroDivisionError.")
+
+
+def explanatory_docstring(c: Ctx) -> None:
+    c.edit(
+        CALC, "A tiny library used to demonstrate Pawl.", "Arithmetic helpers for the Pawl demo."
+    )
 
 
 def new_failure(c: Ctx) -> None:
@@ -355,6 +372,21 @@ def metric_clean_change(c: Ctx) -> None:
 
 
 SCENARIOS: list[Scenario] = [
+    Scenario(
+        "spec_docstring_rewrite",
+        "bad",
+        "spec authority",
+        "rewrites the empty-input contract to match known failing behavior",
+        spec_docstring_rewrite,
+        known_miss=True,
+    ),
+    Scenario(
+        "explanatory_docstring",
+        "clean",
+        "docs",
+        "edits a non-normative module description",
+        explanatory_docstring,
+    ),
     Scenario(
         "new_failure", "bad", "regression", "code change breaks an existing test", new_failure
     ),

@@ -2,10 +2,7 @@
 # integrations/github/pawl.yml, except it installs Pawl from this checkout.
 # Make the "pawl" job a required status check on main.
 #
-# Unlike the shipped template, this runs on the org self-hosted Macs
-# ([self-hosted, macOS]) because GitHub-hosted jobs are refused while org
-# Actions billing is blocked, and gets Python from uv instead of
-# actions/setup-python (which needs sudo on self-hosted macOS). See ci.yml.
+# Runs on GitHub-hosted ubuntu-latest and gets Python from uv. See ci.yml.
 #
 # Reporting is split out of the gate. The "pawl" job checks out and runs
 # candidate code, so it holds a read-only token (contents: read only): it
@@ -29,7 +26,7 @@ concurrency:
 
 jobs:
   pawl:
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: read
@@ -83,7 +80,7 @@ jobs:
   report:
     needs: pawl
     if: always() && github.event_name == 'pull_request'
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
       contents: read

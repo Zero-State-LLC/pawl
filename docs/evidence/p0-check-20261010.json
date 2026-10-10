@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "tool": "pawl",
+  "version": "0.2.0",
+  "kind": "check",
+  "status": "pass",
+  "exit_code": 0,
+  "generated_at": "2026-10-10T10:17:55+00:00",
+  "config_source": "pawl.toml",
+  "approval": null,
+  "error": "",
+  "problems": [],
+  "notes": [
+    "preflight: pawl resolves under src",
+    "unit: 100 new test(s) are not yet in the baseline; run 'pawl update' so they are protected."
+  ],
+  "suites": [
+    {
+      "name": "unit",
+      "adapter": "pytest",
+      "orders": [
+        "default"
+      ],
+      "failures": 0,
+      "baseline_failures": 0,
+      "collected": 197,
+      "baseline_collected": 97,
+      "new_failures": [],
+      "fixed": [],
+      "quarantined": [],
+      "seconds": 372.45,
+      "exit_code": 0
+    }
+  ],
+  "metrics": [
+    {
+      "name": "ruff_findings",
+      "value": 0.0,
+      "baseline": 0.0,
+      "direction": "down"
+    }
+  ],
+  "isolation": {},
+  "next_steps": []
+}
