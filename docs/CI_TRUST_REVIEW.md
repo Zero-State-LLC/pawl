@@ -17,7 +17,12 @@ Code and workflow changes that landed afterward:
 - `parse_junit` rejects symlink and hard-link reports (`ParseError`). Same-user
   forged regular files remain open.
 - Corpus includes `marked_contract_rewrite` as a catch; unmarked docstring
-  rewrite remains a known miss. See [QA_COMPLETION.md](QA_COMPLETION.md).
+  rewrite remains a known miss. Effectiveness receipt rewritten (62 runs,
+  Pawl CI 21/23 debt, 0 false blocks):
+  [p0-effectiveness-20261010.json](evidence/p0-effectiveness-20261010.json),
+  SHA-256
+  `552a05f9cff9e18c33e99c1e1f1f52092499ff7dd5a7d8db8a881c5eda646b12`.
+  See [QA_COMPLETION.md](QA_COMPLETION.md).
 
 ## Boundary and evidence
 
