@@ -83,10 +83,31 @@ def parse_junit(path: Path, pytest_ids: bool = False) -> dict[str, str]:
         tree = ET.parse(path)  # noqa: S314
     except ET.ParseError as exc:
         raise ParseError(f"JUnit report is not valid XML: {exc}") from exc
+    root = tree.getroot()
+    if root.tag not in ("testsuite", "testsuites"):
+        raise ParseError(f"JUnit report has an unsupported root: {root.tag}")
+    # Summaries are optional, but when present they must agree with the cases.
+    # Count XML records here, not deduplicated IDs: pytest may emit a passing
+    # call followed by a teardown error for the same ID.
+    for summary in root.iter():
+        if summary.tag not in ("testsuite", "testsuites"):
+            continue
+        cases = list(summary.iter("testcase"))
+        for attr, tag in (("failures", "failure"), ("errors", "error"), ("skipped", "skipped")):
+            claimed = summary.get(attr)
+            if claimed is None:
+                continue
+            if not re.fullmatch(r"[0-9]+", claimed):
+                raise ParseError(f"JUnit {attr} summary is not a nonnegative integer")
+            measured = sum(case.find(tag) is not None for case in cases)
+            if (claimed.lstrip("0") or "0") != str(measured):
+                raise ParseError(f"JUnit {attr} summary reports {claimed}, parsed {measured}")
     outcomes: dict[str, str] = {}
-    for case in tree.getroot().iter("testcase"):
+    for case in root.iter("testcase"):
         classname = case.get("classname", "")
         name = case.get("name", "")
+        if not name.strip():
+            raise ParseError("JUnit testcase has no nonempty name")
         if case.find("failure") is not None or case.find("error") is not None:
             outcome = "failed"
         elif case.find("skipped") is not None:
@@ -149,14 +170,17 @@ def _pytest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) ->
             env["PAWL_TEST_ORDER"] = order
             argv += ["-p", PLUGIN_MODULE]
         done = run(argv, root / suite.cwd, suite.timeout, env)
-        if done.returncode in (3, 4):
+        if done.returncode not in (0, 1, 2, 5):
             raise ParseError(
-                f"pytest exited {done.returncode} (internal or usage error):\n{done.tail()}"
+                f"pytest exited {done.returncode} (internal, usage, or abnormal exit):\n"
+                f"{done.tail()}"
             )
         if not report.is_file():
             raise ParseError(f"pytest wrote no JUnit report. Runner output:\n{done.tail()}")
         outcomes = parse_junit(report, pytest_ids=True)
     failing = sum(1 for v in outcomes.values() if v == "failed")
+    if done.returncode == 5 and outcomes:
+        raise ParseError("pytest exited 5 (no tests collected) but the report lists test cases")
     if done.returncode == 0 and failing:
         raise ParseError("pytest exited 0 but the report lists failures; refusing to guess")
     if done.returncode in (1, 2) and not failing:

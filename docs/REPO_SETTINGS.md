@@ -4,6 +4,12 @@ Pawl in CI is only a gate if GitHub enforces it. Apply these by hand in the
 repository settings; Pawl does not change settings through the API. The same
 list applies to any repository that adopts Pawl, including this one.
 
+The [2026-10-10 P0 review](CI_TRUST_REVIEW.md) compares this recommendation
+with actual API observations. Required checks are configured, but required
+human/code-owner review, last-push approval and strict base freshness were absent.
+The current candidate test job also requests PR-write permission. Those findings
+remain operator actions; a passing PAWL check does not establish CI isolation.
+
 ## Branch ruleset for the default branch
 
 Settings > Rules > Rulesets > New branch ruleset, target the default branch.
@@ -55,11 +61,17 @@ at. A later push needs a fresh approval: remove the label and add it again.
 ## Actions
 
 - Settings > Actions > General > Workflow permissions: "Read repository
-  contents and packages permissions". The Pawl workflow asks for
-  `pull-requests: write` itself, only to post its comment.
+  contents and packages permissions". Keep candidate execution jobs read-only.
+  The current Pawl workflow requests `pull-requests: write` to post a comment;
+  that is a known isolation gap, not a restriction on how candidate code can
+  use the job's privileges. Prefer a trusted separate reporting job with
+  validated run/SHA-bound data, or omit the PR comment.
 - Allow actions: only actions created by GitHub plus allow-listed actions,
   since workflows pin actions by commit SHA.
 - Require approval for workflows from outside collaborators: on.
+- Use disposable restricted runners for candidate code. A venv does not
+  isolate filesystem access, inherited credentials or surviving processes.
+  Separate release workers and protect the publish environment with reviewers.
 
 ## Agent accounts and tokens
 

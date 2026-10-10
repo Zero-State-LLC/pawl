@@ -1,0 +1,15 @@
+[
+  {"name": "unknown_root", "label": "bad", "xml": "<report><testcase name=\"ok\"/></report>", "exit": 0, "error": "root"},
+  {"name": "missing_identity", "label": "bad", "xml": "<testsuite><testcase/></testsuite>", "exit": 0, "error": "name"},
+  {"name": "hidden_failure", "label": "bad", "xml": "<testsuite failures=\"1\"><testcase name=\"ok\"/></testsuite>", "exit": 0, "error": "failures"},
+  {"name": "hidden_error", "label": "bad", "xml": "<testsuites errors=\"1\"><testsuite><testcase name=\"ok\"/></testsuite></testsuites>", "exit": 0, "error": "errors"},
+  {"name": "hidden_skip", "label": "bad", "xml": "<testsuite skipped=\"1\"><testcase name=\"ok\"/></testsuite>", "exit": 0, "error": "skipped"},
+  {"name": "invalid_summary", "label": "bad", "xml": "<testsuite failures=\"-1\"><testcase name=\"ok\"/></testsuite>", "exit": 0, "error": "failures"},
+  {"name": "truncated", "label": "bad", "xml": "<testsuite><testcase", "exit": 0, "error": "valid XML"},
+  {"name": "exit_report_disagreement", "label": "bad", "xml": "<testsuite><testcase name=\"ok\"/></testsuite>", "exit": 1, "error": "no failure"},
+  {"name": "clean_minimal", "label": "clean", "xml": "<testsuite><testcase name=\"ok\"/></testsuite>", "exit": 0, "error": null},
+  {"name": "clean_summaries", "label": "clean", "xml": "<testsuites failures=\"0\" errors=\"0\" skipped=\"0\"><testsuite failures=\"0\"><testcase name=\"ok\"/></testsuite></testsuites>", "exit": 0, "error": null},
+  {"name": "clean_failure", "label": "clean", "xml": "<testsuite failures=\"1\"><testcase name=\"bad\"><failure/></testcase></testsuite>", "exit": 1, "error": null},
+  {"name": "clean_teardown_error", "label": "clean", "xml": "<testsuite errors=\"1\"><testcase name=\"ok\"/><testcase name=\"ok\"><error/></testcase></testsuite>", "exit": 1, "error": null},
+  {"name": "clean_skip", "label": "clean", "xml": "<testsuite skipped=\"1\"><testcase name=\"later\"><skipped/></testcase></testsuite>", "exit": 0, "error": null}
+]

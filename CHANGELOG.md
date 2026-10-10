@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Hardening
+
+- Reject JUnit reports with unknown roots, empty testcase names, or failure,
+  error and skip summaries inconsistent with the XML cases. Reject abnormal
+  pytest exits and exit 5 paired with test cases. Preserve optional summaries,
+  real empty collection, and duplicate teardown records.
+- Add labeled attack/clean fixtures, a reproduction of the live-trial spec
+  docstring rewrite, and bounded CI trust probes. The docstring rewrite remains
+  a known miss under default policy; normative protection is planned for 0.3.0.
+- Record the CI permission matrix, settings blockers and receipt proposal in
+  [the P0 trust review](docs/CI_TRUST_REVIEW.md). No isolation, merge, release,
+  workflow or repository-settings changes are claimed.
+
 ### Changed
 
 - `pawl guard --replay` replays only the changed test files when every changed
