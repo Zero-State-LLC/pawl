@@ -16,6 +16,7 @@ def _label_event(
     sha = git(repo, "rev-parse", "HEAD").strip() if repo else ""
     payload = {
         "action": "labeled",
+        "sender": {"login": "maintainer", "type": "User"},
         "label": {"name": label},
         "pull_request": {"labels": [{"name": label}], "head": {"sha": sha}},
     }

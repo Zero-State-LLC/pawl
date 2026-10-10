@@ -38,13 +38,36 @@ class Approval:
     source: str  # "flag" (--approved) or "label"
     sha: str
     label: str = ""
+    actor: str = ""
+    actor_type: str = ""
+    event: str = ""
+    action: str = ""
+    run_id: str = ""
+    pr: int | None = None
 
     def to_json(self) -> dict[str, Any]:
         return {"source": self.source, "label": self.label, "sha": self.sha}
 
+    def provenance(self) -> dict[str, Any]:
+        return {
+            "source": self.source,
+            "label": self.label,
+            "sha": self.sha,
+            "actor": self.actor,
+            "actor_type": self.actor_type,
+            "event": self.event,
+            "action": self.action,
+            "run_id": self.run_id,
+            "pr": self.pr,
+        }
+
     def describe(self) -> str:
-        how = f"label '{self.label}'" if self.source == "label" else "--approved"
-        return f"approved by {how} at commit {self.sha[:12]}"
+        if self.source == "label":
+            return (
+                f"approved by label '{self.label}' applied by {self.actor} "
+                f"({self.event}/{self.action}, run {self.run_id}) at commit {self.sha[:12]}"
+            )
+        return f"approved by --approved at commit {self.sha[:12]}"
 
 
 def _checked_out(root: Path) -> set[str]:
@@ -55,7 +78,12 @@ def _checked_out(root: Path) -> set[str]:
     return {shas[0], shas[2]} if len(shas) == 3 else {shas[0]}
 
 
-def label_approval(label: str, root: Path) -> tuple[Approval | None, str | None]:
+def label_approval(
+    label: str,
+    root: Path,
+    approvers: tuple[str, ...] = (),
+    refuse_pr_author: bool = False,
+) -> tuple[Approval | None, str | None]:
     """Read the approval label from the GitHub event. Returns (approval, note).
 
     The label counts only in the run its own application triggered, and only for
@@ -74,11 +102,19 @@ def label_approval(label: str, root: Path) -> tuple[Approval | None, str | None]
     if not isinstance(data, dict):
         return None, None
     pr = data.get("pull_request") or {}
+    action = str(data.get("action", ""))
+    applied = (data.get("label") or {}).get("name")
+    sender = data.get("sender") or {}
+    actor = str(sender.get("login") or "")
+    actor_type = str(sender.get("type") or "")
+    if action == "unlabeled" and applied == label:
+        return None, (
+            f"label '{label}' was removed by {actor or 'unknown'}: approval revoked; "
+            "this run is not approved"
+        )
     names = {i.get("name") for i in pr.get("labels") or [] if isinstance(i, dict)}
     if label not in names:
         return None, None
-    action = str(data.get("action", ""))
-    applied = (data.get("label") or {}).get("name")
     if action != "labeled" or applied != label:
         return None, (
             f"label '{label}' is on the pull request but did not trigger this run "
@@ -93,7 +129,35 @@ def label_approval(label: str, root: Path) -> tuple[Approval | None, str | None]
             f"but this run checks {', '.join(sorted(x[:12] for x in checked)) or 'nothing'}. "
             "Re-apply the label to approve the current commit."
         )
-    return Approval("label", head_sha, label), None
+    if not actor:
+        return None, (
+            f"label '{label}' has no recorded sender; an approval is never inferred "
+            "from the label name alone"
+        )
+    if actor_type == "Bot" or actor.endswith("[bot]"):
+        return None, f"label '{label}' was applied by bot {actor}; only a human approves"
+    if approvers and actor not in approvers:
+        return None, f"label '{label}' was applied by {actor}, who is not in guard.approvers"
+    author = str(((pr.get("user") or {}).get("login")) or "")
+    if refuse_pr_author and author and actor == author:
+        return None, (
+            f"label '{label}' was applied by the pull request author {actor}; "
+            "another human must approve"
+        )
+    return (
+        Approval(
+            "label",
+            head_sha,
+            label,
+            actor=actor,
+            actor_type=actor_type,
+            event=os.environ.get("GITHUB_EVENT_NAME", ""),
+            action=action,
+            run_id=os.environ.get("GITHUB_RUN_ID", ""),
+            pr=pr.get("number") if isinstance(pr.get("number"), int) else None,
+        ),
+        None,
+    )
 
 
 @dataclass
@@ -170,11 +234,13 @@ def _resolve(
     # label to one it controls. With no base config (a branch adding Pawl), the
     # head config is untrusted too, so only the default label counts.
     label = base_cfg.guard.approval_label if base_cfg is not None else DEFAULT_APPROVAL_LABEL
+    approvers = base_cfg.guard.approvers if base_cfg is not None else ()
+    refuse_author = base_cfg.guard.refuse_pr_author if base_cfg is not None else False
     label_note: list[str] = []
     if approved:
         approval: Approval | None = Approval("flag", git(root, "rev-parse", "HEAD").strip())
     else:
-        approval, why = label_approval(label, root)
+        approval, why = label_approval(label, root, approvers, refuse_pr_author=refuse_author)
         label_note = [why] if why else []
     if approval is not None and not need_baseline and base_cfg is not None:
         # The guard keeps the base rules when approved: its findings are the
