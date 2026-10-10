@@ -370,6 +370,47 @@ def run_guard(
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
     if pre:
         report.notes.append(f"root is {pre.rstrip('/')}/ inside the repository")
+    changes = [
+        contracts.Change(
+            path,
+            root_relative(path, pre),
+            status,
+            show(top, mb, path) if status != "A" else None,
+            (top / path).read_text(encoding="utf-8", errors="replace")
+            if (top / path).is_file()
+            else None,
+        )
+        for status, path in changed_files(top, mb)
+    ]
+    moves = contracts.detect_moves(changes, config.guard.contracts)
+    for old, new in sorted(moves.files.items()):
+        report.findings.append(
+            Finding(
+                "SPEC_AUTHORITY_MOVED",
+                "info",
+                new,
+                f"normative contract moved from {old}, content unchanged",
+            )
+        )
+        rel_old = root_relative(old, pre) or old
+        if registry is not None and rel_old in registry.get("files", {}):
+            report.findings.append(
+                Finding(
+                    "SPEC_AUTHORITY_MOVED",
+                    "warn",
+                    old,
+                    f"registered contract moved to {new}; run pawl contracts update",
+                )
+            )
+    for (old_path, qualname), new_path in sorted(moves.docstrings.items()):
+        report.findings.append(
+            Finding(
+                "SPEC_AUTHORITY_MOVED",
+                "info",
+                new_path,
+                f"contract docstring {qualname} moved from {old_path}",
+            )
+        )
     test_changes: list[str] = []
     for status, path in changed_files(top, mb):
         rel = root_relative(path, pre)
@@ -391,6 +432,7 @@ def run_guard(
             head_text=head_text,
             patterns=config.guard.contracts,
             registry=registry,
+            moves=moves,
         ):
             report.findings.append(Finding("SPEC_AUTHORITY_CHANGED", "block", p, detail))
         if rel == config.baseline:

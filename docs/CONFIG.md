@@ -105,6 +105,14 @@ approval bound to that commit clears: the approval label applied at that
 commit, or `--approved`. Ordinary comments and docstrings without the
 marker are not affected.
 
+A contract moved intact (same content hash, new path still matching
+contracts; or a marked docstring moved with the same qualname and text to
+another changed file) is reported as `SPEC_AUTHORITY_MOVED` (info) and does
+not block. Moving a contract out of the protected paths, or moving and
+editing it, still blocks. A registered file that moves reports a
+`SPEC_AUTHORITY_MOVED` warning until `pawl contracts update` rewrites the
+registry.
+
 ## Exit codes
 
 See [JSON.md](JSON.md) for the full machine-readable contract.
