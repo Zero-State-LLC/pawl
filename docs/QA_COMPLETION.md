@@ -1,22 +1,23 @@
-# QA and completion recommendations (post-0.3.0)
+# QA and completion recommendations (post-0.4.0)
 
 Date: 2026-10-10. Scope: local QA of
-[Zero-State-LLC/pawl](https://github.com/Zero-State-LLC/pawl) after the 0.3.0
-changelog date, plus hardening that still belonged with the cut.
+[Zero-State-LLC/pawl](https://github.com/Zero-State-LLC/pawl) after 0.4.0,
+plus hardening that still belonged with the trust cut.
 
 This is an engineering readiness note. It does not publish a release, change
 repository settings, or claim P0 isolation is finished.
 
 ## Verdict
 
-**0.3.0 is dated; this branch closes remaining hardening gaps.** Contracts,
-approval provenance, runner-evidence hardening, move detection, and narrowed
-replay are present. QA still found a portable-init PATH bug, linked-report
-forgery, customer-workflow trust drift, and stale support metadata.
+**0.4.0 is tagged; this branch closes remaining hardening gaps.** Contracts,
+approval provenance, runner-evidence hardening, move detection, hook
+provenance, and narrowed replay are present. QA still found a portable-init
+PATH bug, linked-report forgery, customer-workflow trust drift, and stale
+support metadata.
 
 This branch closes those, regenerates corpus receipts for a marked-contract
-catch (Pawl CI 21/23 debt, 0 false blocks), and leaves PyPI / repo-settings
-work to operators.
+catch (Pawl CI 21/23 debt, 0 false blocks), and leaves PyPI environment
+reviewers / branch-protection work to operators.
 
 ## QA results (this environment)
 

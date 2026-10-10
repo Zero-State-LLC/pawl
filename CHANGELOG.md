@@ -6,9 +6,6 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-## [0.4.0] - 2026-10-10
-=======
 ### Hardening
 
 - Reject symlink and hard-link JUnit reports (`ParseError`, exit 2).
@@ -18,9 +15,10 @@ All notable changes to this project are documented here. The format follows
   preflight, so hosts that only provide `python3` still measure a baseline.
 - Demo and corpus cover a marked `pawl: contract` docstring rewrite
   (`marked_contract_rewrite`).
-- `SECURITY.md` supported versions updated for 0.3.x.
+- `SECURITY.md` supported versions updated for 0.4.x / 0.3.x.
 - Release readiness checklist: [docs/QA_COMPLETION.md](docs/QA_COMPLETION.md).
->>>>>>> 10310b7 (Post-0.3.0 QA hardening: linked reports, init, split workflow)
+
+## [0.4.0] - 2026-10-10
 
 ### Added
 
