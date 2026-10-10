@@ -4,6 +4,12 @@ Copy `hooks.json` to `.codex/hooks.json` and add the contract in `../AGENTS.md`
 to the project's AGENTS.md. Codex requires a human to review and trust hooks
 before they run (`/hooks`).
 
+The `PreToolUse` matcher covers shell (`Bash`), `apply_patch` (also matched
+as `Edit` or `Write`) and every MCP tool (`mcp__.*`), so an MCP server that
+writes files is checked too. Pawl reads the target from `file_path`, `path`,
+`target_file` or `filePath` in the tool input; an MCP tool that names its
+target differently is not checked.
+
 `protect` denies a tool call with:
 
 ```json
