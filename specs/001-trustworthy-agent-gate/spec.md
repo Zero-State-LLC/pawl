@@ -90,7 +90,7 @@ Acceptance: new user completes install and first valid protected PR using a docu
 Journey: agent edits code; local hook checks; CI tests and protects evidence; merge.
 Workflow: capture trusted baseline -> run suite -> compare identities/outcomes -> guard diff -> publish decision.
 State: BASELINED -> CANDIDATE -> MEASURED -> PASS or BLOCK/INDETERMINATE -> MERGED.
-Contract: PASS requires every required runner successful/parseable, zero new failing or missing tests, zero unauthorized protected edits, and no unresolved escalation.
+Contract: PASS requires every required runner successful/parseable, zero new failing or missing tests, zero newly skipped or xfailed baseline tests (the gate reports NEWLY_SKIPPED; see src/pawl/check.py), zero unauthorized protected edits, and no unresolved escalation.
 Acceptance: 8 clean fixtures and expanded clean corpus must pass without special overrides.
 Tasks: cross-adapter golden fixtures; report manifest; CI matrix.
 
@@ -113,8 +113,8 @@ Tasks: escalation state-machine tests; contract wording A/B experiments.
 ### J4: Test runner or environment compromised
 Journey: malicious change emits forged/stale/partial reports or suppresses collection.
 Workflow: run in low-privilege environment -> independently verify report binding and exit -> authoritative compare.
-State: CANDIDATE -> UNMEASURABLE -> INDETERMINATE (exit 2), never PASS.
-Acceptance: stale report, truncated JSON/XML, mismatch in count, forged path and killed runner all fail closed.
+State: CANDIDATE -> MEASURED -> BLOCK (exit 1) when suppression is measurable and provable, specifically MISSING_TESTS, COLLECTION_DROP or NEWLY_SKIPPED from a parseable, validated report; CANDIDATE -> UNMEASURABLE -> INDETERMINATE (exit 2) when evidence cannot be validated, including stale, truncated, forged, killed runner or count mismatch; never PASS.
+Acceptance: measurable suppression (MISSING_TESTS, COLLECTION_DROP or NEWLY_SKIPPED) backed by a parseable, validated report must BLOCK with exit 1; stale report, truncated JSON/XML, count mismatch, forged path and killed runner must be UNMEASURABLE and return INDETERMINATE with exit 2, never PASS.
 Tasks: environment isolation, evidence provenance, adversarial fixture pack.
 
 ## Benchmarking protocol
