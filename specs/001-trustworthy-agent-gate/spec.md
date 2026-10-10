@@ -141,6 +141,14 @@ Promotion gates: zero false PASS in critical P0 threat fixtures; no regression a
 | 0.5.0 | `doctor`, diagnostics, cleaner escalation UX, incremental local optimization | CI unchanged in authority; measurable adoption and latency improvement |
 | 1.0.0 | Stable config/report schemas, security audit, independently repeated A/B evaluation, release guide | Threat-model/benchmark claims independently verified; no unresolved critical risks |
 
+### Backlog (not yet scheduled)
+
+- Contract move detection: a contract file that is moved or renamed with
+  identical content is reported today as a delete plus an add and blocks as
+  `SPEC_AUTHORITY_CHANGED`. Distinguish a pure relocation (same hash, new
+  path) from a substantive edit with deterministic evidence, and keep moves
+  reviewable. Accepted by Danny 2026-10-10 as a later item, after 0.3.0.
+
 ## 0.2.x implementation evidence (2026-10-10)
 
 OBSERVED implementation scope: the [P0 CI trust review](../../docs/CI_TRUST_REVIEW.md)

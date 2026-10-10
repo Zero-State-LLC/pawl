@@ -1,0 +1,8 @@
+{
+  "docstrings": {},
+  "files": {
+    "docs/adr/0001-added-asserts-allowed.md": "83f233b7424cafba082ab7aab4e3a2352b2434916eefbc193311fcd9f660fe2f",
+    "specs/001-trustworthy-agent-gate/spec.md": "0e4ccbae27921d458ca607ff6ce625dfc37700c8d58cda58e3ff8b369b03fefe"
+  },
+  "pawl_contracts": 1
+}

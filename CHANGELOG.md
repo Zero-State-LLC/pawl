@@ -19,6 +19,15 @@ All notable changes to this project are documented here. The format follows
   PR author; label removal is recorded as revocation. The `approval` object
   is unchanged.
 
+### Known gaps
+
+- Unmarked docstrings are not protected. A docstring that states a contract
+  but has no `pawl: contract` line (the original live-trial `parse_duration`
+  rewrite, 3601 to 3660 seconds) still passes the default policy. Mark such
+  docstrings, or list the file in `[guard] extra_contracts`.
+- A moved or renamed contract file blocks as a delete plus an add; move
+  detection is on the backlog.
+
 ## [0.2.1] - Unreleased
 
 This release hardens runner evidence validation.
