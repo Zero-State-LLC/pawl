@@ -63,6 +63,7 @@ class Report:
     config_source: str = ""
     error: str = ""
     approval: dict[str, Any] | None = None
+    approval_provenance: dict[str, Any] | None = None
     exit_code: int | None = None  # set for preflight failures (3); else derived from status
 
     def to_json(self) -> dict[str, Any]:
@@ -78,6 +79,7 @@ class Report:
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "config_source": self.config_source,
             "approval": self.approval,
+            "approval_provenance": self.approval_provenance,
             "error": self.error,
             "problems": [p.to_json() for p in self.problems],
             "notes": self.notes,

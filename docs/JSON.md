@@ -38,6 +38,17 @@ Every JSON document has:
 `notes` (list of strings), and `approval` (`null`, or `{"source": "label" |
 "flag", "label": "...", "sha": "<commit>"}`).
 
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `approval` | object | `null`, or exactly `{"source": "label" \| "flag", "label": "...", "sha": "<commit>"}` |
+| `approval_provenance` | object | `null`, or who applied the approval label: `actor` and `actor_type`, the triggering `event` and `action`, `run_id`, `pr` (PR number), and `sha` (the approved commit) |
+
+`approval_provenance` is `null` when there is no approval. Approvals are never
+inferred from the label name alone: a label event with no sender, a bot sender,
+or (when `[guard] approvers` is set in the trusted base config) a sender outside
+that list does not approve; removing the label (`unlabeled`) is recorded as a
+revocation note.
+
 ## `pawl check --json` (also `.pawl/last-report.json`)
 
 | Field | Meaning |
@@ -91,5 +102,5 @@ those reports; `exit_code` is what this command returned (0 without
 `--exit-status`).
 
 A guard that cannot establish the gate still writes a full guard document:
-`status` `error`, `error` set, `approved` false, `approval` null,
-`config_source` empty, and no findings.
+`status` `error`, `error` set, `approved` false, `approval` and
+`approval_provenance` null, `config_source` empty, and no findings.
