@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Protected contracts: files matching `contracts`, docstrings with a
+  `pawl: contract` line, and entries in `pawl.contracts.json` are
+  normative. Adds the contract registry, the `pawl contracts` command,
+  and the `SPEC_AUTHORITY_CHANGED` finding, with a regression test for
+  the live-trial docstring rewrite.
+
 ## [0.2.1] - Unreleased
 
 This release hardens runner evidence validation.

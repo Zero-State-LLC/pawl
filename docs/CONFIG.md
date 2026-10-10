@@ -85,6 +85,8 @@ The metric fails closed:
 | `tests` | see below | Glob patterns for test files |
 | `approval_label` | `"pawl-approved"` | PR label that marks a gate change as human-approved |
 | `fail_on_suspicious` | `false` | Turn suspicious-code warnings into blocks |
+| `contracts` | `specs/**`, `docs/requirements/**`, `docs/adr/**`, `contracts/**` | Glob patterns for protected contract files |
+| `extra_contracts` | `[]` | Added to the contract list |
 
 Default protected: `pawl.toml`, `pawl.baseline.json`, `.github/workflows/**`,
 `.github/CODEOWNERS`, `CODEOWNERS`, `**/conftest.py`, `pytest.ini`, `tox.ini`,
@@ -92,6 +94,14 @@ Default protected: `pawl.toml`, `pawl.baseline.json`, `.github/workflows/**`,
 
 Default tests: `tests/**`, `test/**`, `**/test_*.py`, `**/*_test.py`,
 `**/*_test.go`, `**/*.test.[jt]s(x)`, `**/*.spec.[jt]s(x)`, `**/__tests__/**`.
+
+Protected contracts: files matching `contracts`, Python docstrings with a
+line starting `pawl: contract`, and files recorded in `pawl.contracts.json`
+(written by `pawl contracts update`, protected by default) are normative.
+Any change reports `SPEC_AUTHORITY_CHANGED` (block), which only a human
+approval bound to that commit clears: the approval label applied at that
+commit, or `--approved`. Ordinary comments and docstrings without the
+marker are not affected.
 
 ## Exit codes
 
