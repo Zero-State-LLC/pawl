@@ -35,7 +35,8 @@ def test_candidate_runner_inherits_environment_marker(
 
 
 @pytest.mark.parametrize("link_kind", ["symlink", "hardlink"])
-def test_linked_report_is_rejected(tmp_path: Path, link_kind: str) -> None:
+def test_linked_report_is_a_known_same_user_limit(tmp_path: Path, link_kind: str) -> None:
+    """Linked reports are rejected (was a known accept; now fail closed)."""
     source = tmp_path / "synthetic.xml"
     source.write_text('<testsuite><testcase name="forged"/></testsuite>')
     report = tmp_path / "report.xml"
