@@ -20,3 +20,11 @@ extract = "count-regex:^\\S+:\\d+:\\d+: "
 [preflight]
 python = "python"
 imports = [{ module = "pawl", expect_under = "src" }]
+
+# Approval policy (Danny 2026-10-10): enable both once the agent machine
+# account exists. Today the agent logs in as the code owner, so turning these
+# on would let it approve nothing and block every agent PR on a human that
+# shares its login. Uncomment the table below at that point.
+# [guard]
+# approvers = ["scrimshawlife-ctrl"]
+# refuse_pr_author = true

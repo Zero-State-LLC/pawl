@@ -11,7 +11,7 @@ All notable changes to this project are documented here. The format follows
 - Approval provenance: the actor, event, run, and PR are recorded in
   `approval_provenance`; missing or bot senders and actors outside
   `guard.approvers` never approve; label removal is recorded as revocation;
-  the approval object is unchanged.
+  the approval object is unchanged, and guard.refuse_pr_author can refuse the PR author.
 
 ## [0.2.1] - Unreleased
 

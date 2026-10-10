@@ -102,6 +102,7 @@ class GuardConfig:
     tests: tuple[str, ...] = DEFAULT_TESTS
     approval_label: str = "pawl-approved"
     approvers: tuple[str, ...] = ()
+    refuse_pr_author: bool = False
     fail_on_suspicious: bool = False
 
 
@@ -307,6 +308,7 @@ def _parse_guard(raw: Any) -> GuardConfig:
             "tests",
             "approval_label",
             "approvers",
+            "refuse_pr_author",
             "fail_on_suspicious",
         },
         "guard",
@@ -314,6 +316,9 @@ def _parse_guard(raw: Any) -> GuardConfig:
     approvers_raw = raw.get("approvers", [])
     if not isinstance(approvers_raw, list) or not all(isinstance(a, str) for a in approvers_raw):
         raise ConfigError("guard.approvers must be a list of GitHub logins")
+    refuse_pr_author = raw.get("refuse_pr_author", False)
+    if not isinstance(refuse_pr_author, bool):
+        raise ConfigError("guard.refuse_pr_author must be true or false")
     protected = tuple(raw.get("protected", DEFAULT_PROTECTED)) + tuple(
         raw.get("extra_protected", [])
     )
@@ -322,6 +327,7 @@ def _parse_guard(raw: Any) -> GuardConfig:
         tests=tuple(raw.get("tests", DEFAULT_TESTS)),
         approval_label=str(raw.get("approval_label", "pawl-approved")),
         approvers=tuple(approvers_raw),
+        refuse_pr_author=refuse_pr_author,
         fail_on_suspicious=bool(raw.get("fail_on_suspicious", False)),
     )
 

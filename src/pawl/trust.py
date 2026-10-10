@@ -79,7 +79,10 @@ def _checked_out(root: Path) -> set[str]:
 
 
 def label_approval(
-    label: str, root: Path, approvers: tuple[str, ...] = ()
+    label: str,
+    root: Path,
+    approvers: tuple[str, ...] = (),
+    refuse_pr_author: bool = False,
 ) -> tuple[Approval | None, str | None]:
     """Read the approval label from the GitHub event. Returns (approval, note).
 
@@ -135,6 +138,12 @@ def label_approval(
         return None, f"label '{label}' was applied by bot {actor}; only a human approves"
     if approvers and actor not in approvers:
         return None, f"label '{label}' was applied by {actor}, who is not in guard.approvers"
+    author = str(((pr.get("user") or {}).get("login")) or "")
+    if refuse_pr_author and author and actor == author:
+        return None, (
+            f"label '{label}' was applied by the pull request author {actor}; "
+            "another human must approve"
+        )
     return (
         Approval(
             "label",
@@ -226,11 +235,12 @@ def _resolve(
     # head config is untrusted too, so only the default label counts.
     label = base_cfg.guard.approval_label if base_cfg is not None else DEFAULT_APPROVAL_LABEL
     approvers = base_cfg.guard.approvers if base_cfg is not None else ()
+    refuse_author = base_cfg.guard.refuse_pr_author if base_cfg is not None else False
     label_note: list[str] = []
     if approved:
         approval: Approval | None = Approval("flag", git(root, "rev-parse", "HEAD").strip())
     else:
-        approval, why = label_approval(label, root, approvers)
+        approval, why = label_approval(label, root, approvers, refuse_pr_author=refuse_author)
         label_note = [why] if why else []
     if approval is not None and not need_baseline and base_cfg is not None:
         # The guard keeps the base rules when approved: its findings are the
