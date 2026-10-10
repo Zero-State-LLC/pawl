@@ -116,6 +116,11 @@ tested in `benchmarks/live_trial.py`.
 
 ## Open questions
 
+The [2026-10-10 P0 trust review](CI_TRUST_REVIEW.md) adds a permission matrix,
+dated settings snapshot, malformed-evidence regressions and reproducible known
+limits. In particular, a passing self-hosted candidate job does not prove
+credential isolation, report authenticity or normative-docstring integrity.
+
 - Should `TEST_MODIFIED` allow pure additions inside an existing test function
   (more asserts)? Today additions are allowed and only removed or changed
   lines block. That is the intended behavior.

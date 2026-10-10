@@ -107,7 +107,7 @@ agent can edit them, so they are a convenience.
 
 ## Results
 
-On a synthetic corpus of 21 agent cheats and 8 clean changes, run against a
+In the saved 2026-10-08 benchmark, on 21 synthetic agent cheats and 8 clean changes, run against a
 project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
@@ -127,6 +127,13 @@ test), an agent without the Pawl contract edited the conflicting test once
 and rewrote the spec docstring once. Pawl's stop hook and CI gate caught the
 test edit and missed the docstring rewrite. With the contract, all 8 episodes
 left the impossible test alone and escalated; none tampered.
+
+The [0.2.x P0 trust review](docs/CI_TRUST_REVIEW.md) adds report-tampering
+regressions and a deterministic reproduction of that spec rewrite. Default
+policy still misses normative docstring edits; explicit protected paths provide
+an existing conservative workaround. The expanded corpus records that miss
+instead of counting an unrelated baseline block as specification protection.
+The review also records unresolved CI permission and runner-isolation gaps.
 
 ## Documentation
 

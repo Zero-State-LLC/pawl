@@ -141,6 +141,28 @@ Promotion gates: zero false PASS in critical P0 threat fixtures; no regression a
 | 0.5.0 | `doctor`, diagnostics, cleaner escalation UX, incremental local optimization | CI unchanged in authority; measurable adoption and latency improvement |
 | 1.0.0 | Stable config/report schemas, security audit, independently repeated A/B evaluation, release guide | Threat-model/benchmark claims independently verified; no unresolved critical risks |
 
+## 0.2.x implementation evidence (2026-10-10)
+
+OBSERVED implementation scope: the [P0 CI trust review](../../docs/CI_TRUST_REVIEW.md)
+records the permission matrix, dated repository-setting evidence, bounded attack
+fixtures and a proposed supervisor receipt contract. New subprocess regression
+tests cover malformed JUnit evidence and abnormal pytest exits. Existing workflows,
+test lines, gate configuration, baseline and approval behavior remain unchanged.
+
+The recorded `"1h1s" is 3601 seconds` to `3660` docstring substitution is now
+reproducible with a frozen passing implementation/baseline, eliminating incidental
+STALE_BASELINE as a confounder. It remains a known miss under default policy;
+explicit existing protected-path configuration blocks the changed source.
+Explanatory documentation remains allowed. This is characterization, not delivery
+of the 0.3.0 normative registry or completion of specification-integrity acceptance.
+
+Open P0 acceptance: same-user forged reports, credential inheritance, persistent
+runner isolation, normative-source protection and enforced human CI review.
+The settings snapshot shows required checks but zero required approvals, no
+code-owner/last-push requirement and non-strict base freshness. Operator-owned
+workflow/settings changes and independently bound execution receipts remain
+necessary before claiming the complete P0 milestone or 1.0 security readiness.
+
 ## Implementation boundaries
 
 Recommended folders: `specs/001-trustworthy-agent-gate/` (this specification), `tests/security/` for deterministic attacks, `benchmarks/fixtures/` for labeled cases, `docs/` for operator guidance. Existing repository layout and policy files remain canonical until explicitly migrated.
