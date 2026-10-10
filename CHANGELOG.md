@@ -8,10 +8,16 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Protected contracts: files matching `contracts`, docstrings with a
+  `pawl: contract` line, and entries in `pawl.contracts.json` are
+  normative. Adds the contract registry, the `pawl contracts` command,
+  and the `SPEC_AUTHORITY_CHANGED` finding, with a regression test for
+  the live-trial docstring rewrite.
 - Approval provenance: the actor, event, run, and PR are recorded in
   `approval_provenance`; missing or bot senders and actors outside
-  `guard.approvers` never approve; label removal is recorded as revocation;
-  the approval object is unchanged, and guard.refuse_pr_author can refuse the PR author.
+  `guard.approvers` never approve; `guard.refuse_pr_author` can refuse the
+  PR author; label removal is recorded as revocation. The `approval` object
+  is unchanged.
 
 ## [0.2.1] - Unreleased
 

@@ -306,6 +306,39 @@ def cmd_guard(args: argparse.Namespace) -> int:
     return EXIT[report.status]
 
 
+def cmd_contracts(args: argparse.Namespace) -> int:
+    from pawl import contracts
+
+    root = _root(args)
+    try:
+        config = load_config(root)
+        if args.action == "show":
+            path = root / contracts.REGISTRY
+            if path.is_file():
+                _emit(path.read_text(encoding="utf-8"))
+            else:
+                _emit(
+                    json.dumps(
+                        contracts.build_registry(root, config.guard.contracts),
+                        indent=2,
+                        sort_keys=True,
+                    )
+                )
+            return EXIT_PASS
+        data = contracts.build_registry(root, config.guard.contracts)
+        (root / contracts.REGISTRY).write_text(
+            json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        _emit(
+            f"wrote {contracts.REGISTRY}: "
+            f"{len(data['files'])} file(s), {len(data['docstrings'])} docstring(s)"
+        )
+    except PawlError as exc:
+        _emit(f"error: {exc}")
+        return EXIT_ERROR
+    return EXIT_PASS
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     """Render the last check and guard reports.
 
@@ -608,6 +641,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="allow a base ref with no pawl.toml (the change that adds Pawl)",
     )
     g.set_defaults(func=cmd_guard)
+
+    ct = sub.add_parser("contracts", help="manage the protected-contract registry")
+    ct.add_argument("action", nargs="?", choices=["update", "show"], default="show")
+    ct.set_defaults(func=cmd_contracts)
 
     r = sub.add_parser("report", help="render the last check and guard reports")
     r.add_argument("--format", choices=["md", "json"], default="md")
