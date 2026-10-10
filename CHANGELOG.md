@@ -21,7 +21,7 @@ All notable changes to this project are documented here. The format follows
   paths, or moves with edits, still block. A registered file that moves warns
   until `pawl contracts update` rewrites the registry.
 
-## [0.3.0] - TBD
+## [0.3.0] - 2026-10-10
 
 Protected normative contracts, approval provenance, and runner-evidence
 hardening. 0.3.0 also contains everything prepared for 0.2.1, which was never

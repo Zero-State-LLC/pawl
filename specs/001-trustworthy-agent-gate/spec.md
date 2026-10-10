@@ -148,6 +148,8 @@ Promotion gates: zero false PASS in critical P0 threat fixtures; no regression a
   `SPEC_AUTHORITY_CHANGED`. Distinguish a pure relocation (same hash, new
   path) from a substantive edit with deterministic evidence, and keep moves
   reviewable. Accepted by Danny 2026-10-10 as a later item, after 0.3.0.
+  Done 2026-10-10 (#26): an intact move reports SPEC_AUTHORITY_MOVED (info);
+  a move out of protected paths or with edits still blocks.
 
 ## 0.2.x implementation evidence (2026-10-10)
 
