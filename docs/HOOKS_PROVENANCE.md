@@ -36,8 +36,9 @@ other local function tools. It does not run for hosted tools such as web
 search. The docs warn that some specialized tool paths can opt out and call
 tool hooks a guardrail, not a complete enforcement boundary. A hook error,
 timeout or malformed output does not block in Codex, and `ask` is not
-supported. Pawl's Codex config matches `Bash|apply_patch|Edit|Write`; MCP
-tools that write files are not matched by default. CI remains the authority.
+supported. Pawl's Codex config matches
+`Bash|apply_patch|Edit|Write|mcp__.*`, so MCP tools that write files are
+checked too. CI remains the authority.
 
 ## Where each id comes from
 
@@ -71,7 +72,11 @@ each parent directory. If one is found but cannot be loaded (bad TOML,
 invalid settings, unreadable), the hook blocks every write it is asked about
 and logs decision `error`, until a human repairs the config. If no
 `pawl.toml` exists anywhere up the tree, Pawl is not set up there and the
-hook allows the call.
+hook allows the call. This is deliberate: hooks are often installed per
+user, so they run in every folder, and blocking where Pawl was never set up
+would stop all work there. Deleting or editing an existing `pawl.toml` is
+itself blocked by `protect`, and CI reads the gate from the base branch, so
+removing the config cannot turn the gate off.
 
 ## Protected contract paths
 

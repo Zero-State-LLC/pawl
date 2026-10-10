@@ -8,6 +8,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Codex hook config also matches MCP tools (`mcp__.*`), so MCP writes to protected paths are checked.
+
 - `pawl hook protect` fails closed: a `pawl.toml` that exists but cannot be
   loaded blocks writes. The config is found by walking up from the working
   directory.
