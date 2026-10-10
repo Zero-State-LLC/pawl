@@ -57,9 +57,9 @@ check and add CODEOWNERS for the gate files.
 
 The package is named `pawl-gate` because `pawl` is taken on PyPI. The import
 and the command are `pawl`. It needs Python 3.11 or newer and has no runtime
-dependencies. It is tested on Linux and macOS. Windows is untested: CI runs
-only on self-hosted macOS runners, there is no Windows runner, and the
-workflow written by `pawl init --github` assumes bash and a POSIX virtual
+dependencies. It is tested in CI on macOS only, using self-hosted runners;
+Linux is used in development but has no CI runner, and Windows is untested.
+The workflow written by `pawl init --github` assumes bash and a POSIX virtual
 environment layout.
 
 ## How it works
@@ -107,8 +107,8 @@ agent can edit them, so they are a convenience.
 
 ## Results
 
-On a synthetic corpus of 21 agent cheats and 8 clean changes, run against a
-project with one known failing test:
+On an in-repo corpus of 21 synthetic attacks and 8 clean changes, run against
+a project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
 | --- | --- | --- |
@@ -118,9 +118,14 @@ project with one known failing test:
 | `pawl hook stop --base` (agent side) | 19/21 | 0/8 |
 | Pawl in CI (check + guard + holdout) | 20/21 | 0/8 |
 
-The one miss, special-casing inputs that no holdout covers, is beyond any
-test-based gate. Overhead of `pawl check` over bare pytest was 0.08 s on a
-100-test suite, 0.18 s on 5000 tests, and 0.75 s on 20000 tests.
+These are in-repo benchmark results on that corpus, not an efficacy estimate.
+The one miss in the table, special-casing inputs that no holdout covers, is
+beyond any test-based gate. A known miss outside the table: a live-trial
+rewrite of a specification-bearing docstring ("1h1s", 3601 seconds, changed
+to 3660) passes the default policy; it is blocked only when that source is
+configured as a protected path (a normative registry is planned for 0.3.0).
+Overhead of `pawl check` over bare pytest was 0.08 s on a 100-test suite,
+0.18 s on 5000 tests, and 0.75 s on 20000 tests.
 
 In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once

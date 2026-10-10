@@ -116,9 +116,9 @@ tested in `benchmarks/live_trial.py`.
 
 ## Open questions
 
-- Should `TEST_MODIFIED` allow pure additions inside an existing test function
-  (more asserts)? Today additions are allowed and only removed or changed
-  lines block. That is the intended behavior.
+- Resolved in [ADR-0001](adr/0001-added-asserts-allowed.md): `TEST_MODIFIED`
+  allows pure additions inside an existing test function (new asserts, new
+  lines); only removed or changed existing lines block.
 - Codex and Cursor hook output shapes were checked against their docs in
   October 2026. Harness hook schemas change often; the integration tests cover
   Pawl's output, not the harness.
