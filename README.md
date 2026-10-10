@@ -123,7 +123,8 @@ The one miss in the table, special-casing inputs that no holdout covers, is
 beyond any test-based gate. A known miss outside the table: a live-trial
 rewrite of a specification-bearing docstring ("1h1s", 3601 seconds, changed
 to 3660) passes the default policy; it is blocked only when that source is
-configured as a protected path (a normative registry is planned for 0.3.0).
+configured as a protected path, or, from 0.3.0, when the docstring carries a
+`pawl: contract` line. Unmarked docstrings remain a known gap in 0.3.0.
 Overhead of `pawl check` over bare pytest was 0.08 s on a 100-test suite,
 0.18 s on 5000 tests, and 0.75 s on 20000 tests.
 
