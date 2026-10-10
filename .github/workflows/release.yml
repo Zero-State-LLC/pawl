@@ -8,12 +8,9 @@
 # publisher for this file and environment, "pypi" environment limited to v*
 # tags, tag ruleset restricting who can create v* tags).
 #
-# Runs on the org self-hosted Macs ([self-hosted, macOS]) like ci.yml, because
-# GitHub-hosted jobs are refused while org Actions billing is blocked. The
-# PyPA publish action is Docker-based (Linux only), so this signs with
-# astral-sh/attest-action (composite, runs on macOS) and uploads with
-# `uv publish --trusted-publishing always`, which sends the attestation files
-# next to each distribution. Not yet run end to end on these runners.
+# Runs on GitHub-hosted ubuntu-latest. Signs with astral-sh/attest-action and
+# uploads with `uv publish --trusted-publishing always`, which sends the
+# attestation files next to each distribution. Not yet run end to end.
 name: release
 
 on:
@@ -29,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -79,7 +76,7 @@ jobs:
 
   publish:
     needs: build
-    runs-on: [self-hosted, macOS]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
       name: pypi
