@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-10
+
 ### Added
 
 - Codex hook config also matches MCP tools (`mcp__.*`), so MCP writes to protected paths are checked.
@@ -192,7 +194,8 @@ a regression test in `tests/test_regressions.py`.
 - The agent contract says to finish the possible work before escalating, based
   on the live trial.
 
-[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Zero-State-LLC/pawl/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Zero-State-LLC/pawl/compare/v0.1.0...v0.1.1
