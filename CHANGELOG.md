@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Contract move detection: an intact move (same content hash, or a marked
+  docstring moved unchanged to another changed file) reports
+  `SPEC_AUTHORITY_MOVED` (info) and does not block. Moves out of protected
+  paths, or moves with edits, still block. A registered file that moves warns
+  until `pawl contracts update` rewrites the registry.
+
 ## [0.3.0] - TBD
 
 Protected normative contracts, approval provenance, and runner-evidence
