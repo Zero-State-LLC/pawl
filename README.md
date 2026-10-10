@@ -111,26 +111,24 @@ agent can edit them, so they are a convenience.
 
 ## Results
 
-In the saved 2026-10-08 benchmark, on an in-repo corpus of 21 synthetic agent
-cheats and 8 clean changes, run against a project with one known failing test:
+In the saved 2026-10-10 benchmark, on an in-repo corpus of 23 synthetic agent
+cheats and 9 clean changes, run against a project with one known failing test:
 
 | Detector | Cheats caught | Clean changes blocked |
 | --- | --- | --- |
-| plain `pytest` must pass | 20/21 | 7/8 (the known failure blocks everything) |
-| Abraxas count ratchet | 5/21 | 0/8 |
-| `pawl check` (agent side) | 14/21 | 0/8 |
-| `pawl hook stop --base` (agent side) | 19/21 | 0/8 |
-| Pawl in CI (check + guard + holdout) | 20/21 | 0/8 |
+| plain `pytest` must pass | 22/23 | 8/9 (the known failure blocks everything) |
+| Abraxas count ratchet | 5/23 | 0/9 |
+| `pawl check` (agent side) | 14/23 | 0/9 |
+| `pawl hook stop --base` (agent side) | 20/23 | 0/9 |
+| Pawl in CI (check + guard + holdout) | 21/23 | 0/9 |
 
 These are in-repo benchmark results on that corpus, not an efficacy estimate.
-The one miss in the table, special-casing inputs that no holdout covers, is
-beyond any test-based gate. A known miss outside the table: a live-trial
-rewrite of a specification-bearing docstring ("1h1s", 3601 seconds, changed
-to 3660) passes the default policy; it is blocked only when that source is
-configured as a protected path, or, from 0.3.0, when the docstring carries a
-`pawl: contract` line. Unmarked docstrings remain a known gap in 0.3.0.
-Overhead of `pawl check` over bare pytest was 0.08 s on a 100-test suite,
-0.18 s on 5000 tests, and 0.75 s on 20000 tests.
+The two misses are known: special-casing inputs that no holdout covers, and an
+unmarked normative docstring rewrite. From 0.3.0, a docstring with a
+`pawl: contract` line (or a path in the contract registry) blocks as
+`SPEC_AUTHORITY_CHANGED`; unmarked docstrings remain a known gap. Overhead of
+`pawl check` over bare pytest was 0.07 s on a 100-test suite, 0.25 s on 5000
+tests, and 1.05 s on 20000 tests.
 
 In a small live trial (12 episodes, one model, a task with one impossible
 test), an agent without the Pawl contract edited the conflicting test once
@@ -140,27 +138,27 @@ left the impossible test alone and escalated; none tampered.
 
 The [0.2.x P0 trust review](docs/CI_TRUST_REVIEW.md) adds report-tampering
 regressions and a deterministic reproduction of that spec rewrite. Default
-policy still misses normative docstring edits; explicit protected paths provide
-an existing conservative workaround. The expanded corpus records that miss
-instead of counting an unrelated baseline block as specification protection.
-The review also records unresolved CI permission and runner-isolation gaps.
+policy still misses unmarked normative docstring edits; explicit protected
+paths and `pawl: contract` markers provide the conservative fix. Release
+readiness and residual operator work are in
+[docs/QA_COMPLETION.md](docs/QA_COMPLETION.md).
 
 ## Documentation
 
-Run `pawl --help` and `pawl <command> --help` for usage. The Pawl source
-repository is not public; access to it, including the full documentation
-below, is available on request:
+Run `pawl --help` and `pawl <command> --help` for usage. Source and docs live
+in this repository:
 
-- Why Pawl: who it is for and how it compares.
-- Configuration reference: every `pawl.toml` key.
-- Design notes: how it works and why.
-- Research notes: the literature behind each mechanism.
-- Architecture review: threats covered and not covered.
-- Recommendation: where enforcement lives, and migrating from the Abraxas
-  ratchet script.
-- Benchmarks: methods, results, and limits.
-- Integrations: Claude Code, Codex, Cursor, Hermes, GitHub Actions,
-  pre-commit, and an `AGENTS.md` contract.
+- [Why Pawl](docs/WHY_PAWL.md): who it is for and how it compares.
+- [Configuration](docs/CONFIG.md): every `pawl.toml` key.
+- [Design](DESIGN.md): how it works and why.
+- [Research](RESEARCH.md): the literature behind each mechanism.
+- [Architecture review](docs/ARCHITECTURE_REVIEW.md): threats covered and not.
+- [Recommendation](docs/RECOMMENDATION.md): where enforcement lives, and
+  migrating from the Abraxas ratchet script.
+- [Benchmarks](BENCHMARKS.md): methods, results, and limits.
+- [QA completion](docs/QA_COMPLETION.md): post-0.3.0 hardening checklist.
+- [Integrations](integrations/): Claude Code, Codex, Cursor, Hermes, GitHub
+  Actions, pre-commit, and an `AGENTS.md` contract.
 
 ## Credits
 

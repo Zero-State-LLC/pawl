@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Hardening
+
+- Reject symlink and hard-link JUnit reports (`ParseError`, exit 2).
+- Ship the customer GitHub workflow with a read-only gate job and a separate
+  `report` job that alone holds `pull-requests: write` (matches dogfood).
+- `pawl init` writes `sys.executable` into the pytest suite command and
+  preflight, so hosts that only provide `python3` still measure a baseline.
+- Demo and corpus cover a marked `pawl: contract` docstring rewrite
+  (`marked_contract_rewrite`).
+- `SECURITY.md` supported versions updated for 0.4.x / 0.3.x.
+- Release readiness checklist: [docs/QA_COMPLETION.md](docs/QA_COMPLETION.md).
+
 ## [0.4.0] - 2026-10-10
 
 ### Added

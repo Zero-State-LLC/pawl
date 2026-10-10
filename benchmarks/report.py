@@ -173,7 +173,8 @@ LIMITS = """## Limits of this benchmark
 - Performance uses synthetic suites of trivial tests, 100 per file; the largest is
   20000 tests. Suites with slow tests, heavy fixtures or many more files are not
   measured.
-- Everything here ran on Linux. Pawl's own CI runs on macOS. Windows is untested.
+- Everything here ran on Linux. Pawl's own CI runs on GitHub-hosted ubuntu-latest
+  (macOS is optional and manual). Windows is untested.
 - Performance was measured on a shared machine. The load average at the start of the
   run is listed above; treat small differences as noise.
 """

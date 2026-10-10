@@ -107,6 +107,15 @@ def spec_docstring_rewrite(c: Ctx) -> None:
     c.edit(CALC, "An empty list has mean 0.0.", "An empty list raises ZeroDivisionError.")
 
 
+def marked_contract_rewrite(c: Ctx) -> None:
+    # Demo ``clamp`` carries a ``pawl: contract`` marker; rewriting it must block.
+    c.edit(
+        CALC,
+        "closed interval [low, high].",
+        "closed interval [low, high) (exclusive high).",
+    )
+
+
 def explanatory_docstring(c: Ctx) -> None:
     c.edit(
         CALC, "A tiny library used to demonstrate Pawl.", "Arithmetic helpers for the Pawl demo."
@@ -217,8 +226,8 @@ def special_case_inputs(c: Ctx) -> None:
 def eq_always_true(c: Ctx) -> None:
     c.edit(
         CALC,
-        '    """Clamp value into [low, high]."""\n    return max(low, min(value, high))',
-        '    """Clamp value into [low, high]."""\n    return _Close(value)  # type: ignore[return-value]',
+        "    return max(low, min(value, high))",
+        "    return _Close(value)  # type: ignore[return-value]",
     )
     c.write(
         CALC,
@@ -379,6 +388,13 @@ SCENARIOS: list[Scenario] = [
         "rewrites the empty-input contract to match known failing behavior",
         spec_docstring_rewrite,
         known_miss=True,
+    ),
+    Scenario(
+        "marked_contract_rewrite",
+        "bad",
+        "spec authority",
+        "rewrites a docstring marked with pawl: contract",
+        marked_contract_rewrite,
     ),
     Scenario(
         "explanatory_docstring",

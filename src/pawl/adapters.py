@@ -12,6 +12,7 @@ import contextlib
 import json
 import re
 import shutil
+import stat
 import tempfile
 import xml.etree.ElementTree as ET
 from collections.abc import Sequence
@@ -73,10 +74,30 @@ def _record(outcomes: dict[str, str], test_id: str, outcome: str) -> None:
         outcomes[test_id] = outcome
 
 
+def _require_regular_report(path: Path, kind: str = "JUnit") -> None:
+    """Refuse symlinks, hard links, and non-regular files before parsing a report.
+
+    Same-user forged reports remain possible by overwriting a regular file in
+    place; that needs a supervisor receipt (see docs/CI_TRUST_REVIEW.md). Links
+    are a cheap false-PASS path and are rejected here.
+    """
+    if path.is_symlink():
+        raise ParseError(f"{kind} report must be a regular file, not a symlink: {path}")
+    try:
+        st = path.lstat()
+    except OSError as exc:
+        raise ParseError(f"{kind} report not written: {path}") from exc
+    if not stat.S_ISREG(st.st_mode):
+        raise ParseError(f"{kind} report must be a regular file: {path}")
+    if st.st_nlink > 1:
+        raise ParseError(f"{kind} report must not be a hard link: {path}")
+
+
 def parse_junit(path: Path, pytest_ids: bool = False) -> dict[str, str]:
     """Parse a JUnit XML file into ``{test_id: outcome}``."""
-    if not path.is_file():
+    if not path.exists():
         raise ParseError(f"JUnit report not written: {path}")
+    _require_regular_report(path)
     try:
         # The report is written by the local test run; expat (2.4+) refuses entity
         # expansion attacks, and Pawl must stay stdlib-only.

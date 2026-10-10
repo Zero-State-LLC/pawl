@@ -3,6 +3,27 @@
 Date: 2026-10-10. Scope: PAWL-001, J2 and J4; DESIGN.md remains canonical.
 This is engineering evidence and an operator action plan. It does not govern or activate.
 
+## Completion update (post-0.3.0 hardening)
+
+The dated matrix below records the inspection at the start of the P0 review.
+Code and workflow changes that landed afterward:
+
+- Dogfood `.github/workflows/pawl.yml` and the shipped
+  `integrations/github/pawl.yml` / `pawl init --github` template both split
+  reporting: the gate job is `contents: read` only; a separate `report` job
+  holds `pull-requests: write` and runs no candidate code.
+- CI and release workflows run on GitHub-hosted `ubuntu-latest`. macOS is an
+  optional manual workflow, not the release path.
+- `parse_junit` rejects symlink and hard-link reports (`ParseError`). Same-user
+  forged regular files remain open.
+- Corpus includes `marked_contract_rewrite` as a catch; unmarked docstring
+  rewrite remains a known miss. Effectiveness receipt rewritten (62 runs,
+  Pawl CI 21/23 debt, 0 false blocks):
+  [p0-effectiveness-20261010.json](evidence/p0-effectiveness-20261010.json),
+  SHA-256
+  `552a05f9cff9e18c33e99c1e1f1f52092499ff7dd5a7d8db8a881c5eda646b12`.
+  See [QA_COMPLETION.md](QA_COMPLETION.md).
+
 ## Boundary and evidence
 
 OBSERVED: main was `af5e3c4` and proposed spec PR #13 was
@@ -83,7 +104,7 @@ comments were not independently verified.
 | Generated workflow / unavailable base | Temporary Git repository probes | Existing protected-path block / comparison-ref error remain effective |
 | Git replay cleanup | Before/after `git worktree list --porcelain` probe | Ordinary replay removes its temporary worktree; not proof against a surviving malicious subprocess |
 | Credential inheritance | Synthetic `GH_TOKEN` marker only | Candidate runner inherits it. No credential-exfiltration protection claimed |
-| Symlink/hardlink report escape | Links to synthetic XML under pytest temp directory | Parser currently accepts them. Same-user report authenticity remains unresolved |
+| Symlink/hardlink report escape | Links to synthetic XML under pytest temp directory | Closed in post-0.3.0 hardening: `parse_junit` rejects symlinks and hard links with `ParseError`. Same-user forged regular files remain unresolved |
 | Malicious IDs / traversal | Path and shell-looking identity string in XML | Treated as data, no shell command executed; not a general traversal or log-sanitization guarantee |
 | Internally consistent forged report | Linked synthetic report probe | Accepted. Shape/exit validation cannot authenticate an untrusted producer |
 | ANSI payloads; resource exhaustion | Review only | Deferred: bounded report sizes/output, control-character encoding, child-process cleanup and nested-document budgets need dedicated fixtures |

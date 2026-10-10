@@ -20,7 +20,9 @@ def mean(values: list[float]) -> float:
 
 
 def clamp(value: int, low: int, high: int) -> int:
-    """Clamp value into [low, high]."""
+    """pawl: contract
+    Clamp value into the closed interval [low, high].
+    """
     return max(low, min(value, high))
 
 

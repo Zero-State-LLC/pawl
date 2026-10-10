@@ -1,6 +1,6 @@
 .PHONY: install lint types test check bench demo
 
-PY ?= python
+PY ?= python3
 
 install:
 	$(PY) -m pip install -e ".[dev]"

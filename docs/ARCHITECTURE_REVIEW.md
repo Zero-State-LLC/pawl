@@ -47,7 +47,7 @@ but does not read every line.
 | Compromised CI runner or dependency | Supply chain | SHA-pinned actions, Dependabot |
 | A human approves a bad loosening | Pawl records it in the debt log | Review the debt log |
 | Flaky failures that do not reproduce in two orders | Two orders cannot prove stability (about 170 reruns for 95% confidence, Gruber et al.) | Quarantine with expiry, isolation annotation |
-| Agent rewrites the spec (docstring, docs) to match a wrong test | Docs and docstrings are not gate files; Pawl cannot tell a spec fix from a spec rewrite | Review; seen once in the live trial (BENCHMARKS.md) |
+| Agent rewrites an unmarked docstring or ordinary docs to match a wrong test | Unmarked prose is not a contract; only `pawl: contract` docstrings, contract globs, and `pawl.contracts.json` raise `SPEC_AUTHORITY_CHANGED` (0.3.0) | Mark normative text; review; seen once unmarked in the live trial (BENCHMARKS.md) |
 | Tests that are wrong in the base branch | Pawl ratchets what exists | Escalation; human fixes the test |
 
 ## Tradeoffs
