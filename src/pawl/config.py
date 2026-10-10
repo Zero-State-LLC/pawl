@@ -19,6 +19,7 @@ DIRECTIONS = ("down", "up")
 DEFAULT_PROTECTED = (
     "pawl.toml",
     "pawl.baseline.json",
+    "pawl.contracts.json",
     ".github/workflows/**",
     ".github/CODEOWNERS",
     "CODEOWNERS",
@@ -42,6 +43,13 @@ DEFAULT_TESTS = (
     "**/*.spec.[jt]s",
     "**/*.spec.[jt]sx",
     "**/__tests__/**",
+)
+
+DEFAULT_CONTRACTS = (
+    "specs/**",
+    "docs/requirements/**",
+    "docs/adr/**",
+    "contracts/**",
 )
 
 
@@ -99,6 +107,7 @@ class GuardConfig:
     """Tamper guard settings."""
 
     protected: tuple[str, ...] = DEFAULT_PROTECTED
+    contracts: tuple[str, ...] = DEFAULT_CONTRACTS
     tests: tuple[str, ...] = DEFAULT_TESTS
     approval_label: str = "pawl-approved"
     fail_on_suspicious: bool = False
@@ -300,14 +309,26 @@ def _parse_guard(raw: Any) -> GuardConfig:
         raise ConfigError("guard: must be a table")
     _check_keys(
         raw,
-        {"protected", "extra_protected", "tests", "approval_label", "fail_on_suspicious"},
+        {
+            "protected",
+            "extra_protected",
+            "contracts",
+            "extra_contracts",
+            "tests",
+            "approval_label",
+            "fail_on_suspicious",
+        },
         "guard",
     )
     protected = tuple(raw.get("protected", DEFAULT_PROTECTED)) + tuple(
         raw.get("extra_protected", [])
     )
+    contracts = tuple(raw.get("contracts", DEFAULT_CONTRACTS)) + tuple(
+        raw.get("extra_contracts", [])
+    )
     return GuardConfig(
         protected=protected,
+        contracts=contracts,
         tests=tuple(raw.get("tests", DEFAULT_TESTS)),
         approval_label=str(raw.get("approval_label", "pawl-approved")),
         fail_on_suspicious=bool(raw.get("fail_on_suspicious", False)),

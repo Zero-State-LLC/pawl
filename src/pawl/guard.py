@@ -24,7 +24,7 @@ from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Any
 
-from pawl import __version__
+from pawl import __version__, contracts
 from pawl.baseline import Quarantine, check_quarantine, parse_baseline
 from pawl.config import Config
 from pawl.contract import SCHEMA_VERSION, exit_code_for
@@ -364,6 +364,7 @@ def run_guard(
     top = toplevel(root)
     pre = prefix(root)
     mb = merge_base(root, base)
+    registry = contracts.parse_registry(show(top, mb, pre + contracts.REGISTRY))
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
     if pre:
         report.notes.append(f"root is {pre.rstrip('/')}/ inside the repository")
@@ -380,6 +381,16 @@ def run_guard(
             if status != "A"
             else ([], (head_text or "").splitlines())
         )
+        for p, detail in contracts.contract_findings(
+            path,
+            rel,
+            status,
+            base_text=base_text,
+            head_text=head_text,
+            patterns=config.guard.contracts,
+            registry=registry,
+        ):
+            report.findings.append(Finding("SPEC_AUTHORITY_CHANGED", "block", p, detail))
         if rel == config.baseline:
             loosened, tightened = baseline_changes(base_text, head_text)
             loosened += _quarantine_over_limit(head_text, config.quarantine_max_days)
