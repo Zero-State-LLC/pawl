@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Approval provenance: the actor, event, run, and PR are recorded in
+  `approval_provenance`; missing or bot senders and actors outside
+  `guard.approvers` never approve; label removal is recorded as revocation;
+  the approval object is unchanged.
+
 ## [0.2.1] - Unreleased
 
 This release hardens runner evidence validation.

@@ -58,6 +58,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         report = compare(config, baseline, m, lock)
         report.notes = notes + report.notes
         report.approval = gate.approval.to_json() if gate.approval else None
+        report.approval_provenance = gate.approval.provenance() if gate.approval else None
         code = EXIT[report.status]
     except PreflightError as exc:
         report.status, report.error, code = "error", str(exc), EXIT_PREFLIGHT
@@ -269,6 +270,7 @@ def cmd_guard(args: argparse.Namespace) -> int:
         )
         report.notes = gate.notes + report.notes
         report.approval = gate.approval.to_json() if gate.approval else report.approval
+        report.approval_provenance = gate.approval.provenance() if gate.approval else None
     except PawlError as exc:
         data = {
             "schema_version": SCHEMA_VERSION,
@@ -282,6 +284,7 @@ def cmd_guard(args: argparse.Namespace) -> int:
             "base": args.base,
             "approved": False,
             "approval": None,
+            "approval_provenance": None,
             "config_source": "",
             "notes": [],
             "findings": [],

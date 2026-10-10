@@ -21,6 +21,7 @@ def _event(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, **payload: object) -
 def _labeled(sha: str, label: str = "pawl-approved", applied: str | None = None) -> dict:  # type: ignore[type-arg]
     return {
         "action": "labeled",
+        "sender": {"login": "maintainer", "type": "User"},
         "label": {"name": applied or label},
         "pull_request": {"labels": [{"name": label}], "head": {"sha": sha}},
     }

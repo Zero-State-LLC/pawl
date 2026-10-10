@@ -101,6 +101,7 @@ class GuardConfig:
     protected: tuple[str, ...] = DEFAULT_PROTECTED
     tests: tuple[str, ...] = DEFAULT_TESTS
     approval_label: str = "pawl-approved"
+    approvers: tuple[str, ...] = ()
     fail_on_suspicious: bool = False
 
 
@@ -300,9 +301,19 @@ def _parse_guard(raw: Any) -> GuardConfig:
         raise ConfigError("guard: must be a table")
     _check_keys(
         raw,
-        {"protected", "extra_protected", "tests", "approval_label", "fail_on_suspicious"},
+        {
+            "protected",
+            "extra_protected",
+            "tests",
+            "approval_label",
+            "approvers",
+            "fail_on_suspicious",
+        },
         "guard",
     )
+    approvers_raw = raw.get("approvers", [])
+    if not isinstance(approvers_raw, list) or not all(isinstance(a, str) for a in approvers_raw):
+        raise ConfigError("guard.approvers must be a list of GitHub logins")
     protected = tuple(raw.get("protected", DEFAULT_PROTECTED)) + tuple(
         raw.get("extra_protected", [])
     )
@@ -310,6 +321,7 @@ def _parse_guard(raw: Any) -> GuardConfig:
         protected=protected,
         tests=tuple(raw.get("tests", DEFAULT_TESTS)),
         approval_label=str(raw.get("approval_label", "pawl-approved")),
+        approvers=tuple(approvers_raw),
         fail_on_suspicious=bool(raw.get("fail_on_suspicious", False)),
     )
 

@@ -84,6 +84,7 @@ The metric fails closed:
 | `extra_protected` | `[]` | Added to the default list |
 | `tests` | see below | Glob patterns for test files |
 | `approval_label` | `"pawl-approved"` | PR label that marks a gate change as human-approved |
+| `approvers` | `[]` | GitHub logins allowed to approve with the label; empty means any human sender. Read from the trusted base config only |
 | `fail_on_suspicious` | `false` | Turn suspicious-code warnings into blocks |
 
 Default protected: `pawl.toml`, `pawl.baseline.json`, `.github/workflows/**`,

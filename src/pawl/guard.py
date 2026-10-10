@@ -110,6 +110,7 @@ class GuardReport:
     config_source: str = ""
     notes: list[str] = field(default_factory=list)
     approval: dict[str, Any] | None = None
+    approval_provenance: dict[str, Any] | None = None
 
     @property
     def status(self) -> str:
@@ -127,6 +128,7 @@ class GuardReport:
             "base": self.base,
             "approved": self.approved,
             "approval": self.approval,
+            "approval_provenance": self.approval_provenance,
             "config_source": self.config_source,
             "notes": self.notes,
             "findings": [f.to_json() for f in self.findings],
