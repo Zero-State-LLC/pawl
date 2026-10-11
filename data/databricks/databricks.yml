@@ -1,0 +1,45 @@
+bundle:
+  name: zs_pawl_episodes
+
+variables:
+  catalog:
+    description: Unity Catalog catalog
+  schema:
+    description: Unity Catalog schema
+    default: pawl_dev
+
+# Host comes from the CLI profile created by `databricks auth login` (--profile).
+
+targets:
+  dev:
+    mode: development
+    default: true
+
+resources:
+  jobs:
+    pawl_episodes:
+      name: zs_pawl_episodes
+      environments:
+        - environment_key: default
+          spec:
+            client: "2"
+      tasks:
+        - task_key: raw_episode
+          environment_key: default
+          spark_python_task:
+            python_file: src/notebooks/raw_episode.py
+            parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
+        - task_key: validated_episode
+          depends_on:
+            - task_key: raw_episode
+          environment_key: default
+          spark_python_task:
+            python_file: src/notebooks/validated_episode.py
+            parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
+        - task_key: curated_episode
+          depends_on:
+            - task_key: validated_episode
+          environment_key: default
+          spark_python_task:
+            python_file: src/notebooks/curated_episode.py
+            parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
