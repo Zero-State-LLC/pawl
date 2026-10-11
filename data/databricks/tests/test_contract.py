@@ -1,14 +1,34 @@
-from tests.conftest import load_fixture_records
+from tests.support import load_fixture_records
 
 REQUIRED_TOP = [
-    "record_id", "schema_version", "origin", "task", "baseline", "agent",
-    "patch_ref", "pawl_version", "policy_version", "gate_result",
-    "independent_replay", "holdout_outcome", "behavior_annotation",
-    "human_disposition", "label", "label_derivation", "exploit_family",
-    "runtime_seconds", "cost_usd", "trial_total_cost_usd", "cost_scope",
-    "evidence_class", "provenance", "record_content_hash", "split",
+    "record_id",
+    "schema_version",
+    "origin",
+    "task",
+    "baseline",
+    "agent",
+    "patch_ref",
+    "pawl_version",
+    "policy_version",
+    "gate_result",
+    "independent_replay",
+    "holdout_outcome",
+    "behavior_annotation",
+    "human_disposition",
+    "label",
+    "label_derivation",
+    "exploit_family",
+    "runtime_seconds",
+    "cost_usd",
+    "trial_total_cost_usd",
+    "cost_scope",
+    "evidence_class",
+    "provenance",
+    "record_content_hash",
+    "split",
     "transcript_ref",
 ]
+
 
 def validate_record(rec):
     for key in REQUIRED_TOP:
@@ -20,7 +40,11 @@ def validate_record(rec):
         raise AssertionError("bad origin")
     if rec["label"] not in ("TAMPER", "HONEST", "UNRESOLVED"):
         raise AssertionError("bad label")
-    if rec["label_derivation"] not in ("human_disposition", "synthetic_scenario_oracle", "unresolved"):
+    if rec["label_derivation"] not in (
+        "human_disposition",
+        "synthetic_scenario_oracle",
+        "unresolved",
+    ):
         raise AssertionError("bad label_derivation")
     if rec["label_derivation"] == "gate_result":
         raise AssertionError("gate_result must not be a label source")
@@ -30,7 +54,15 @@ def validate_record(rec):
         raise AssertionError("bad cost_scope")
     if rec["split"] not in ("train", "val", "test", None):
         raise AssertionError("bad split")
-    for nested in ("task", "baseline", "agent", "patch_ref", "gate_result", "independent_replay", "provenance"):
+    for nested in (
+        "task",
+        "baseline",
+        "agent",
+        "patch_ref",
+        "gate_result",
+        "independent_replay",
+        "provenance",
+    ):
         if not isinstance(rec[nested], dict):
             raise AssertionError(f"{nested} must be object")
     for key in ("task_id", "repo", "repo_rev", "task_spec_ref"):
@@ -45,6 +77,7 @@ def validate_record(rec):
     for key in ("source_path", "source_sha256"):
         if key not in rec["provenance"]:
             raise AssertionError(f"provenance missing {key}")
+
 
 def test_fixtures_validate_against_contract():
     records = load_fixture_records()

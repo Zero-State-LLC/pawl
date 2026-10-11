@@ -16,6 +16,12 @@ targets:
     default: true
 
 resources:
+  volumes:
+    landing:
+      catalog_name: ${var.catalog}
+      schema_name: ${var.schema}
+      name: landing
+      volume_type: MANAGED
   jobs:
     pawl_episodes:
       name: zs_pawl_episodes
@@ -27,19 +33,26 @@ resources:
         - task_key: raw_episode
           environment_key: default
           spark_python_task:
-            python_file: src/notebooks/raw_episode.py
-            parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
+            python_file: src/notebooks/raw_ingest.py
+            parameters:
+              - "--catalog"
+              - "${var.catalog}"
+              - "--schema"
+              - "${var.schema}"
+              - "--source"
+              - "/Volumes/${var.catalog}/${var.schema}/landing/episodes/"
         - task_key: validated_episode
           depends_on:
             - task_key: raw_episode
           environment_key: default
           spark_python_task:
-            python_file: src/notebooks/validated_episode.py
+            python_file: src/notebooks/validate_episode.py
             parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
         - task_key: curated_episode
           depends_on:
             - task_key: validated_episode
           environment_key: default
           spark_python_task:
-            python_file: src/notebooks/curated_episode.py
+            python_file: src/notebooks/curate_episode.py
             parameters: ["--catalog", "${var.catalog}", "--schema", "${var.schema}"]
+

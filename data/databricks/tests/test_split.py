@@ -1,11 +1,12 @@
 import pytest
-
 from pawl_core.split import assert_no_group_crosses, split_for_record
+from tests.support import synthetic_record
 
-def test_whole_group_lands_in_one_split(synthetic_record):
+
+def test_whole_group_lands_in_one_split():
     records = []
     for i in range(5):
-        rec = dict(synthetic_record)
+        rec = dict(synthetic_record())
         rec["record_id"] = f"r{i}"
         rec["task"] = dict(rec["task"])
         rec["task"]["task_id"] = "t1"
@@ -16,8 +17,9 @@ def test_whole_group_lands_in_one_split(synthetic_record):
     assert len(splits) == 1
     assert_no_group_crosses(records)
 
-def test_group_cross_is_detected(synthetic_record):
-    a = dict(synthetic_record)
+
+def test_group_cross_is_detected():
+    a = dict(synthetic_record())
     a["task"] = dict(a["task"])
     a["task"]["task_id"] = "t1"
     a["task"]["repo_rev"] = "rev1"

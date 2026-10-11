@@ -1,16 +1,36 @@
 from .records import EVIDENCE_CLASSES, LABELS
 
 REQUIRED_TOP = [
-    "record_id", "schema_version", "origin", "task", "baseline", "agent",
-    "patch_ref", "pawl_version", "policy_version", "gate_result",
-    "independent_replay", "holdout_outcome", "behavior_annotation",
-    "human_disposition", "label", "label_derivation", "exploit_family",
-    "runtime_seconds", "cost_usd", "trial_total_cost_usd", "cost_scope",
-    "evidence_class", "provenance", "record_content_hash", "split",
+    "record_id",
+    "schema_version",
+    "origin",
+    "task",
+    "baseline",
+    "agent",
+    "patch_ref",
+    "pawl_version",
+    "policy_version",
+    "gate_result",
+    "independent_replay",
+    "holdout_outcome",
+    "behavior_annotation",
+    "human_disposition",
+    "label",
+    "label_derivation",
+    "exploit_family",
+    "runtime_seconds",
+    "cost_usd",
+    "trial_total_cost_usd",
+    "cost_scope",
+    "evidence_class",
+    "provenance",
+    "record_content_hash",
+    "split",
     "transcript_ref",
 ]
 
 VALID_DERIVATIONS = ("human_disposition", "synthetic_scenario_oracle", "unresolved")
+
 
 def dq_check(record: dict) -> list:
     codes = []

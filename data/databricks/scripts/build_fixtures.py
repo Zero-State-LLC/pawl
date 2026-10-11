@@ -10,25 +10,33 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_DIR = BUNDLE_ROOT / "fixtures"
 SCHEMA_VERSION = "pawl.v1"
 
+
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
 
 def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
 
+
 def stable_id(origin: str, episode_key: str, repo_rev: str) -> str:
-    return sha256_bytes(f"pawl:v1:{origin}:{episode_key}:{repo_rev}".encode("utf-8"))
+    return sha256_bytes(f"pawl:v1:{origin}:{episode_key}:{repo_rev}".encode())
+
 
 def record_content_hash(record: dict) -> str:
     data = {k: v for k, v in record.items() if k not in ("record_content_hash", "split")}
     return sha256_bytes(json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8"))
 
+
 def git_rev() -> str:
     try:
-        out = subprocess.check_output(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], stderr=subprocess.DEVNULL)
+        out = subprocess.check_output(
+            ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], stderr=subprocess.DEVNULL
+        )
         return out.decode().strip()
     except Exception:
         return "unknown"
+
 
 def pawl_version() -> str:
     path = REPO_ROOT / "pyproject.toml"
@@ -36,6 +44,7 @@ def pawl_version() -> str:
         return "unknown"
     data = tomllib.loads(path.read_text())
     return data.get("project", {}).get("version", "unknown")
+
 
 def policy_version() -> str:
     files = [REPO_ROOT / "pawl.toml", BUNDLE_ROOT / "contracts" / "pawl.v1.schema.json"]
@@ -46,11 +55,13 @@ def policy_version() -> str:
         h.update(p.read_bytes())
     return h.hexdigest()
 
+
 def baseline_info() -> tuple:
     path = REPO_ROOT / "pawl.baseline.json"
     if not path.exists():
         return None, None
     return "pawl.baseline.json", sha256_file(path)
+
 
 def parse_bool(cell: str):
     if cell is None:
@@ -62,10 +73,12 @@ def parse_bool(cell: str):
         return False
     return None
 
+
 def split_cell(cell: str) -> list:
     if not cell or cell.strip() in ("", "-"):
         return []
     return [part.strip() for part in cell.split("<br>") if part.strip()]
+
 
 def build_synthetic(rows, repo_rev, pawl_ver, pol_ver, source_sha):
     records = []
@@ -88,7 +101,9 @@ def build_synthetic(rows, repo_rev, pawl_ver, pol_ver, source_sha):
         }
         holdout = None
         if caught.get("pawl_ci") is not None and caught.get("pawl_ci_no_holdout") is not None:
-            holdout = f"pawl_ci={caught['pawl_ci']};pawl_ci_no_holdout={caught['pawl_ci_no_holdout']}"
+            holdout = (
+                f"pawl_ci={caught['pawl_ci']};pawl_ci_no_holdout={caught['pawl_ci_no_holdout']}"
+            )
         if label == "bad":
             training_label, derivation = "TAMPER", "synthetic_scenario_oracle"
         elif label == "clean":
@@ -138,6 +153,7 @@ def build_synthetic(rows, repo_rev, pawl_ver, pol_ver, source_sha):
         records.append(rec)
     return records
 
+
 def parse_live_trial(path: Path) -> list:
     rows = []
     for line in path.read_text().splitlines():
@@ -151,6 +167,7 @@ def parse_live_trial(path: Path) -> list:
             continue
         rows.append(cells)
     return rows
+
 
 def build_live(rows, repo_rev, pawl_ver, pol_ver, source_sha):
     records = []
@@ -231,11 +248,13 @@ def build_live(rows, repo_rev, pawl_ver, pol_ver, source_sha):
         records.append(rec)
     return records
 
+
 def assign_splits(records):
     for rec in records:
         key = f"{rec['task']['task_id']}|{rec['task']['repo_rev']}|{rec['exploit_family']}"
-        value = int(hashlib.sha256(f"pawl.v1:{key}".encode("utf-8")).hexdigest(), 16) % 100
+        value = int(hashlib.sha256(f"pawl.v1:{key}".encode()).hexdigest(), 16) % 100
         rec["split"] = "train" if value < 80 else "val" if value < 90 else "test"
+
 
 def main():
     results_path = REPO_ROOT / "benchmarks" / "results.json"
@@ -260,6 +279,7 @@ def main():
         for rec in records:
             fh.write(json.dumps(rec, sort_keys=True, separators=(",", ":")) + "\n")
     print(f"wrote {len(records)} records to {out}")
+
 
 if __name__ == "__main__":
     main()

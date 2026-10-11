@@ -1,10 +1,38 @@
 import json
 
-HOOK_KEYS = ("v", "ts", "pawl", "harness", "hook", "event", "session", "turn", "agent", "tool", "tool_use_id", "model", "paths", "decision", "reason")
+HOOK_KEYS = (
+    "v",
+    "ts",
+    "pawl",
+    "harness",
+    "hook",
+    "event",
+    "session",
+    "turn",
+    "agent",
+    "tool",
+    "tool_use_id",
+    "model",
+    "paths",
+    "decision",
+    "reason",
+)
 HOOK_DECISIONS = ("allow", "block", "error", "budget")
-REPORT_KEYS = ("schema_version", "tool", "version", "kind", "status", "exit_code", "generated_at", "config_source", "notes", "approval")
+REPORT_KEYS = (
+    "schema_version",
+    "tool",
+    "version",
+    "kind",
+    "status",
+    "exit_code",
+    "generated_at",
+    "config_source",
+    "notes",
+    "approval",
+)
 REPORT_KINDS = ("check", "guard", "update", "report", "mutate")
 REPORT_EXIT_CODES = (0, 1, 2, 3)
+
 
 def parse_hook_log_line(line: str) -> dict:
     obj = json.loads(line)
@@ -15,8 +43,10 @@ def parse_hook_log_line(line: str) -> dict:
         raise ValueError(f"bad decision: {obj['decision']}")
     return obj
 
+
 def parse_hook_log_lines(lines: list) -> list:
     return [parse_hook_log_line(line) for line in lines if line.strip()]
+
 
 def parse_json_report(obj: dict) -> dict:
     missing = [k for k in REPORT_KEYS if k not in obj]
