@@ -150,6 +150,12 @@ Promotion gates: zero false PASS in critical P0 threat fixtures; no regression a
   reviewable. Accepted by Danny 2026-10-10 as a later item, after 0.3.0.
   Done 2026-10-10 (#26): an intact move reports SPEC_AUTHORITY_MOVED (info);
   a move out of protected paths or with edits still blocks.
+- CI scorecard metrics (proposed 2026-10-11 from the
+  [Abraxas field report](../../docs/field-reports/2026-10-11-abraxas-ci.md)):
+  report the unbaselined test count and rate with a trend; split durations
+  for install, collection/test execution, replay and reporting; and list
+  guard findings by rule and path with the approval source and SHA. Not yet
+  accepted; needs more same-SHA timing samples before any optimization.
 
 ## 0.2.x implementation evidence (2026-10-10)
 
