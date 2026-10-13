@@ -22,7 +22,7 @@ from pawl.contract import (
     exit_code_for,
 )
 from pawl.errors import PawlError, PreflightError
-from pawl.guard import ESCALATIONS, GuardReport, run_guard
+from pawl.guard import ESCALATIONS, GuardReport, guard_scorecard, run_guard
 from pawl.render import check_markdown, guard_markdown
 from pawl.trust import resolve
 from pawl.update import Delta, append_debt_log, compute, default_orders
@@ -288,6 +288,7 @@ def cmd_guard(args: argparse.Namespace) -> int:
             "config_source": "",
             "notes": [],
             "findings": [],
+            "scorecard": guard_scorecard([], None),
         }
         with contextlib.suppress(OSError):
             report_path(root, "last-guard.json").write_text(

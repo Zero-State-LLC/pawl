@@ -58,6 +58,7 @@ revocation note.
 | `suites` | Per-suite summary: `name`, `failures`, `baseline_failures`, `collected`, `baseline_collected`, `orders` |
 | `metrics` | Per-metric: `name`, `value`, `baseline`, `direction` |
 | `isolation` | `{suite: {test_id: verdict}}` for new failures re-run alone |
+| `scorecard` | Point-in-time counts. Does not affect the verdict. `unbaselined_tests` is the sum of `max(0, collected - baseline_collected)`. `unbaselined_rate` is that sum divided by collected tests, or `0.0` when nothing was collected. `suite_seconds` maps each suite name to its `seconds` |
 | `next_steps` | Plain-language steps for the agent |
 
 Problem codes (stable):
@@ -74,6 +75,7 @@ Problem codes (stable):
 | `approved` | Boolean: a human approval applies to this commit |
 | `error` | Present when `status` is `error` |
 | `findings` | List of `{rule, severity, path, message, ids}`; severity is `block`, `warn`, `info`, or `approved` |
+| `scorecard` | Point-in-time rows. Does not affect the verdict. `findings` is `{rule, severity, path}` in the same order. `approval_source` and `approval_sha` copy `approval`, or are null |
 
 Finding rules (stable):
 

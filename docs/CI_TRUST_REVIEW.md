@@ -24,6 +24,13 @@ Code and workflow changes that landed afterward:
   `552a05f9cff9e18c33e99c1e1f1f52092499ff7dd5a7d8db8a881c5eda646b12`.
   See [QA_COMPLETION.md](QA_COMPLETION.md).
 
+As of 2026-10-13 the permission matrix below is the 2026-10-10 snapshot.
+Do not read it as the live job shape. Dogfood CI runs on `ubuntu-latest`.
+The report job is split from the gate job. The gate binary is installed
+from the trusted ref (the pull request base, or HEAD on a main push), not
+from the candidate tree. See
+[specs/002-gap-closure/spec.md](../specs/002-gap-closure/spec.md).
+
 ## Boundary and evidence
 
 OBSERVED: main was `af5e3c4` and proposed spec PR #13 was

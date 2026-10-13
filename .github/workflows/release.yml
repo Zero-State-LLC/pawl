@@ -10,7 +10,8 @@
 #
 # Runs on GitHub-hosted ubuntu-latest. Signs with astral-sh/attest-action and
 # uploads with `uv publish --trusted-publishing always`, which sends the
-# attestation files next to each distribution. Not yet run end to end.
+# attestation files next to each distribution. The v0.3.0 run (38087063957)
+# and the v0.4.0 run (38091969331) both succeeded.
 name: release
 
 on:

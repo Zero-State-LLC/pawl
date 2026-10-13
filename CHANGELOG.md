@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Check and guard JSON include a `scorecard` object (unbaselined test count
+  and rate, per-suite seconds, guard findings by rule and path, approval
+  source and SHA). The fields do not change the verdict. See
+  [specs/002-gap-closure/spec.md](specs/002-gap-closure/spec.md).
+- Dogfood CI installs the gate binary from the trusted ref into its own
+  venv. The candidate tree is installed only to run its tests and tools.
+
 ### Hardening
 
 - Reject symlink and hard-link JUnit reports (`ParseError`, exit 2).

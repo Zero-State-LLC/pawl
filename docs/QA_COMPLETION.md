@@ -48,11 +48,20 @@ by writing `sys.executable`.
 6. Regenerated `BENCHMARKS.md` / effectiveness receipts
 7. Public README doc links; CI trust completion update
 
+## Update 2026-10-13
+
+PyPI `pawl-gate` 0.4.0 is published. Release workflow runs for v0.3.0
+(38087063957) and v0.4.0 (38091969331) succeeded. The symlink and hard-link
+rejection, the split customer workflow, and `sys.executable` in `pawl init`
+are on main and are not in the 0.4.0 tag. Cutting 0.4.1 is still an operator
+step. Gap dispositions are in
+[specs/002-gap-closure/spec.md](../specs/002-gap-closure/spec.md).
+
 ## Remaining operator work
 
 | # | Action |
 | --- | --- |
-| 1 | Confirm PyPI `pawl-gate==0.3.0` publish / `release.yml` E2E |
+| 1 | Tag and publish `pawl-gate` 0.4.1 from main so the post-0.4.0 hardening ships. 0.4.0 is already on PyPI |
 | 2 | Add reviewer on the `pypi` environment |
 | 3 | Require 1 approval + code owners + last-push + strict up-to-date |
 | 4 | Action allow-list + SHA pinning enforcement |
@@ -70,7 +79,8 @@ overclaim P0 isolation.
 [ ] make check green on 3.11, 3.12, 3.13
 [ ] make demo green
 [ ] BENCHMARKS.md current
-[ ] PyPI 0.3.0 published; pypi environment has a human reviewer
+[x] PyPI 0.4.0 published (v0.3.0 and v0.4.0 release runs succeeded)
+[ ] Tag and publish 0.4.1; pypi environment has a human reviewer
 [ ] repo rules: approvals + code owners + strict checks + action pins
-[ ] smoke: fresh repo -> pip install pawl-gate==0.3.0 -> pawl init --github
+[ ] smoke: fresh repo -> pip install pawl-gate==0.4.1 -> pawl init --github
 ```
