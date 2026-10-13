@@ -50,6 +50,31 @@ class Measurement:
     skipped: list[str] = field(default_factory=list)
 
 
+def check_scorecard(suites: list[dict[str, Any]]) -> dict[str, Any]:
+    """Point-in-time counts for the CI scorecard. Does not affect the verdict.
+
+    ``unbaselined_tests`` counts collected tests above the baseline floor.
+    A collection drop is not negative unbaselined work. ``unbaselined_rate``
+    is that count divided by collected tests, or 0.0 when nothing was collected.
+    """
+    unbaselined = 0
+    collected = 0
+    seconds: dict[str, float] = {}
+    for suite in suites:
+        got = int(suite.get("collected", 0))
+        floor = int(suite.get("baseline_collected", 0))
+        collected += got
+        unbaselined += max(0, got - floor)
+        if "seconds" in suite:
+            seconds[str(suite.get("name", ""))] = float(suite["seconds"])
+    rate = (unbaselined / collected) if collected else 0.0
+    return {
+        "unbaselined_tests": unbaselined,
+        "unbaselined_rate": rate,
+        "suite_seconds": seconds,
+    }
+
+
 @dataclass
 class Report:
     """The gate verdict. Serialized to JSON for agents and PR comments."""
@@ -86,6 +111,7 @@ class Report:
             "suites": self.suites,
             "metrics": self.metrics,
             "isolation": self.isolation,
+            "scorecard": check_scorecard(self.suites),
             "next_steps": next_steps(self.problems),
         }
 

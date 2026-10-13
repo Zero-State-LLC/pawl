@@ -100,6 +100,18 @@ class Finding:
         }
 
 
+def guard_scorecard(findings: list[Finding], approval: dict[str, Any] | None) -> dict[str, Any]:
+    """Point-in-time guard rows for the CI scorecard. Does not affect the verdict."""
+    approved = approval or {}
+    return {
+        "findings": [
+            {"rule": item.rule, "severity": item.severity, "path": item.path} for item in findings
+        ],
+        "approval_source": approved.get("source"),
+        "approval_sha": approved.get("sha"),
+    }
+
+
 @dataclass
 class GuardReport:
     """Guard verdict."""
@@ -132,6 +144,7 @@ class GuardReport:
             "config_source": self.config_source,
             "notes": self.notes,
             "findings": [f.to_json() for f in self.findings],
+            "scorecard": guard_scorecard(self.findings, self.approval),
         }
 
 

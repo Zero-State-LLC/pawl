@@ -1,5 +1,7 @@
-# Pawl gates its own repository (dogfood). Same as
-# integrations/github/pawl.yml, except it installs Pawl from this checkout.
+# Pawl gates its own repository (dogfood). Same reporting split as
+# integrations/github/pawl.yml. The gate binary is installed from the trusted
+# ref (the pull request base, or HEAD on a main push), not from the candidate
+# tree. The candidate checkout is installed only so its tests and tools run.
 # Make the "pawl" job a required status check on main.
 #
 # Runs on GitHub-hosted ubuntu-latest and gets Python from uv. See ci.yml.
@@ -50,22 +52,39 @@ jobs:
           uv venv --managed-python --python 3.12 --seed "$RUNNER_TEMP/venv"
           echo "VIRTUAL_ENV=$RUNNER_TEMP/venv" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
-      - name: Install
+      - name: Install trusted Pawl (base ref, own venv)
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            REF="origin/$BASE_REF"
+          else
+            REF="HEAD"
+          fi
+          mkdir -p "$RUNNER_TEMP/pawl-src"
+          git archive "$REF" pyproject.toml README.md LICENSE src/pawl \
+            | tar -x -C "$RUNNER_TEMP/pawl-src"
+          python -m venv "$RUNNER_TEMP/pawl-venv"
+          # The job venv is already active. Drop VIRTUAL_ENV so this pip
+          # installs into pawl-venv, not over the candidate environment.
+          env -u VIRTUAL_ENV "$RUNNER_TEMP/pawl-venv/bin/python" -m pip install \
+            "$RUNNER_TEMP/pawl-src"
+          echo "PAWL=$RUNNER_TEMP/pawl-venv/bin/pawl" >> "$GITHUB_ENV"
+      - name: Install the candidate project
         run: python -VV && python -m pip install -e ".[dev]"
       - name: Pawl check (gate definition from the base branch)
         run: |
           if [ "$EVENT" = "pull_request" ]; then
-            pawl check --ci --trusted-ref "origin/$BASE_REF"
+            "$PAWL" check --ci --trusted-ref "origin/$BASE_REF"
           else
-            pawl check --ci
+            "$PAWL" check --ci
           fi
       - name: Pawl guard (tamper detection and test replay)
         if: always() && github.event_name == 'pull_request'
-        run: pawl guard --ci --replay --base "origin/$BASE_REF"
+        run: |
+          "$PAWL" guard --ci --replay --base "origin/$BASE_REF"
       - name: Render the report
         if: always() && github.event_name == 'pull_request'
         run: |
-          pawl report --format md > "$RUNNER_TEMP/pawl-report.md"
+          "$PAWL" report --format md > "$RUNNER_TEMP/pawl-report.md"
           printf '%s\n' "$PR_NUMBER" > "$RUNNER_TEMP/pawl-pr-number.txt"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && github.event_name == 'pull_request'
