@@ -46,7 +46,7 @@ jobs:
         run: |
           python -m venv "$RUNNER_TEMP/pawl-venv"
           cat > "$RUNNER_TEMP/pawl-requirements.txt" <<'REQ'
-          pawl-gate==0.4.0 \
+          pawl-gate==0.4.1 \
               --hash=sha256:REPLACE_WITH_WHEEL_SHA256 \
               --hash=sha256:REPLACE_WITH_SDIST_SHA256
           REQ
