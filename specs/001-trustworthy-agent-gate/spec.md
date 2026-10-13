@@ -154,8 +154,11 @@ Promotion gates: zero false PASS in critical P0 threat fixtures; no regression a
   [Abraxas field report](../../docs/field-reports/2026-10-11-abraxas-ci.md)):
   report the unbaselined test count and rate with a trend; split durations
   for install, collection/test execution, replay and reporting; and list
-  guard findings by rule and path with the approval source and SHA. Not yet
-  accepted; needs more same-SHA timing samples before any optimization.
+  guard findings by rule and path with the approval source and SHA.
+  Point-in-time fields shipped in 0.4.1: unbaselined count and rate, suite
+  seconds, and guard findings with approval source and SHA. They do not
+  change the verdict. Trend and split durations are still open and still
+  need more same-SHA samples before any optimization.
 
 ## 0.2.x implementation evidence (2026-10-10)
 

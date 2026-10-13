@@ -50,22 +50,27 @@ by writing `sys.executable`.
 
 ## Update 2026-10-13
 
-PyPI `pawl-gate` 0.4.0 is published. Release workflow runs for v0.3.0
-(38087063957) and v0.4.0 (38091969331) succeeded. The symlink and hard-link
-rejection, the split customer workflow, and `sys.executable` in `pawl init`
-are on main and are not in the 0.4.0 tag. Cutting 0.4.1 is still an operator
-step. Gap dispositions are in
-[specs/002-gap-closure/spec.md](../specs/002-gap-closure/spec.md).
+PyPI `pawl-gate` 0.4.0 and 0.4.1 are published. Release runs: v0.3.0
+38087063957, v0.4.0 38091969331, v0.4.1 38483924992. Tag `v0.4.1` is
+`69ae87a` on main. The symlink and hard-link rejection, the split customer
+workflow, `sys.executable` in `pawl init`, the trusted dogfood binary, and
+the point-in-time scorecard are in that tag. Dispositions are in
+[specs/002-gap-closure/spec.md](../specs/002-gap-closure/spec.md) and
+[specs/003-remaining-gaps/spec.md](../specs/003-remaining-gaps/spec.md).
+
+Main CI for `69ae87a` (run 38483692433) passed lint and tests on 3.11,
+3.12, and 3.13. `pip install pawl-gate==0.4.1` imports as 0.4.1, and PyPI
+serves both file hashes. A full `pawl init --github` in a fresh project
+was not run.
 
 ## Remaining operator work
 
 | # | Action |
 | --- | --- |
-| 1 | Tag and publish `pawl-gate` 0.4.1 from main so the post-0.4.0 hardening ships. 0.4.0 is already on PyPI |
-| 2 | Add reviewer on the `pypi` environment |
-| 3 | Require 1 approval + code owners + last-push + strict up-to-date |
-| 4 | Action allow-list + SHA pinning enforcement |
-| 5 | Uncomment `[guard] approvers` / `refuse_pr_author` when the agent has a distinct account |
+| 1 | Add a reviewer on the `pypi` environment |
+| 2 | Require 1 approval + code owners + last-push + strict up-to-date |
+| 3 | Action allow-list + SHA pinning enforcement by GitHub, not only by `scripts/check_actions.py` |
+| 4 | Uncomment `[guard] approvers` / `refuse_pr_author` when the agent has a distinct account |
 
 ## Honest residual risk
 
@@ -76,11 +81,12 @@ overclaim P0 isolation.
 ## Suggested checklist
 
 ```text
-[ ] make check green on 3.11, 3.12, 3.13
+[x] CI green on 3.11, 3.12, 3.13 for 69ae87a (run 38483692433)
 [ ] make demo green
 [ ] BENCHMARKS.md current
 [x] PyPI 0.4.0 published (v0.3.0 and v0.4.0 release runs succeeded)
-[ ] Tag and publish 0.4.1; pypi environment has a human reviewer
+[x] Tag and publish 0.4.1 (v0.4.1 is 69ae87a, release run 38483924992)
+[ ] pypi environment has a human reviewer
 [ ] repo rules: approvals + code owners + strict checks + action pins
 [ ] smoke: fresh repo -> pip install pawl-gate==0.4.1 -> pawl init --github
 ```

@@ -1,7 +1,9 @@
 # PAWL-002: Gap closure after the 2026-10-13 review
 
-Status: ACCEPTED for G1, G2, and G3. Date: 2026-10-13. Baseline: PAWL 0.4.0
-on main `05d0df6`, which is ahead of tag `v0.4.0`.
+Status: ACCEPTED for G1, G2, and G3. G4 met its acceptance condition on
+2026-10-13: tag `v0.4.1` is `69ae87a` and PyPI `pawl-gate` 0.4.1 is
+published (release run 38483924992). Date: 2026-10-13. Baseline at
+acceptance: PAWL 0.4.0 on main `05d0df6`, which was ahead of tag `v0.4.0`.
 Authority: DESIGN.md, AGENTS.md, docs/ARCHITECTURE_REVIEW.md,
 docs/CI_TRUST_REVIEW.md, docs/field-reports/2026-10-11-abraxas-ci.md, and
 specs/001-trustworthy-agent-gate/spec.md. This spec does not change exit
@@ -98,6 +100,8 @@ in memory and reads these fields. Exit codes stay 0, 1, 2, and 3.
 
 G4 is done when a `v0.4.1` tag points at a main commit that contains the
 post-0.4.0 hardening and `pypi.org/pypi/pawl-gate/json` reports 0.4.1.
+That condition was met on 2026-10-13: tag `v0.4.1` is `69ae87a` and PyPI
+reports 0.4.1.
 G5 is done when a fresh ruleset read shows one required approval, code-owner
 review, last-push approval, strict status checks, an Actions allow-list with
 SHA pinning required, and a human reviewer on `pypi`. G6, G7, and G8 stay

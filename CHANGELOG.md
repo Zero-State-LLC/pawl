@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Documentation
+
+- QA and repository-settings notes match published 0.4.1. The report job,
+  not the gate job, holds `pull-requests: write`. See
+  [specs/003-remaining-gaps/spec.md](specs/003-remaining-gaps/spec.md).
+
 ## [0.4.1] - 2026-10-13
 
 ### Added
