@@ -5,10 +5,12 @@ repository settings; Pawl does not change settings through the API. The same
 list applies to any repository that adopts Pawl, including this one.
 
 The [2026-10-10 P0 review](CI_TRUST_REVIEW.md) compares this recommendation
-with actual API observations. Required checks are configured, but required
-human/code-owner review, last-push approval and strict base freshness were absent.
-The current candidate test job also requests PR-write permission. Those findings
-remain operator actions; a passing PAWL check does not establish CI isolation.
+with actual API observations. Required checks are configured. A re-read on
+2026-10-13 of ruleset `main` (24762283) still shows zero required approvals,
+code-owner review off, last-push approval off, and strict status checks off.
+The gate job is `contents: read`. A separate report job holds
+`pull-requests: write` and does not run candidate code. The review settings
+remain operator actions. A passing Pawl check does not establish CI isolation.
 
 ## Branch ruleset for the default branch
 
@@ -62,10 +64,10 @@ at. A later push needs a fresh approval: remove the label and add it again.
 
 - Settings > Actions > General > Workflow permissions: "Read repository
   contents and packages permissions". Keep candidate execution jobs read-only.
-  The current Pawl workflow requests `pull-requests: write` to post a comment;
-  that is a known isolation gap, not a restriction on how candidate code can
-  use the job's privileges. Prefer a trusted separate reporting job with
-  validated run/SHA-bound data, or omit the PR comment.
+  The dogfood gate job requests `contents: read` only. The report job holds
+  `pull-requests: write`, downloads the report artifact, and does not check
+  out the repository. A venv still does not stop candidate code from using
+  whatever privileges that job's token has.
 - Allow actions: only actions created by GitHub plus allow-listed actions,
   since workflows pin actions by commit SHA.
 - Require approval for workflows from outside collaborators: on.
