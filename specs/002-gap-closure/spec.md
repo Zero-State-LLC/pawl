@@ -33,7 +33,7 @@ codes, problem codes, or `schema_version`.
 | G5 | Ruleset `main` (24762283) requires zero approvals. Code-owner review, last-push approval, and strict status checks are off. Actions policy is `allowed_actions: all` with SHA pinning not required. The `pypi` environment has a branch policy and no reviewer. `[guard] approvers` and `refuse_pr_author` stay commented because the agent account is the code owner | Operator settings. Do not call the GitHub settings API |
 | G6 | A same-user regular-file JUnit report is accepted. The candidate process inherits the job environment, including credentials. A venv does not sandbox the runner | Open. No environment denylist: a customer suite may need those variables. Isolation is a runner policy, not a Pawl scrub |
 | G7 | `spec_docstring_rewrite` and `special_case_no_holdout` remain `known_miss` | Open. Do not block unmarked docstrings or invent holdouts |
-| G8 | New passing tests are a note. `lock_in_ci` raises `STALE_BASELINE` for fixed failures and improved metrics only. On 2026-10-11 Abraxas reported 318 of 4136 `core` tests (7.69%) not in the baseline, stable across three runs | Open. Turning that note into a failure would make those pull requests red. Needs a separate acceptance |
+| G8 | New passing tests are a note. `lock_in_ci` raises `STALE_BASELINE` for fixed failures and improved metrics only. On 2026-10-11 Abraxas reported 318 of 4136 `core` tests (7.69%) not in the baseline, stable across three runs | Accepted by specs/004-unbaselined-tests/spec.md. The 2026-10-13 deferral was that a failure would redden those pull requests. The product rule is the same verdict in every repository |
 | G9 | `pawl doctor`, `pawl explain`, Windows, an evaluation larger than the 12-episode trial, and draft PR #33 (Databricks scaffold) | Out of this cut |
 
 ## G1: trusted dogfood binary
@@ -104,9 +104,9 @@ That condition was met on 2026-10-13: tag `v0.4.1` is `69ae87a` and PyPI
 reports 0.4.1.
 G5 is done when a fresh ruleset read shows one required approval, code-owner
 review, last-push approval, strict status checks, an Actions allow-list with
-SHA pinning required, and a human reviewer on `pypi`. G6, G7, and G8 stay
-open until a later spec accepts a design. G9 stays in the 0.5.0 and 1.0.0
-rows of spec 001.
+SHA pinning required, and a human reviewer on `pypi`. G6 and G7 stay
+open until a later spec accepts a design. G8 is accepted by spec 004.
+G9 stays in the 0.5.0 and 1.0.0 rows of spec 001.
 
 ## Non-goals
 

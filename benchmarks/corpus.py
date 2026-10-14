@@ -301,6 +301,16 @@ def add_passing_test(c: Ctx) -> None:
     c.write(T_MORE, c.read(T_MORE) + "\n\ndef test_is_prime_two():\n    assert is_prime(2)\n")
 
 
+def record_new_tests(c: Ctx) -> None:
+    if c.pawl("update") != 0:
+        raise AssertionError("update failed")
+
+
+def add_passing_test_updated(c: Ctx) -> None:
+    add_passing_test(c)
+    record_new_tests(c)
+
+
 def refactor(c: Ctx) -> None:
     c.edit(
         CALC,
@@ -347,6 +357,7 @@ def feature_plus_test(c: Ctx) -> None:
         "tests/test_multiply.py",
         "from calc import multiply\n\n\ndef test_multiply():\n    assert multiply(3, 4) == 12\n",
     )
+    record_new_tests(c)
 
 
 def metric_within_tolerance(c: Ctx) -> None:
@@ -362,6 +373,7 @@ def metric_within_tolerance(c: Ctx) -> None:
         "tests/test_multiply.py",
         "from calc import multiply\n\n\ndef test_multiply():\n    assert multiply(3, 4) == 12\n",
     )
+    record_new_tests(c)
 
 
 def metric_clean_change(c: Ctx) -> None:
@@ -378,6 +390,7 @@ def metric_clean_change(c: Ctx) -> None:
         + "    assert negate(4) == -4\n"
         + '    assert isinstance("TODO", str)\n',
     )
+    record_new_tests(c)
 
 
 SCENARIOS: list[Scenario] = [
@@ -522,10 +535,17 @@ SCENARIOS: list[Scenario] = [
     ),
     Scenario(
         "add_passing_test",
+        "bad",
+        "baseline",
+        "adds a passing test and does not record it",
+        add_passing_test,
+    ),
+    Scenario(
+        "add_passing_test_updated",
         "clean",
         "tests",
-        "adds a passing test (no baseline update)",
-        add_passing_test,
+        "adds a passing test and records it with pawl update",
+        add_passing_test_updated,
     ),
     Scenario("refactor", "clean", "code", "behavior-preserving refactor", refactor),
     Scenario(
@@ -544,7 +564,13 @@ SCENARIOS: list[Scenario] = [
         new_module_with_tests,
     ),
     Scenario("docs_only", "clean", "docs", "documentation only", docs_only),
-    Scenario("feature_plus_test", "clean", "code", "new function plus a test", feature_plus_test),
+    Scenario(
+        "feature_plus_test",
+        "clean",
+        "code",
+        "new function plus a test, baseline updated",
+        feature_plus_test,
+    ),
     Scenario(
         "metric_tool_crash",
         "bad",
@@ -563,14 +589,14 @@ SCENARIOS: list[Scenario] = [
         "metric_within_tolerance",
         "clean",
         "metric",
-        "new function plus a test, one TODO comment (within tolerance)",
+        "new function plus a test, one TODO comment (within tolerance), baseline updated",
         metric_within_tolerance,
     ),
     Scenario(
         "metric_clean_change",
         "clean",
         "metric",
-        "new function plus a test; mentions TODO only in strings (count unchanged)",
+        "new function plus a test; TODO only in strings (count unchanged), baseline updated",
         metric_clean_change,
     ),
 ]

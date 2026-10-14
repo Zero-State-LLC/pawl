@@ -204,6 +204,7 @@ Each mechanism, where it lives, and its source.
 | Per-test identity ratchet: a new failing ID is a regression even if the count is unchanged | `check.py` `NEW_FAILURE` | ESLint suppressions, mypy-baseline; Abraxas count-only gap |
 | Missing baseline tests and newly skipped tests are regressions | `MISSING_TESTS`, `NEWLY_SKIPPED` | ImpossibleBench, EvilGenie (test deletion and skips) |
 | Collected-test floor | `COLLECTION_DROP` | Abraxas `BASELINE_COLLECTED` |
+| Collected tests above the floor fail the check until `pawl update` | `UNBASELINED_TESTS` | Same floor, applied when the count rises |
 | Baseline confirmed under two orders; order-only failures reported | `update.py`, `ORDER_DEPENDENT_FAILURE` | Gruber et al. 2021; Abraxas TEST_DEBT.md (28 vs 31) |
 | Isolation re-run that only annotates | `adapters.isolate` | Abraxas; Shaker evaluation 2026 |
 | Stale baseline fails in CI | `STALE_BASELINE`, `lock_in_ci` | basedpyright lock mode, ESLint unused suppressions |

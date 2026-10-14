@@ -64,8 +64,13 @@ revocation note.
 Problem codes (stable):
 
 `NEW_FAILURE`, `MISSING_TESTS`, `NEWLY_SKIPPED`, `COLLECTION_DROP`,
-`ORDER_DEPENDENT_FAILURE`, `STALE_BASELINE`, `METRIC_REGRESSION`,
-`NOT_IN_BASELINE`, `SUITE_REMOVED`.
+`UNBASELINED_TESTS`, `ORDER_DEPENDENT_FAILURE`, `STALE_BASELINE`,
+`METRIC_REGRESSION`, `NOT_IN_BASELINE`, `SUITE_REMOVED`.
+
+`UNBASELINED_TESTS` means the suite collected more tests than the baseline.
+In `identity = "ids"` the `ids` list is the collected ids absent from the
+baseline. In `identity = "count"` `ids` is empty and the message carries the
+count delta. Scorecard fields stay informational. `UNBASELINED_TESTS` fails the check.
 
 ## `pawl guard --json` (also `.pawl/last-guard.json`)
 
