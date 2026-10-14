@@ -48,7 +48,7 @@ package and an isolation re-run of up to 10 failed IDs.
 ### 1. Install and initialize
 
 ```bash
-pip install "pawl-gate==0.4.1"
+pip install "pawl-gate==0.5.0"
 pawl init --runner pytest
 ```
 
