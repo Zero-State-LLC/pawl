@@ -1,0 +1,29 @@
+{
+ "dataset": "zs_pawl_episodes",
+ "version": "0.1",
+ "schema_version": "pawl.v1",
+ "built_at_pt": "2026-10-10 19:37 PT",
+ "catalog": "workspace",
+ "schema": "pawl_dev",
+ "source_repo_rev": "286e0c0cc646cf347bf5a5816b68a323fb94b0cd",
+ "tables": {
+  "raw_episode": 74,
+  "validated_episode": 74,
+  "quarantine_episode": 0,
+  "curated_episode": 74
+ },
+ "labels": {
+  "SYNTHETIC/TAMPER": 45,
+  "SYNTHETIC/HONEST": 17,
+  "LIVE/UNRESOLVED": 12
+ },
+ "split": {
+  "group_key": "task_id|repo_rev|exploit_family",
+  "counts": {
+   "train": 66,
+   "val": 2,
+   "test": 6
+  }
+ },
+ "release_hash": "9572259d82b3ccd07d4e64318426561034954e6051bb473d7543e21e8f3c25ed"
+}

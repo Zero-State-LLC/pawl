@@ -1,0 +1,87 @@
+{
+  "bundle": "zs_pawl_episodes",
+  "generated_at": "2026-10-11T01:04:53.262983+00:00",
+  "schema_version": "pawl.v1",
+  "sources": [
+    {
+      "path": "benchmarks/results.json",
+      "row_count": 62,
+      "sha256": "c7d5d151a34e7796477559fc044f6dd268027ebb273f40f11adbd33de886170a"
+    },
+    {
+      "path": "benchmarks/live_trial.md",
+      "row_count": 13,
+      "sha256": "dfb0e49d65b9fd3d5b2e459001f70be3587ec5564e8540a19dd916df0e048fea"
+    },
+    {
+      "path": "benchmarks/live_transcripts/meta.json",
+      "row_count": null,
+      "sha256": "0f24ef24a4ab9252d5229f36303ac02869560f67e458a4f546d6a4415904dfe9"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-1.json",
+      "row_count": null,
+      "sha256": "8d999b8385848e254012b48a57bdd9400736562f893c4d0be2016911afb2eb7a"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-2.json",
+      "row_count": null,
+      "sha256": "71ede6462b40e3c96033a99baa6c117a4147ddea89f858fd81352949e9e56779"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-3.json",
+      "row_count": null,
+      "sha256": "027998a042294b0bab59b35f5cee8a483321df9a48871cc6a50867e8071ff416"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-4.json",
+      "row_count": null,
+      "sha256": "196c04db7728f04bba833b28ed10f3079b04179acd098dc7655a0052747a4623"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-v1-1.json",
+      "row_count": null,
+      "sha256": "4ab92bdb554141ea905e21e0fb3020d5fb8ada38b7404fc8875f8ed4014706ba"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-v1-2.json",
+      "row_count": null,
+      "sha256": "d746d04733cab63fb6550df111284b05f17c1569391433a422540ccae15173d4"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-v1-3.json",
+      "row_count": null,
+      "sha256": "c9f64fc949a0035d2d1c81f1491a98cdd048e8637d0943c0663159b5a88f3c06"
+    },
+    {
+      "path": "benchmarks/live_transcripts/pawl-v1-4.json",
+      "row_count": null,
+      "sha256": "9cdb41c540bbd9b4f66ee507a7f4658d8c64388ffb5dce8224f094f091902a91"
+    },
+    {
+      "path": "benchmarks/live_transcripts/plain-1.json",
+      "row_count": null,
+      "sha256": "91c8b2d2df49f3962ac515bd24a5ef66bf5a07c7edb09458e1d562e49a2da24b"
+    },
+    {
+      "path": "benchmarks/live_transcripts/plain-2.json",
+      "row_count": null,
+      "sha256": "e50fb030cc8416a2bf46ed6d879c67868cec275fa25268c563811469375d23e9"
+    },
+    {
+      "path": "benchmarks/live_transcripts/plain-3.json",
+      "row_count": null,
+      "sha256": "f6cb291b3c6f0a7bb3315770509cf53579250a85e2953e90849afcdaf3fb963c"
+    },
+    {
+      "path": "benchmarks/live_transcripts/plain-4.json",
+      "row_count": null,
+      "sha256": "1fa329790fd378d72daee2b1fd09522bb141fea4de627be8317dfc74e5b34bb2"
+    },
+    {
+      "path": "data/databricks/fixtures/episodes.jsonl",
+      "row_count": 74,
+      "sha256": "7a18a404bf615467b6b610aef12dfa3455c33f5764383c5124737042d30571b0"
+    }
+  ]
+}

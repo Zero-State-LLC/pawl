@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:pawl:episodes:v1",
+  "title": "pawl episode record",
+  "description": "One row per source episode or synthetic scenario+base. Version pawl.v1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "schema_version",
+    "origin",
+    "task",
+    "baseline",
+    "agent",
+    "patch_ref",
+    "pawl_version",
+    "policy_version",
+    "gate_result",
+    "independent_replay",
+    "holdout_outcome",
+    "behavior_annotation",
+    "human_disposition",
+    "label",
+    "label_derivation",
+    "exploit_family",
+    "runtime_seconds",
+    "cost_usd",
+    "trial_total_cost_usd",
+    "cost_scope",
+    "evidence_class",
+    "provenance",
+    "record_content_hash",
+    "split",
+    "transcript_ref"
+  ],
+  "properties": {
+    "record_id": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Stable sha256 of pawl:v1:origin:episode_key:repo_rev."},
+    "schema_version": {"const": "pawl.v1", "description": "Contract version."},
+    "origin": {"enum": ["SYNTHETIC", "LIVE"], "description": "Source class."},
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "repo", "repo_rev", "task_spec_ref"],
+      "properties": {
+        "task_id": {"type": "string", "description": "Stable task identifier."},
+        "repo": {"type": "string", "description": "Repository slug."},
+        "repo_rev": {"type": "string", "description": "Pinned git sha at build time."},
+        "task_spec_ref": {"type": "string", "description": "Path or reference for task specification."}
+      },
+      "description": "Task identity."
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": ["string", "null"], "description": "Baseline file reference."},
+        "sha256": {"type": ["string", "null"], "description": "Baseline content hash, null if unavailable."}
+      },
+      "description": "Baseline reference."
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harness", "model", "condition", "attempt"],
+      "properties": {
+        "harness": {"type": "string", "description": "Harness name."},
+        "model": {"type": ["string", "null"], "description": "Model identifier, null if not applicable."},
+        "condition": {"type": "string", "description": "Condition or base label."},
+        "attempt": {"type": "integer", "description": "Attempt number."}
+      },
+      "description": "Agent and condition."
+    },
+    "patch_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["changed_files", "diff_sha256"],
+      "properties": {
+        "changed_files": {"type": "array", "items": {"type": "string"}, "description": "Changed file list."},
+        "diff_sha256": {"type": ["string", "null"], "description": "Diff hash, null if unavailable."}
+      },
+      "description": "Patch reference."
+    },
+    "pawl_version": {"type": "string", "description": "pawl package version."},
+    "policy_version": {"type": "string", "description": "Hash of pawl.toml plus contract."},
+    "gate_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pawl_local", "stop_hook", "ci", "exit_codes", "signals", "reason"],
+      "properties": {
+        "pawl_local": {"type": ["boolean", "null"], "description": "Local pawl check outcome."},
+        "stop_hook": {"type": ["boolean", "null"], "description": "Stop hook outcome."},
+        "ci": {"type": ["boolean", "null"], "description": "CI check plus guard outcome."},
+        "exit_codes": {"type": "object", "additionalProperties": {"type": "integer"}, "description": "Observed exit codes."},
+        "signals": {"type": "array", "items": {"type": "string"}, "description": "Observed gate signals."},
+        "reason": {"type": ["string", "null"], "description": "Gate reason."}
+      },
+      "description": "Pawl gate result. Never used as training label source."
+    },
+    "independent_replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "method", "ref"],
+      "properties": {
+        "outcome": {"type": "string", "description": "Independent outcome or UNRESOLVED."},
+        "method": {"type": "string", "description": "Independent method."},
+        "ref": {"type": ["string", "null"], "description": "Independent reference."}
+      },
+      "description": "Independent replay evidence."
+    },
+    "holdout_outcome": {"type": ["string", "null"], "description": "Holdout comparison outcome, null if unavailable."},
+    "behavior_annotation": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["value", "source"],
+      "properties": {
+        "value": {"type": "string", "description": "Behavior annotation value."},
+        "source": {"type": "string", "description": "Annotation source, not a human disposition."}
+      },
+      "description": "Author or script annotation."
+    },
+    "human_disposition": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["label", "by", "at"],
+      "properties": {
+        "label": {"type": "string", "description": "Human ruling."},
+        "by": {"type": "string", "pattern": "^human:.*$", "description": "Human source identifier."},
+        "at": {"type": "string", "description": "Human ruling timestamp."}
+      },
+      "description": "Human disposition. Null in fixtures."
+    },
+    "label": {"enum": ["TAMPER", "HONEST", "UNRESOLVED"], "description": "Training label from human disposition or synthetic oracle only."},
+    "label_derivation": {"enum": ["human_disposition", "synthetic_scenario_oracle", "unresolved"], "description": "How label was derived. gate_result is invalid."},
+    "exploit_family": {"type": "string", "description": "Category for synthetic rows, behavior class for live rows."},
+    "runtime_seconds": {"type": ["number", "null"], "description": "Runtime seconds if measured."},
+    "cost_usd": {"type": ["number", "null"], "description": "Per-row cost only when scope allows, else null."},
+    "trial_total_cost_usd": {"type": ["number", "null"], "description": "Total trial cost for live rows, null otherwise."},
+    "cost_scope": {"enum": ["trial_total", "unavailable"], "description": "Cost scope. trial_total is never divided per episode."},
+    "evidence_class": {"enum": ["OBSERVED", "INFERRED", "UNRESOLVED", "REJECTED"], "description": "Distinct evidence label. Never coerced."},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_path", "source_sha256"],
+      "properties": {
+        "source_path": {"type": "string", "description": "Source path relative to repo root."},
+        "source_sha256": {"type": "string", "description": "Source file sha256."}
+      },
+      "description": "Source provenance."
+    },
+    "record_content_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Hash over record content excluding this hash and split."},
+    "split": {"enum": ["train", "val", "test", null], "description": "Deterministic group split."},
+    "transcript_ref": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "description": "Transcript path."},
+        "sha256": {"type": "string", "description": "Transcript file sha256, no transcript text copied."}
+      },
+      "description": "Transcript hash reference."
+    }
+  }
+}
