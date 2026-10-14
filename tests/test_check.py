@@ -149,3 +149,32 @@ def test_missing_baseline_entry_fails(tmp_path: Path) -> None:
 
 def test_metric_config_type() -> None:
     assert MetricConfig("m", ("x",), "down", "count-lines").direction == "down"
+
+
+def test_new_collected_id_fails_until_update() -> None:
+    cur = {"a": "failed", "b": "passed", "c": "passed", "d": "passed", "e": "passed"}
+    problems, notes, _ = compare_suite(SUITE, base(["a"]), [run(cur)], set(), lock=False)
+    assert codes(problems) == ["UNBASELINED_TESTS"]
+    assert problems[0].ids == ["e"]
+    assert notes == []
+    assert "pawl update" in problems[0].message
+
+
+def test_count_mode_collection_growth_fails() -> None:
+    cur = {"a": "failed", "b": "passed", "c": "passed", "d": "passed", "e": "passed"}
+    problems, notes, _ = compare_suite(
+        SUITE, base(["a"], identity="count"), [run(cur)], set(), lock=False
+    )
+    assert codes(problems) == ["UNBASELINED_TESTS"]
+    assert problems[0].ids == []
+    assert "1 new test" in problems[0].message
+    assert notes == []
+
+
+def test_growth_with_a_missing_id_names_both() -> None:
+    cur = {"a": "failed", "b": "passed", "c": "passed", "e": "passed", "f": "passed"}
+    problems, _, _ = compare_suite(SUITE, base(["a"]), [run(cur)], set(), lock=False)
+    assert codes(problems) == ["MISSING_TESTS", "UNBASELINED_TESTS"]
+    by_code = {p.code: p.ids for p in problems}
+    assert by_code["MISSING_TESTS"] == ["d"]
+    assert by_code["UNBASELINED_TESTS"] == ["e", "f"]

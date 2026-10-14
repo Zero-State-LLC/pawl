@@ -32,6 +32,12 @@ repository root. Unknown keys are errors.
 | `ci_only` | `false` | Run only in CI (`--ci` or `CI=true`). Use for holdouts and slow suites |
 | `cwd` | `"."` | Working directory relative to the root |
 
+A collected count above the baseline is `UNBASELINED_TESTS` on every check,
+local and CI. `pawl update` records the new tests. With `identity = "ids"`
+the problem lists collected ids absent from the baseline. With
+`identity = "count"` it names the count delta. `lock_in_ci` still applies
+only to fixed failures and improved metrics.
+
 Adapter notes:
 
 - `pytest`: Pawl adds `--junitxml`, `-o junit_family=xunit1`, `--rootdir`, and

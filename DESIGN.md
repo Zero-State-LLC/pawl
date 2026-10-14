@@ -55,14 +55,17 @@ baseline. Each rule below is a problem code in the JSON report.
 | `NEW_FAILURE` | A failing test ID that is not in `failing_ids` | Counting failures lets a fix in one place hide a break in another (the swapped-failure case). |
 | `MISSING_TESTS` | A baseline test ID that did not run | Deleting, renaming, or deselecting a test is a silent way to pass. |
 | `NEWLY_SKIPPED` | A baseline test that now skips or xfails | Skips and xfails produce no failure line, so a count-based gate misses them. |
-| `COLLECTION_DROP` | Fewer tests collected than the floor | Kept from Abraxas; also the only structural rule in `identity = "count"` mode. |
+| `COLLECTION_DROP` | Fewer tests collected than the floor | Kept from Abraxas; also a structural rule in `identity = "count"` mode. |
+| `UNBASELINED_TESTS` | More tests collected than the baseline | A new passing test would otherwise ship outside the floor while the check stays green. |
 | `ORDER_DEPENDENT_FAILURE` | A test fails only in a non-default order | Order dependence is the main cause of flaky Python tests. |
 | `STALE_BASELINE` | A baseline failure now passes, under `--lock` (default in CI) | The tighter state must be recorded in the same change or it can be lost later. |
 | `METRIC_REGRESSION` | A metric moved the wrong way | Generic ratchet for lint counts, type errors, coverage. |
 | `SUITE_REMOVED`, `NOT_IN_BASELINE` | Config and baseline disagree | The gate must not silently stop covering a suite. |
 
-New tests that pass are not problems. Pawl notes them and suggests
-`pawl update` so they become protected.
+A collected count above the baseline is `UNBASELINED_TESTS` on every check.
+`pawl update` records those tests. A same-count replacement stays
+`MISSING_TESTS` for the baseline id that did not run. In `identity = "count"`
+the problem names the count delta, and a same-count id swap stays invisible.
 
 ## Fail closed
 

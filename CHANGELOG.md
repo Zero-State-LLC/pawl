@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- A suite that collects more tests than the baseline fails with
+  `UNBASELINED_TESTS` until `pawl update` records them. The rule is the same
+  in every repository. See
+  [specs/004-unbaselined-tests/spec.md](specs/004-unbaselined-tests/spec.md).
+
 ### Documentation
 
 - QA and repository-settings notes match published 0.4.1. The report job,

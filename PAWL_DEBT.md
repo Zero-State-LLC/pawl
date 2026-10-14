@@ -24,3 +24,7 @@ file. A human reviews every entry marked LOOSENED.
 ## 2026-10-13 14:32 PDT: update (tightened)
 
 - tightened unit: collected 197 -> 240
+
+## 2026-10-13 20:05 PDT: update (tightened)
+
+- tightened unit: collected 240 -> 243

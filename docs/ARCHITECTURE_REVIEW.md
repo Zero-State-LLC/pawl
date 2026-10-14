@@ -34,6 +34,7 @@ but does not read every line.
 | T16 | Gate cannot measure (crash, missing report) | Fail closed, exit 2 | Unit tests in `test_adapters.py` |
 | T17 | Fixed debt never recorded, later regresses silently | `STALE_BASELINE` in CI | `test_update_tightens_freely` |
 | T18 | Agent stuck on an impossible task cheats | `pawl escalate`, contract sentence | Literature; live trial (8 of 8 contract episodes escalated, none tampered) |
+| T19 | New passing tests stay outside the baseline while the check is green | `UNBASELINED_TESTS` | `add_passing_test` (bad), `add_passing_test_updated` (clean) |
 
 ## Threats not covered
 

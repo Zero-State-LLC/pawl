@@ -227,10 +227,22 @@ def compare_suite(
         else:
             notes.append(f"{suite.name}: {msg}")
     if main.collected > base.collected:
-        notes.append(
-            f"{suite.name}: {main.collected - base.collected} new test(s) are not yet in the "
-            "baseline; run 'pawl update' so they are protected."
-        )
+        # Same verdict in every repo. A higher count is unprotected work until
+        # `pawl update`. A same-count replacement is already MISSING_TESTS.
+        if base.identity == "ids":
+            unbaselined = _cap(main.ids - set(base.collected_ids))
+            msg = (
+                f"{len(unbaselined)} collected test(s) are not in the baseline; "
+                "run 'pawl update' so they are protected."
+            )
+            problems.append(Problem("UNBASELINED_TESTS", suite.name, msg, unbaselined))
+        else:
+            extra = main.collected - base.collected
+            msg = (
+                f"{extra} new test(s) are not yet in the baseline; "
+                "run 'pawl update' so they are protected."
+            )
+            problems.append(Problem("UNBASELINED_TESTS", suite.name, msg))
     summary = {
         "name": suite.name,
         "adapter": suite.adapter,
@@ -352,6 +364,10 @@ _STEPS = {
     ),
     "NEWLY_SKIPPED": "Remove the new skip or xfail. Skipping a test needs human approval.",
     "COLLECTION_DROP": "Find why tests stopped being collected (import error, rename, config).",
+    "UNBASELINED_TESTS": (
+        "Run 'pawl update' and commit the tighter baseline in this change. "
+        "Do not delete the new tests to turn the check green."
+    ),
     "ORDER_DEPENDENT_FAILURE": "Remove the shared state that makes these tests depend on order.",
     "METRIC_REGRESSION": "Bring the metric back to its baseline. Do not edit the baseline.",
     "STALE_BASELINE": "Run 'pawl update' and commit pawl.baseline.json with this change.",

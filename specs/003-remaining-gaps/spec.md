@@ -12,8 +12,12 @@ change exit codes, problem codes, or `schema_version`.
 1. Spec 002 G1, G2, G3, and G4 are closed. This spec does not reopen them.
 2. Repository settings stay operator actions. This spec records the live
    2026-10-13 ruleset read. It does not call the settings API.
-3. Known misses stay known misses. New passing tests stay a note.
-4. No behavior change that would turn current Abraxas pull requests red.
+3. Known misses stay known misses. New passing tests stay a note in this
+   spec. Spec 004 accepts `UNBASELINED_TESTS` when the collected count is
+   above the baseline.
+4. This spec does not change behavior. Spec 004's `UNBASELINED_TESTS` rule
+   applies in every repository, including one whose collected count is
+   already above its baseline.
 5. Dogfood keeps installing the trusted git ref. Pinning dogfood to the
    PyPI artifact is a later decision, because the next commit on main
    would otherwise wait for another release before it could gate.
@@ -26,7 +30,7 @@ change exit codes, problem codes, or `schema_version`.
 | H2 | One account can approve a protected change, merge it, create a `v*` tag, and publish. Ruleset `main` requires 0 approvals. Code-owner review, last-push approval, and strict status checks are off. The `pypi` environment has no reviewer. `[guard] approvers` and `refuse_pr_author` stay commented | Operator. Do not change settings or `pawl.toml` |
 | H3 | The suite process inherits the job environment. A same-user regular-file JUnit report is accepted. Symlink and hard-link reports are already rejected | Open. No denylist and no parser change |
 | H4 | `spec_docstring_rewrite` and `special_case_no_holdout` remain `known_miss` | Open |
-| H5 | New passing tests are a note under `lock_in_ci` | Open |
+| H5 | New passing tests are a note under `lock_in_ci` | Superseded by specs/004-unbaselined-tests/spec.md |
 | H6 | GitHub Actions policy is `allowed_actions: all` and does not require SHA pins. CI `scripts/check_actions.py` still enforces the repo allow-list | Operator |
 | H7 | The scorecard has no trend and no separate install, check, replay, and report durations | Open. Do not add fields. The 2026-10-11 report asked for more same-SHA samples first |
 | H8 | `pawl doctor`, `pawl explain`, Windows, a larger evaluation, and draft PR #33 | Out of this cut |
@@ -51,9 +55,9 @@ change exit codes, problem codes, or `schema_version`.
 ## Deferred acceptance
 
 H2 and H6 are done when a fresh settings read matches spec 002's G5
-acceptance. H3, H4, H5, and H7 stay open until a later spec accepts a
-design. H8 stays in the 0.5.0 and 1.0.0 rows of spec 001. H9 stays the
-dogfood install in `.github/workflows/pawl.yml`.
+acceptance. H5 is accepted by spec 004. H3, H4, and H7 stay open until a
+later spec accepts a design. H8 stays in the 0.5.0 and 1.0.0 rows of spec
+001. H9 stays the dogfood install in `.github/workflows/pawl.yml`.
 
 ## Non-goals
 
