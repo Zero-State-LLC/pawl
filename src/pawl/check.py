@@ -395,10 +395,24 @@ def suite_baseline_from_run(suite: SuiteConfig, run: SuiteRun) -> SuiteBaseline:
     )
 
 
+def incremental_usable(
+    report_mtime: float, now: float, collected: int, baseline_collected: int
+) -> bool:
+    """A cached report is usable only while it is under a day old and the count matches.
+
+    A new failing test inside an already-counted file is not detected. That is
+    the cost of skipping the suite. Callers must say so.
+    """
+    return (now - report_mtime) < 86400 and collected == baseline_collected
+
+
 def report_path(root: Path, name: str = "last-report.json") -> Path:
     d = root / ".pawl"
     d.mkdir(exist_ok=True)
     gitignore = d / ".gitignore"
     if not gitignore.exists():
-        gitignore.write_text("last-*.json\nhook-state.json\n", encoding="utf-8")
+        gitignore.write_text(
+            "last-*.json\nhook-state.json\ntrend.jsonl\nregistry.csv\ndashboard.html\n",
+            encoding="utf-8",
+        )
     return d / name

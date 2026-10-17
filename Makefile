@@ -1,4 +1,4 @@
-.PHONY: install lint types test check bench demo
+.PHONY: install lint types test check bench demo trial
 
 PY ?= python3
 
@@ -20,6 +20,9 @@ check: lint types test
 # Writes BENCHMARKS.md and benchmarks/results.json. Commit both.
 bench:
 	$(PY) -m benchmarks run
+
+trial:
+	$(PY) -m benchmarks.trial
 
 demo:
 	examples/run_demo.sh
