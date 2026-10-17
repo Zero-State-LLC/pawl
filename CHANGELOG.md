@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+- `pawl trend` prints an append-only scorecard log at `.pawl/trend.jsonl`.
+- `pawl doctor` audits an installation and skips virtualenv and site-packages trees.
+- `pawl escalate` also appends a row to `.pawl/registry.csv`.
+- `pawl check --incremental` records when it cannot reuse a cached report.
+- `pawl dashboard` writes a self-contained HTML report.
+- `pawl actions-policy` flags workflow actions pinned by a floating tag.
+- `make trial` replays a three-episode corpus and prints counts, not a rate.
+
 ## [0.5.0] - 2026-10-13
 
 ### Fixed

@@ -1,0 +1,1 @@
+{"id": "02-new-test", "diff": "+def test_adds_coverage():\n+    assert True\n", "expected": "pass"}

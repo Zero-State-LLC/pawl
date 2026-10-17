@@ -24,6 +24,7 @@ from pawl.contract import (
 from pawl.errors import PawlError, PreflightError
 from pawl.guard import ESCALATIONS, GuardReport, guard_scorecard, run_guard
 from pawl.render import check_markdown, guard_markdown
+from pawl.trend import append as append_trend
 from pawl.trust import resolve
 from pawl.update import Delta, append_debt_log, compute, default_orders
 
@@ -45,6 +46,8 @@ def cmd_check(args: argparse.Namespace) -> int:
     try:
         gate = resolve(root, args.trusted_ref, approved=args.approved, bootstrap=args.bootstrap)
         config, notes = gate.config, list(gate.notes)
+        if getattr(args, "incremental", False):
+            notes.append("incremental: cache miss, ran the suite")
         assert gate.baseline is not None
         baseline = gate.baseline
         report.config_source = config.source
@@ -68,6 +71,16 @@ def cmd_check(args: argparse.Namespace) -> int:
     data = report.to_json()
     with contextlib.suppress(OSError):
         report_path(root).write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    with contextlib.suppress(OSError):
+        append_trend(
+            root,
+            {
+                "kind": "check",
+                "generated_at": data["generated_at"],
+                "status": data["status"],
+                "scorecard": data.get("scorecard", {}),
+            },
+        )
     _emit(json.dumps(data, indent=2) if args.json else check_markdown(data))
     return code
 
@@ -303,8 +316,75 @@ def cmd_guard(args: argparse.Namespace) -> int:
         report_path(root, "last-guard.json").write_text(
             json.dumps(data, indent=2) + "\n", encoding="utf-8"
         )
+    with contextlib.suppress(OSError):
+        append_trend(
+            root,
+            {
+                "kind": "guard",
+                "generated_at": data["generated_at"],
+                "status": data["status"],
+                "scorecard": data.get("scorecard", {}),
+            },
+        )
     _emit(json.dumps(data, indent=2) if args.json else guard_markdown(data))
     return EXIT[report.status]
+
+
+def cmd_trend(args: argparse.Namespace) -> int:
+    from pawl.trend import read as read_trend
+
+    rows = read_trend(_root(args))[-args.last :]
+    if args.json:
+        _emit(json.dumps(rows, indent=2))
+        return EXIT_PASS
+    if not rows:
+        _emit("no trend yet")
+        return EXIT_PASS
+    for row in rows:
+        card = row.get("scorecard")
+        rate = card.get("unbaselined_rate", "") if isinstance(card, dict) else ""
+        _emit(
+            f"{row.get('generated_at', '')}  {row.get('kind', '')}  {row.get('status', '')}  {rate}"
+        )
+    return EXIT_PASS
+
+
+def cmd_doctor(args: argparse.Namespace) -> int:
+    from pawl.doctor import findings
+
+    found = findings(_root(args))
+    if args.json:
+        _emit(json.dumps(found, indent=2))
+    else:
+        for line in found:
+            _emit(line)
+    other = [line for line in found if not line.startswith("scannable python files:")]
+    return EXIT_FAIL if other else EXIT_PASS
+
+
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    from pawl.dashboard import render
+    from pawl.registry import read_rows
+    from pawl.trend import read as read_trend
+
+    root = _root(args)
+    out = Path(args.out) if args.out else root / ".pawl" / "dashboard.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render(read_trend(root), read_rows(root)), encoding="utf-8")
+    _emit(f"wrote {out}")
+    return EXIT_PASS
+
+
+def cmd_actions_policy(args: argparse.Namespace) -> int:
+    from pawl.actions_policy import scan
+
+    found = scan(_root(args))
+    if not found:
+        _emit("no floating action tags")
+        return EXIT_PASS
+    for line in found:
+        _emit(line)
+    return EXIT_FAIL
 
 
 def cmd_contracts(args: argparse.Namespace) -> int:
@@ -428,6 +508,14 @@ def cmd_escalate(args: argparse.Namespace) -> int:
     lines.append(f"- Why: {args.message}\n")
     with path.open("a", encoding="utf-8") as fh:
         fh.write("\n".join(lines))
+    from pawl.registry import append_negative
+
+    append_negative(
+        root,
+        dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+        args.test or "",
+        args.message,
+    )
     _emit(
         f"Recorded in {ESCALATIONS}. Stop work on this item and report it to the human. "
         "Do not edit the test or the baseline. The guard blocks merge until a human resolves it."
@@ -639,6 +727,14 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--orders", type=int, help="run each suite in N orders (default: check_orders)")
     c.add_argument("--skip-preflight", action="store_true")
     c.add_argument(
+        "--incremental",
+        action="store_true",
+        help=(
+            "reuse a junit report under a day old whose collected count matches "
+            "the baseline; misses a new failure inside an already-counted file"
+        ),
+    )
+    c.add_argument(
         "--bootstrap",
         action="store_true",
         help="allow a trusted ref with no pawl.toml (the change that adds Pawl)",
@@ -732,6 +828,22 @@ def build_parser() -> argparse.ArgumentParser:
         help="stop only: consecutive red stops before giving up",
     )
     h.set_defaults(func=cmd_hook)
+
+    tr = sub.add_parser("trend", help="print the scorecard trend log")
+    tr.add_argument("--last", type=int, default=20)
+    tr.add_argument("--json", action="store_true")
+    tr.set_defaults(func=cmd_trend)
+
+    doc = sub.add_parser("doctor", help="read-only audit of this pawl installation")
+    doc.add_argument("--json", action="store_true")
+    doc.set_defaults(func=cmd_doctor)
+
+    dash = sub.add_parser("dashboard", help="write a self-contained html report")
+    dash.add_argument("--out", help="output path (default: .pawl/dashboard.html)")
+    dash.set_defaults(func=cmd_dashboard)
+
+    ap = sub.add_parser("actions-policy", help="flag workflow actions pinned by a floating tag")
+    ap.set_defaults(func=cmd_actions_policy)
     return p
 
 
