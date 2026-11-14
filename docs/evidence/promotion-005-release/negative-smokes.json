@@ -1,0 +1,12 @@
+[
+  {
+    "case": "wrong-hash",
+    "exit_code": 1,
+    "success_receipt_created": false
+  },
+  {
+    "case": "wrong-version",
+    "exit_code": 1,
+    "success_receipt_created": false
+  }
+]

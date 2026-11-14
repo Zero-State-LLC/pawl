@@ -1,0 +1,95 @@
+ruff check .
+All checks passed!
+ruff format --check .
+150 files already formatted
+mypy
+Success: no issues found in 31 source files
+python3 -m pytest --cov=pawl --cov-report=term
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.7.0
+rootdir: /workspace/scratch/6ccb256c60b2/pawl-ci
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0
+collected 495 items
+
+tests/test_adapters.py ..........                                        [  2%]
+tests/test_additive_integrity.py .........................               [  7%]
+tests/test_approval.py ......                                            [  8%]
+tests/test_approval_author.py ....                                       [  9%]
+tests/test_approval_provenance.py ......                                 [ 10%]
+tests/test_baseline.py ........                                          [ 11%]
+tests/test_baseline_guard.py .........                                   [ 13%]
+tests/test_bounded_runner.py ..................................          [ 20%]
+tests/test_check.py ...............                                      [ 23%]
+tests/test_cli.py ................                                       [ 26%]
+tests/test_codex_mcp_matcher.py ....                                     [ 27%]
+tests/test_config.py .............                                       [ 30%]
+tests/test_contract.py ......                                            [ 31%]
+tests/test_contract_moves.py .....                                       [ 32%]
+tests/test_contracts.py ........                                         [ 34%]
+tests/test_doctor.py ............................                        [ 39%]
+tests/test_github_doctor.py .......................................      [ 47%]
+tests/test_guard.py ...................                                  [ 51%]
+tests/test_hook_provenance.py .......                                    [ 52%]
+tests/test_hooks.py ...                                                  [ 53%]
+tests/test_init_transaction.py .............                             [ 56%]
+tests/test_metric_contract.py ...........                                [ 58%]
+tests/test_metrics.py .....                                              [ 59%]
+tests/test_minimal_environment.py .............................          [ 65%]
+tests/test_mutate.py ...                                                 [ 65%]
+tests/test_p0_boundaries.py .......                                      [ 67%]
+tests/test_p0_reports.py ....................                            [ 71%]
+tests/test_p0_spec_rewrite.py ..                                         [ 71%]
+tests/test_preflight.py ....                                             [ 72%]
+tests/test_protect_fail_closed.py ....                                   [ 73%]
+tests/test_regressions.py ..........                                     [ 75%]
+tests/test_release_smoke.py .....                                        [ 76%]
+tests/test_replay_migration.py ...............................           [ 82%]
+tests/test_replay_scope.py ...........                                   [ 84%]
+tests/test_report_bounds.py .............................                [ 90%]
+tests/test_runtimes.py ...                                               [ 91%]
+tests/test_safe_diagnostics.py ................                          [ 94%]
+tests/test_scorecard.py ....                                             [ 95%]
+tests/test_supply_chain.py ..........                                    [ 97%]
+tests/test_templates.py ..                                               [ 97%]
+tests/test_trust.py ........                                             [ 99%]
+tests/test_update.py ...                                                 [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.14-final-0 _______________
+
+Name                           Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------
+src/pawl/__main__.py               2      2      0      0     0%   3-5
+src/pawl/adapters.py             314     33    150     17    88%   190, 192, 197, 216, 229, 233, 239, 247, 257, 268-290, 305, 328->330, 333, 380, 390-392, 406, 411, 422, 474
+src/pawl/baseline.py             119      9     40      9    89%   40->43, 44, 91, 106, 135, 152, 172-173, 183->169, 190-191
+src/pawl/check.py                188      9     72     10    93%   69->64, 139-140, 197, 291->290, 314->295, 318, 325-326, 330-333, 359, 391->389
+src/pawl/cli.py                  486     38    118     11    91%   98, 109, 158, 162, 222-223, 233, 258, 357-368, 377-379, 398-399, 439-441, 484-486, 509-512, 524-526, 539-540, 542, 574-575, 634-635
+src/pawl/config.py               217     14     66     14    90%   154, 163, 186, 216, 219, 238, 301, 306, 327, 345, 348, 370, 407, 441
+src/pawl/contracts.py            208     16     96     15    90%   66, 142, 177, 193-194, 207, 210, 213, 218, 224, 228, 242, 244, 255, 277, 281, 316->320
+src/pawl/doctor.py               189     14     88     15    89%   111, 114, 117, 137, 144, 146, 152, 154, 160, 162-163, 172->174, 178, 290, 291->288, 293
+src/pawl/environment.py           53      4      8      0    93%   72-73, 82-83
+src/pawl/evidence.py             107      4     46      4    95%   25, 48, 71, 126
+src/pawl/github_doctor.py        117      1     34      1    99%   57
+src/pawl/gitutil.py               59      8     22      4    85%   21-22, 69, 73, 91-92, 95, 102
+src/pawl/guard.py                383     36    186     21    90%   228, 239, 242-243, 260, 264-265, 271-272, 278, 280, 282, 284, 286, 297-298, 301, 338, 345-347, 359-364, 470, 523->525, 579, 649, 650->646, 666-667, 684-685, 695->700, 702-703
+src/pawl/hooks.py                103      8     42      4    90%   37, 41-42, 59->69, 65-66, 72, 91-92
+src/pawl/init.py                  66     12     28      5    78%   48-56, 58, 60, 64, 124->121
+src/pawl/init_transaction.py      98      8     36      2    93%   29, 36-37, 58, 117-118, 122-123
+src/pawl/metrics.py               52      4     26      2    92%   36-37, 46, 52
+src/pawl/mutate.py               118      6     36      1    95%   119-120, 134, 160-162
+src/pawl/preflight.py             33      1     10      1    95%   43
+src/pawl/render.py                61      1     36      1    98%   57
+src/pawl/replay_migration.py     184     24     80     19    84%   55, 73, 79, 82-83, 111, 116, 122, 128, 135, 143, 154, 165, 184, 187-188, 196, 199, 217, 220, 225, 229, 233, 236
+src/pawl/replay_scope.py          60      1     24      1    98%   61
+src/pawl/runner.py               119     11     26      1    90%   72-74, 126-127, 129, 143-146, 181
+src/pawl/test_changes.py          79      4     32      4    93%   31, 57, 87, 133
+src/pawl/trust.py                144      7     58      6    94%   77, 100-101, 103, 112, 239, 286->288, 289
+src/pawl/update.py               114     11     54     10    86%   61->63, 80-82, 95-98, 104, 107, 123, 124->131, 130, 132, 148
+--------------------------------------------------------------------------
+TOTAL                           3720    286   1426    178    90%
+
+5 files skipped due to complete coverage.
+Required test coverage of 80.0% reached. Total coverage: 90.44%
+======================== 495 passed in 65.95s (0:01:05) ========================

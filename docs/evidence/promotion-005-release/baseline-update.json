@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "tool": "pawl",
+  "version": "0.5.0",
+  "kind": "update",
+  "status": "written",
+  "exit_code": 0,
+  "generated_at": "2026-11-14T06:07:23+00:00",
+  "error": "",
+  "message": "wrote pawl.baseline.json; logged in PAWL_DEBT.md",
+  "loosened": [],
+  "tightened": [
+    "unit: collected 474 -> 492"
+  ],
+  "order_dependent": {}
+}
