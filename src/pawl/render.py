@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pawl.display import display_tree
+
 ICON = {"pass": "PASS", "fail": "FAIL", "error": "ERROR"}
 
 
@@ -21,6 +23,7 @@ def _provenance(data: dict[str, Any]) -> list[str]:
 
 
 def check_markdown(data: dict[str, Any]) -> str:
+    data = display_tree(data)
     out = [f"### Pawl check: {ICON.get(data['status'], data['status'])}", ""]
     out += _provenance(data)
     if data.get("error"):
@@ -53,6 +56,7 @@ def check_markdown(data: dict[str, Any]) -> str:
 
 
 def guard_markdown(data: dict[str, Any]) -> str:
+    data = display_tree(data)
     out = [f"### Pawl guard: {ICON.get(data['status'], data['status'])} (base {data['base']})", ""]
     out += _provenance(data)
     if data.get("approved"):

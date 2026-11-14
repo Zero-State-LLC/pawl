@@ -21,6 +21,7 @@ from pawl.contract import (
     SCHEMA_VERSION,
     exit_code_for,
 )
+from pawl.display import terminal
 from pawl.errors import PawlError, PreflightError
 from pawl.guard import ESCALATIONS, GuardReport, guard_scorecard, run_guard
 from pawl.render import check_markdown, guard_markdown
@@ -35,6 +36,7 @@ def _root(args: argparse.Namespace) -> Path:
 
 
 def _emit(text: str) -> None:
+    text = terminal(text, layout=True)
     sys.stdout.write(text if text.endswith("\n") else text + "\n")
 
 
@@ -555,7 +557,7 @@ def cmd_hook(args: argparse.Namespace) -> int:
             if out:
                 _emit(out)
             if err:
-                sys.stderr.write(err + "\n")
+                sys.stderr.write(terminal(err, layout=True) + "\n")
             return code
         block = protect_decision(config, payload)
         if block is None:
@@ -566,7 +568,7 @@ def cmd_hook(args: argparse.Namespace) -> int:
         if out:
             _emit(out)
         if err:
-            sys.stderr.write(err + "\n")
+            sys.stderr.write(terminal(err, layout=True) + "\n")
         return code
     reason: str | None = None
     try:

@@ -125,3 +125,11 @@ those reports; `exit_code` is what this command returned (0 without
 A guard that cannot establish the gate still writes a full guard document:
 `status` `error`, `error` set, `approved` false, `approval` and
 `approval_provenance` null, `config_source` empty, and no findings.
+
+## Display safety
+
+JSON retains exact evidence strings, including unusual test IDs and runner output.
+Check and guard Markdown escape those fields for display. CLI output makes
+terminal controls visible. Consumers must escape decoded JSON fields for their
+own terminal, HTML or Markdown context; JSON escaping alone does not sanitize
+a string after decoding. Display escaping never changes a gate verdict.
