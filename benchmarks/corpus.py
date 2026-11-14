@@ -810,3 +810,26 @@ DOCTOR_SCENARIOS = [
     ("missing_executable", "bad", "executable", 1),
     ("identity_mismatch", "bad", "identity", 1),
 ]
+
+
+# Recorded provider status outcomes: denial/malformed data never become READY.
+GITHUB_DOCTOR_SCENARIOS = [
+    ("denied", 403),
+    ("not_found", 404),
+    ("rate_limited", 429),
+    ("redirect", 302),
+    ("server_error", 500),
+]
+
+
+# Clean counterpart: explicit strict, app-bound classic policy with no listed bypass.
+# Used by the passing control fixtures in test_github_doctor.py.
+GITHUB_DOCTOR_CLEAN_POLICY = {
+    "enforce_admins": {"enabled": True},
+    "required_pull_request_reviews": {
+        "required_approving_review_count": 1,
+        "require_last_push_approval": True,
+        "bypass_pull_request_allowances": {"users": [], "teams": [], "apps": []},
+    },
+    "required_status_checks": {"strict": True, "checks": [{"context": "pawl", "app_id": 123}]},
+}

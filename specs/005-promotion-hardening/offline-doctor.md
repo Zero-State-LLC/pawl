@@ -1,7 +1,7 @@
 # T13 offline diagnostic slice
 
-Status: implemented for review, stacked on PR #50. Online provider verification
-and live CI readiness remain pending. This is partial T13 delivery, not closure
+Status: implemented for review, stacked on PR #50. Online observations are now defined in github-doctor.md; full live CI
+certification remains pending. This is partial T13 delivery, not closure
 of A24's complete-online-settings case or R12 operator controls.
 
 ## Implemented behavior
@@ -21,8 +21,9 @@ without executing suite/preflight commands or importing project modules.
 A requested ref is checked only for availability, not used as a source of config.
 Git is resolved from the trusted launcher, not a candidate shim, with network
 protocols disabled, external Git config environment removed and a five-second
-limit. Doctor writes no reports or project files. It does not invoke a network
-provider, even when --online is requested in this partial implementation.
+limit. Doctor writes no reports or project files. The original offline slice made no provider calls. The subsequent explicit
+GitHub observation path is documented in github-doctor.md. Default offline
+behavior still makes no provider requests.
 
 Workflow enumeration is bounded and does not follow links. File presence always
 leaves workflow semantics/enforcement UNKNOWN. The five remote review/release

@@ -23,7 +23,7 @@ timeouts and missing local refs have separate diagnostic outcomes.
 | --- | --- |
 | `offline-local` | Required static local checks passed; no runtime qualification implied |
 | `offline-ci` | Includes required remote controls, which remain UNKNOWN offline |
-| `online-ci` | Requested by `--online`; provider verification is not implemented in this slice, so remote controls remain UNKNOWN |
+| `online-ci` | Requested by `--online`; explicit GitHub settings reads are available; unverifiable controls remain UNKNOWN |
 
 Workflow presence never establishes CI readiness. Both `.yml` and `.yaml`
 declarations are detected without interpreting workflow code. Missing declarations
@@ -39,3 +39,23 @@ required failure. Every output identifies its scope.
 
 Local READY is not a passing test gate or permission to promote a release. Run
 `pawl check`, protected review and exact-artifact qualification separately.
+
+## Explicit GitHub reads
+
+```sh
+pawl doctor --online --repository Zero-State-LLC/pawl --branch main \
+  --expected-check pawl --expected-app-id 15368 --json
+```
+
+The trusted diagnostic process reads GH_TOKEN or GITHUB_TOKEN from its environment.
+Use an appropriately scoped read-only credential outside candidate execution;
+never place it in a repository, command-line argument or report. The selected
+context/app ID must come from trusted operator policy, not candidate config.
+The example reflects Pawl's observed ruleset binding, not a universal app ID.
+
+The client observes branch metadata, classic protection and active branch rules.
+It may verify narrowly supported last-push/current-base settings, but cannot
+certify identity separation, CODEOWNERS coverage, immutable workflow behavior
+or publisher isolation. Access denial, partial rules and malformed responses
+remain UNKNOWN. It never changes settings or follows redirects/pagination links.
+See [assessment boundaries](../specs/005-promotion-hardening/github-doctor.md).

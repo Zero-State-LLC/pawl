@@ -15,7 +15,7 @@ following hold:
 
 1. The trusted merge-base config has a nonempty `guard.approvers` allowlist and
    `guard.refuse_pr_author = true`.
-2. The existing GitHub-event verifier accepts a human allowlisted reviewer
+2. The existing GitHub-event verifier accepts an authorized allowlisted reviewer
    distinct from the known PR author, on a `pull_request` / `labeled` event,
    with a run ID and PR number. The event binds the checked-out candidate SHA.
 3. The proposal equals the blob at that reviewed SHA. The candidate worktree
@@ -35,7 +35,7 @@ This uses Pawl's existing provider-event trust boundary. It does not prove
 that same-user candidate code cannot alter the event file, evaluator, imports,
 or reports. A trusted external evaluator and separate identities remain
 promotion prerequisites. The tests use simulated provider events only.
-Approval remains a human policy decision: hashes prove which assertions were
+Approval remains an owner-controlled policy decision: hashes prove which assertions were
 reviewed, not that the replacement contract is sufficiently strong or correct.
 
 ## Replacement grammar
