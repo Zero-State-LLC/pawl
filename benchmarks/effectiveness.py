@@ -96,6 +96,8 @@ def evaluate(scenario: Scenario, base: str) -> Result:
             scenario.apply(ctx)
             _git(ctx.repo, "add", "-A")
             _git(ctx.repo, "commit", "-qm", "agent change", "--allow-empty")
+            if scenario.after_commit is not None:
+                scenario.after_commit(ctx)
             env = bench_env(ctx.env)
             repo = ctx.repo
             py = sys.executable

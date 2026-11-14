@@ -119,7 +119,12 @@ def label_approval(
             f"label '{label}' was removed by {actor or 'unknown'}: approval revoked; "
             "this run is not approved"
         )
-    names = {i.get("name") for i in pr.get("labels") or [] if isinstance(i, dict)}
+    labels = pr.get("labels") or []
+    if not isinstance(labels, list):
+        return None, "approval event has malformed pull request labels"
+    names = {
+        i.get("name") for i in labels if isinstance(i, dict) and isinstance(i.get("name"), str)
+    }
     if label not in names:
         return None, None
     if action != "labeled" or applied != label:
@@ -147,7 +152,10 @@ def label_approval(
         return None, f"label '{label}' has no verified human actor type"
     if approvers and actor not in approvers:
         return None, f"label '{label}' was applied by {actor}, who is not in guard.approvers"
-    author = str(user.get("login") or "")
+    author_value = user.get("login")
+    author = author_value if isinstance(author_value, str) else ""
+    if refuse_pr_author and not author:
+        return None, "approval event has no recorded pull request author"
     if refuse_pr_author and author and actor == author:
         return None, (
             f"label '{label}' was applied by the pull request author {actor}; "

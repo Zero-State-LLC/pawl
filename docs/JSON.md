@@ -79,6 +79,7 @@ count delta. Scorecard fields stay informational. `UNBASELINED_TESTS` fails the 
 | `base` | The base ref and merge base |
 | `approved` | Boolean: a human approval applies to this commit |
 | `error` | Present when `status` is `error` |
+| `error_code` | On guard errors: stable typed code when available, otherwise null; migration errors use `REPLAY_MIGRATION_INVALID` |
 | `findings` | List of `{rule, severity, path, message, ids}`; severity is `block`, `warn`, `info`, or `approved` |
 | `scorecard` | Point-in-time rows. Does not affect the verdict. `findings` is `{rule, severity, path}` in the same order. `approval_source` and `approval_sha` copy `approval`, or are null |
 
@@ -89,7 +90,7 @@ Finding rules (stable):
 `TEST_DELETED`, `TEST_MODIFIED`, `TEST_EXECUTION_CHANGED`, `SKIP_ADDED`, `TEST_SHADOWED`,
 `HOOK_TAMPER`, `TEST_CONFIG_CHANGED`, `SUSPICIOUS_CODE`,
 `ESCALATION_OPEN`, `ESCALATION_RESOLVED`,
-`TESTS_WEAKENED_REPLAY`, `REPLAY_PASSED`, `REPLAY_SKIPPED`.
+`TESTS_WEAKENED_REPLAY`, `REPLAY_PASSED`, `REPLAY_SKIPPED`, `REPLAY_MIGRATION_APPLIED`.
 
 `TEST_EXECUTION_CHANGED` requires review when an existing test's executable
 structure changes outside the narrow safe-addition policy. Every modified
@@ -97,6 +98,11 @@ existing test enters replay, including additions. Shared configuration changes
 require full replay. Missing replay evidence is an error, not a skipped success.
 Approval cannot clear `TESTS_WEAKENED_REPLAY` or an open escalation. The local
 `--approved` override is rejected in CI.
+
+`REPLAY_MIGRATION_APPLIED` records the reviewer, exact commit and test IDs for
+independently approved assertion replacements applied to original test source.
+Full replay still executes and all failures still block. See
+[the migration contract](../specs/005-promotion-hardening/replay-migration.md).
 
 ## `pawl update --json`
 
