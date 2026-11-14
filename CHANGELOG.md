@@ -8,6 +8,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Generate portable target-project Python commands by default. Probe the
+  selected runtime before initialization and support explicit `--python`.
+- Stage initialization outputs and roll back ordinary write failures. Require
+  valid release hashes before GitHub workflow creation; refuse incomplete
+  collection and require `--force` before replacing existing setup files.
+
 - Inspect additive edits to existing tests and replay their trusted originals.
   Require full replay for shared configuration changes and fail when replay
   evidence is missing. Approval cannot clear replay regressions.
