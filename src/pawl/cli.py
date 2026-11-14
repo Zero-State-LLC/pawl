@@ -638,6 +638,10 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         ci_readiness=args.ci_readiness,
         online=args.online,
         trusted_ref=args.trusted_ref,
+        repository=args.repository,
+        branch=args.branch,
+        expected_check=args.expected_check,
+        expected_app_id=args.expected_app_id,
     )
     data = result.to_json()
     _emit(json.dumps(data, indent=2) if args.json else render(result))
@@ -666,6 +670,10 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument(
         "--trusted-ref", help="verify ref availability; config checks still inspect worktree files"
     )
+    doctor.add_argument("--repository", help="explicit GitHub OWNER/REPO for online observations")
+    doctor.add_argument("--branch", help="explicit branch for online observations")
+    doctor.add_argument("--expected-check", help="trusted required status-check context")
+    doctor.add_argument("--expected-app-id", type=int, help="trusted status-check GitHub App ID")
     doctor.set_defaults(func=cmd_doctor)
 
     c = sub.add_parser("check", help="run the gate; exit 0 only if nothing regressed")

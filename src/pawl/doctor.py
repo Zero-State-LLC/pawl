@@ -300,7 +300,15 @@ def _workflow_state(root: Path) -> str:
 
 
 def diagnose(
-    root: Path, *, ci_readiness: bool = False, online: bool = False, trusted_ref: str | None = None
+    root: Path,
+    *,
+    ci_readiness: bool = False,
+    online: bool = False,
+    trusted_ref: str | None = None,
+    repository: str | None = None,
+    branch: str | None = None,
+    expected_check: str | None = None,
+    expected_app_id: int | None = None,
 ) -> Diagnosis:
     root = root.resolve()
     ci = ci_readiness or online
@@ -379,16 +387,27 @@ def diagnose(
         "Validate the workflow implementation and required-check binding independently.",
         required=ci,
     )
-    if ci:
+    if online:
+        from pawl.github_doctor import inspect_github
+
+        for observation in inspect_github(repository, branch, expected_check, expected_app_id):
+            result.add(
+                observation.id,
+                observation.status,
+                observation.message,
+                observation.source,
+                "Review missing evidence; doctor does not change settings."
+                if observation.status != "pass"
+                else "",
+            )
+    elif ci:
         for control in REMOTE_CONTROLS:
             result.add(
                 "ci." + control,
                 "unknown",
-                "Online provider verification is not implemented."
-                if online
-                else "Remote settings cannot be verified offline.",
+                "Remote settings cannot be verified offline.",
                 "remote settings not observed",
-                "Obtain fresh authenticated provider evidence; file presence is insufficient.",
+                "Obtain fresh authenticated provider evidence.",
             )
     return result
 

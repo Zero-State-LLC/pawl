@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Add explicit read-only GitHub doctor observations with bounded responses,
+  secret-safe errors, and conservative assessment of last-push and strict
+  app-bound checks. Unverified CI controls remain UNKNOWN.
+
 - Add read-only offline doctor diagnostics for config, baseline, executables
   and refs. Label local/CI scope and preserve UNKNOWN for unverified controls.
 

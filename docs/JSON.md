@@ -150,3 +150,8 @@ includes `id`, `status`, `severity`, `required`, `message`, `evidence_source`,
 Only required checks decide readiness: fail gives not_ready/1, otherwise unknown
 gives unknown/2, otherwise ready/0. The scope must accompany any readiness claim.
 No doctor report is written to disk. See [doctor scope](DOCTOR.md).
+
+Online doctor checks use `github.*` for API observations and `ci.*` for required
+controls. A successful API read is not a control PASS. Observations include
+the explicit target and branch SHA; raw API responses and credentials are not
+returned. Unsupported controls remain UNKNOWN, even if other settings pass.
