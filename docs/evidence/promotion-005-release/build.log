@@ -1,0 +1,254 @@
+* Getting build dependencies for sdist...
+running egg_info
+creating src/pawl_gate.egg-info
+writing src/pawl_gate.egg-info/PKG-INFO
+writing dependency_links to src/pawl_gate.egg-info/dependency_links.txt
+writing entry points to src/pawl_gate.egg-info/entry_points.txt
+writing requirements to src/pawl_gate.egg-info/requires.txt
+writing top-level names to src/pawl_gate.egg-info/top_level.txt
+writing manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+reading manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+* Building sdist...
+running sdist
+running egg_info
+writing src/pawl_gate.egg-info/PKG-INFO
+writing dependency_links to src/pawl_gate.egg-info/dependency_links.txt
+writing entry points to src/pawl_gate.egg-info/entry_points.txt
+writing requirements to src/pawl_gate.egg-info/requires.txt
+writing top-level names to src/pawl_gate.egg-info/top_level.txt
+reading manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+running check
+creating pawl_gate-0.5.0
+creating pawl_gate-0.5.0/src/pawl
+creating pawl_gate-0.5.0/src/pawl_gate.egg-info
+creating pawl_gate-0.5.0/tests
+copying files to pawl_gate-0.5.0...
+copying LICENSE -> pawl_gate-0.5.0
+copying README.md -> pawl_gate-0.5.0
+copying pyproject.toml -> pawl_gate-0.5.0
+copying src/pawl/__init__.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/__main__.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/adapters.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/baseline.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/check.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/cli.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/config.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/contract.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/contracts.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/display.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/doctor.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/environment.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/errors.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/evidence.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/github_doctor.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/gitutil.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/guard.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/hooks.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/init.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/init_transaction.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/metrics.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/mutate.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/preflight.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/py.typed -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/render.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/replay_migration.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/replay_scope.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/runner.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/templates.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/test_changes.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/trust.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl/update.py -> pawl_gate-0.5.0/src/pawl
+copying src/pawl_gate.egg-info/PKG-INFO -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying src/pawl_gate.egg-info/SOURCES.txt -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying src/pawl_gate.egg-info/dependency_links.txt -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying src/pawl_gate.egg-info/entry_points.txt -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying src/pawl_gate.egg-info/requires.txt -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying src/pawl_gate.egg-info/top_level.txt -> pawl_gate-0.5.0/src/pawl_gate.egg-info
+copying tests/test_adapters.py -> pawl_gate-0.5.0/tests
+copying tests/test_additive_integrity.py -> pawl_gate-0.5.0/tests
+copying tests/test_approval.py -> pawl_gate-0.5.0/tests
+copying tests/test_approval_author.py -> pawl_gate-0.5.0/tests
+copying tests/test_approval_provenance.py -> pawl_gate-0.5.0/tests
+copying tests/test_baseline.py -> pawl_gate-0.5.0/tests
+copying tests/test_baseline_guard.py -> pawl_gate-0.5.0/tests
+copying tests/test_bounded_runner.py -> pawl_gate-0.5.0/tests
+copying tests/test_check.py -> pawl_gate-0.5.0/tests
+copying tests/test_cli.py -> pawl_gate-0.5.0/tests
+copying tests/test_codex_mcp_matcher.py -> pawl_gate-0.5.0/tests
+copying tests/test_config.py -> pawl_gate-0.5.0/tests
+copying tests/test_contract.py -> pawl_gate-0.5.0/tests
+copying tests/test_contract_moves.py -> pawl_gate-0.5.0/tests
+copying tests/test_contracts.py -> pawl_gate-0.5.0/tests
+copying tests/test_doctor.py -> pawl_gate-0.5.0/tests
+copying tests/test_github_doctor.py -> pawl_gate-0.5.0/tests
+copying tests/test_guard.py -> pawl_gate-0.5.0/tests
+copying tests/test_hook_provenance.py -> pawl_gate-0.5.0/tests
+copying tests/test_hooks.py -> pawl_gate-0.5.0/tests
+copying tests/test_init_transaction.py -> pawl_gate-0.5.0/tests
+copying tests/test_metric_contract.py -> pawl_gate-0.5.0/tests
+copying tests/test_metrics.py -> pawl_gate-0.5.0/tests
+copying tests/test_minimal_environment.py -> pawl_gate-0.5.0/tests
+copying tests/test_mutate.py -> pawl_gate-0.5.0/tests
+copying tests/test_p0_boundaries.py -> pawl_gate-0.5.0/tests
+copying tests/test_p0_reports.py -> pawl_gate-0.5.0/tests
+copying tests/test_p0_spec_rewrite.py -> pawl_gate-0.5.0/tests
+copying tests/test_preflight.py -> pawl_gate-0.5.0/tests
+copying tests/test_protect_fail_closed.py -> pawl_gate-0.5.0/tests
+copying tests/test_regressions.py -> pawl_gate-0.5.0/tests
+copying tests/test_release_smoke.py -> pawl_gate-0.5.0/tests
+copying tests/test_replay_migration.py -> pawl_gate-0.5.0/tests
+copying tests/test_replay_scope.py -> pawl_gate-0.5.0/tests
+copying tests/test_report_bounds.py -> pawl_gate-0.5.0/tests
+copying tests/test_runtimes.py -> pawl_gate-0.5.0/tests
+copying tests/test_safe_diagnostics.py -> pawl_gate-0.5.0/tests
+copying tests/test_scorecard.py -> pawl_gate-0.5.0/tests
+copying tests/test_supply_chain.py -> pawl_gate-0.5.0/tests
+copying tests/test_templates.py -> pawl_gate-0.5.0/tests
+copying tests/test_trust.py -> pawl_gate-0.5.0/tests
+copying tests/test_update.py -> pawl_gate-0.5.0/tests
+Writing pawl_gate-0.5.0/setup.cfg
+Creating tar archive
+removing 'pawl_gate-0.5.0' (and everything under it)
+* Building wheel from sdist
+* Getting build dependencies for wheel...
+running egg_info
+writing src/pawl_gate.egg-info/PKG-INFO
+writing dependency_links to src/pawl_gate.egg-info/dependency_links.txt
+writing entry points to src/pawl_gate.egg-info/entry_points.txt
+writing requirements to src/pawl_gate.egg-info/requires.txt
+writing top-level names to src/pawl_gate.egg-info/top_level.txt
+reading manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+* Building wheel...
+running bdist_wheel
+running build
+running build_py
+creating build/lib/pawl
+copying src/pawl/update.py -> build/lib/pawl
+copying src/pawl/trust.py -> build/lib/pawl
+copying src/pawl/test_changes.py -> build/lib/pawl
+copying src/pawl/templates.py -> build/lib/pawl
+copying src/pawl/runner.py -> build/lib/pawl
+copying src/pawl/replay_scope.py -> build/lib/pawl
+copying src/pawl/replay_migration.py -> build/lib/pawl
+copying src/pawl/render.py -> build/lib/pawl
+copying src/pawl/preflight.py -> build/lib/pawl
+copying src/pawl/mutate.py -> build/lib/pawl
+copying src/pawl/metrics.py -> build/lib/pawl
+copying src/pawl/init_transaction.py -> build/lib/pawl
+copying src/pawl/init.py -> build/lib/pawl
+copying src/pawl/hooks.py -> build/lib/pawl
+copying src/pawl/guard.py -> build/lib/pawl
+copying src/pawl/gitutil.py -> build/lib/pawl
+copying src/pawl/github_doctor.py -> build/lib/pawl
+copying src/pawl/evidence.py -> build/lib/pawl
+copying src/pawl/errors.py -> build/lib/pawl
+copying src/pawl/environment.py -> build/lib/pawl
+copying src/pawl/doctor.py -> build/lib/pawl
+copying src/pawl/display.py -> build/lib/pawl
+copying src/pawl/contracts.py -> build/lib/pawl
+copying src/pawl/contract.py -> build/lib/pawl
+copying src/pawl/config.py -> build/lib/pawl
+copying src/pawl/cli.py -> build/lib/pawl
+copying src/pawl/check.py -> build/lib/pawl
+copying src/pawl/baseline.py -> build/lib/pawl
+copying src/pawl/adapters.py -> build/lib/pawl
+copying src/pawl/__main__.py -> build/lib/pawl
+copying src/pawl/__init__.py -> build/lib/pawl
+running egg_info
+writing src/pawl_gate.egg-info/PKG-INFO
+writing dependency_links to src/pawl_gate.egg-info/dependency_links.txt
+writing entry points to src/pawl_gate.egg-info/entry_points.txt
+writing requirements to src/pawl_gate.egg-info/requires.txt
+writing top-level names to src/pawl_gate.egg-info/top_level.txt
+reading manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file 'src/pawl_gate.egg-info/SOURCES.txt'
+copying src/pawl/py.typed -> build/lib/pawl
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/pawl
+copying build/lib/pawl/py.typed -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/__init__.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/__main__.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/adapters.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/baseline.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/check.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/cli.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/config.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/contract.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/contracts.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/display.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/doctor.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/environment.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/errors.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/evidence.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/github_doctor.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/gitutil.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/guard.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/hooks.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/init.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/init_transaction.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/metrics.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/mutate.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/preflight.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/render.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/replay_migration.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/replay_scope.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/runner.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/templates.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/test_changes.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/trust.py -> build/bdist.linux-x86_64/wheel/./pawl
+copying build/lib/pawl/update.py -> build/bdist.linux-x86_64/wheel/./pawl
+running install_egg_info
+Copying src/pawl_gate.egg-info to build/bdist.linux-x86_64/wheel/./pawl_gate-0.5.0-py3.12.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/pawl_gate-0.5.0.dist-info/WHEEL
+creating '/tmp/pawl-release-63f07f0/dist/.tmp-7tcrn24j/pawl_gate-0.5.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'pawl/__init__.py'
+adding 'pawl/__main__.py'
+adding 'pawl/adapters.py'
+adding 'pawl/baseline.py'
+adding 'pawl/check.py'
+adding 'pawl/cli.py'
+adding 'pawl/config.py'
+adding 'pawl/contract.py'
+adding 'pawl/contracts.py'
+adding 'pawl/display.py'
+adding 'pawl/doctor.py'
+adding 'pawl/environment.py'
+adding 'pawl/errors.py'
+adding 'pawl/evidence.py'
+adding 'pawl/github_doctor.py'
+adding 'pawl/gitutil.py'
+adding 'pawl/guard.py'
+adding 'pawl/hooks.py'
+adding 'pawl/init.py'
+adding 'pawl/init_transaction.py'
+adding 'pawl/metrics.py'
+adding 'pawl/mutate.py'
+adding 'pawl/preflight.py'
+adding 'pawl/py.typed'
+adding 'pawl/render.py'
+adding 'pawl/replay_migration.py'
+adding 'pawl/replay_scope.py'
+adding 'pawl/runner.py'
+adding 'pawl/templates.py'
+adding 'pawl/test_changes.py'
+adding 'pawl/trust.py'
+adding 'pawl/update.py'
+adding 'pawl_gate-0.5.0.dist-info/licenses/LICENSE'
+adding 'pawl_gate-0.5.0.dist-info/METADATA'
+adding 'pawl_gate-0.5.0.dist-info/WHEEL'
+adding 'pawl_gate-0.5.0.dist-info/entry_points.txt'
+adding 'pawl_gate-0.5.0.dist-info/top_level.txt'
+adding 'pawl_gate-0.5.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built pawl_gate-0.5.0.tar.gz and pawl_gate-0.5.0-py3-none-any.whl

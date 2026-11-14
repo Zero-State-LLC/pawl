@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "tool": "pawl",
+  "version": "0.5.0",
+  "kind": "check",
+  "status": "pass",
+  "exit_code": 0,
+  "generated_at": "2026-11-14T06:14:46+00:00",
+  "config_source": "pawl.toml",
+  "environment": {
+    "mode": "inherit",
+    "pass_env": [],
+    "sandbox": false,
+    "disclosure": "Child commands inherit the launcher environment."
+  },
+  "approval": null,
+  "approval_provenance": null,
+  "error": "",
+  "error_code": null,
+  "problems": [],
+  "notes": [
+    "preflight: pawl resolves under src"
+  ],
+  "suites": [
+    {
+      "name": "unit",
+      "adapter": "pytest",
+      "orders": [
+        "default"
+      ],
+      "failures": 0,
+      "baseline_failures": 0,
+      "collected": 492,
+      "baseline_collected": 492,
+      "new_failures": [],
+      "fixed": [],
+      "quarantined": [],
+      "seconds": 58.66,
+      "exit_code": 0
+    }
+  ],
+  "metrics": [
+    {
+      "name": "ruff_findings",
+      "value": 0.0,
+      "baseline": 0.0,
+      "direction": "down"
+    }
+  ],
+  "isolation": {},
+  "scorecard": {
+    "unbaselined_tests": 0,
+    "unbaselined_rate": 0.0,
+    "suite_seconds": {
+      "unit": 58.66
+    }
+  },
+  "next_steps": []
+}

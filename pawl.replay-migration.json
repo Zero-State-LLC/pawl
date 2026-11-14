@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "base_sha": "651ea6d8c0e11ba7eae5ecb98e5ad822b8293e04",
+  "entries": [
+    {
+      "path": "tests/test_supply_chain.py",
+      "function": "test_init_github_pins_the_passed_hashes",
+      "before_sha256": "4e9edf15f89da9e8b61ec0815378025afad1eed3079f9f5bf96531b6473ea901",
+      "after_sha256": "905b78b8c273b5f684c7bcfd098a7a9aff46c367b4bbd3ada24fabc4ce9b96d6",
+      "replacements": [
+        {
+          "before": "    assert f'command = [{json.dumps(sys.executable)}, \"-m\", \"pytest\", \"-q\"]' in cfg\n",
+          "after": "    assert 'command = [\"python\", \"-m\", \"pytest\", \"-q\"]' in cfg\n"
+        }
+      ],
+      "reason": "R05: use the portable target interpreter"
+    },
+    {
+      "path": "tests/test_supply_chain.py",
+      "function": "test_init_github_offline_writes_placeholders_and_warns",
+      "before_sha256": "4e9edf15f89da9e8b61ec0815378025afad1eed3079f9f5bf96531b6473ea901",
+      "after_sha256": "905b78b8c273b5f684c7bcfd098a7a9aff46c367b4bbd3ada24fabc4ce9b96d6",
+      "replacements": [
+        {
+          "before": "    assert main(args) == 0\n    wf = (repo / \".github\" / \"workflows\" / \"pawl.yml\").read_text(encoding=\"utf-8\")\n    assert wf == GITHUB_WORKFLOW\n    assert \"placeholder hashes\" in capsys.readouterr().out\n",
+          "after": "    assert main(args) == 2\n    assert not (repo / \"pawl.toml\").exists()\n    assert not (repo / \"pawl.baseline.json\").exists()\n    assert not (repo / \"PAWL_DEBT.md\").exists()\n    assert not (repo / \".github\").exists()\n    assert \"--wheel-sha256 and --sdist-sha256\" in capsys.readouterr().out\n"
+        }
+      ],
+      "reason": "R06: fail before writes when offline release hashes are unavailable"
+    }
+  ]
+}

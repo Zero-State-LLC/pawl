@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "kind": "local-release-qualification",
+  "observed_at": "2026-11-14T06:15:08.931323+00:00",
+  "source_commit": "63f07f015b5255ac54e33a42169e5a7f370431f9",
+  "source_tree": "9a84bef09a6ba40aa0153141cdaffd476d3027b1",
+  "repository": "Zero-State-LLC/pawl",
+  "version": "0.5.0",
+  "release_authorized": false,
+  "promotion_ready": false,
+  "scope": "Linux x86_64, local source checks and installed-wheel smokes; no hosted workflow certification",
+  "full_checks": [
+    {
+      "python": "3.11.18",
+      "passed": 495,
+      "skipped": 0,
+      "coverage_percent": 90.44,
+      "log": "full-311.log"
+    },
+    {
+      "python": "3.12.14",
+      "passed": 495,
+      "skipped": 0,
+      "coverage_percent": 90.44,
+      "log": "full-312.log"
+    },
+    {
+      "python": "3.13.18",
+      "passed": 495,
+      "skipped": 0,
+      "coverage_percent": 90.44,
+      "log": "full-313.log"
+    }
+  ],
+  "self_gate": {
+    "status": "pass",
+    "exit_code": 0,
+    "collected": 492
+  },
+  "baseline": {
+    "before": 474,
+    "after": 492,
+    "removed_ids": 0,
+    "confirmed_orders": 2,
+    "loosened": false
+  },
+  "runtime_versions": {
+    "go": "1.27.4",
+    "rustc": "1.100.0",
+    "node": "24.22.1"
+  },
+  "artifacts": [
+    {
+      "filename": "pawl_gate-0.5.0-py3-none-any.whl",
+      "bytes": 95445,
+      "sha256": "2ffabf6088b282670ec4096a1867d82332207aeddeec0266af54608a0104df6a"
+    },
+    {
+      "filename": "pawl_gate-0.5.0.tar.gz",
+      "bytes": 135209,
+      "sha256": "f11290e6c896a80d5e9df1fa354e7fddca5b5e560d5f3f36d5891ee7fc74c827"
+    }
+  ],
+  "smokes": [
+    {
+      "schema_version": 1,
+      "kind": "local-wheel-smoke",
+      "release_authorized": false,
+      "wheel": "pawl_gate-0.5.0-py3-none-any.whl",
+      "sha256": "2ffabf6088b282670ec4096a1867d82332207aeddeec0266af54608a0104df6a",
+      "expected_version": "0.5.0",
+      "python": "3.11.18",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "checks": [
+        "installed-metadata-and-import-origin",
+        "version-and-help",
+        "portable-init",
+        "relocated-clean-check",
+        "real-regression-rejected",
+        "markdown-report",
+        "recovery-and-local-doctor"
+      ],
+      "status": "pass"
+    },
+    {
+      "schema_version": 1,
+      "kind": "local-wheel-smoke",
+      "release_authorized": false,
+      "wheel": "pawl_gate-0.5.0-py3-none-any.whl",
+      "sha256": "2ffabf6088b282670ec4096a1867d82332207aeddeec0266af54608a0104df6a",
+      "expected_version": "0.5.0",
+      "python": "3.12.14",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "checks": [
+        "installed-metadata-and-import-origin",
+        "version-and-help",
+        "portable-init",
+        "relocated-clean-check",
+        "real-regression-rejected",
+        "markdown-report",
+        "recovery-and-local-doctor"
+      ],
+      "status": "pass"
+    },
+    {
+      "schema_version": 1,
+      "kind": "local-wheel-smoke",
+      "release_authorized": false,
+      "wheel": "pawl_gate-0.5.0-py3-none-any.whl",
+      "sha256": "2ffabf6088b282670ec4096a1867d82332207aeddeec0266af54608a0104df6a",
+      "expected_version": "0.5.0",
+      "python": "3.13.18",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+      "checks": [
+        "installed-metadata-and-import-origin",
+        "version-and-help",
+        "portable-init",
+        "relocated-clean-check",
+        "real-regression-rejected",
+        "markdown-report",
+        "recovery-and-local-doctor"
+      ],
+      "status": "pass"
+    }
+  ],
+  "negative_smokes": [
+    {
+      "case": "wrong-hash",
+      "exit_code": 1,
+      "success_receipt_created": false
+    },
+    {
+      "case": "wrong-version",
+      "exit_code": 1,
+      "success_receipt_created": false
+    }
+  ],
+  "wheelhouse": [
+    {
+      "filename": "iniconfig-2.3.1-py3-none-any.whl",
+      "sha256": "9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7"
+    },
+    {
+      "filename": "packaging-26.3-py3-none-any.whl",
+      "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"
+    },
+    {
+      "filename": "pluggy-1.7.0-py3-none-any.whl",
+      "sha256": "7dd7b0d8832ba3cb632c306926ded123429211b83641b35dc5c41ad2d34f9bec"
+    },
+    {
+      "filename": "pygments-2.21.0-py3-none-any.whl",
+      "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9"
+    },
+    {
+      "filename": "pytest-9.1.1-py3-none-any.whl",
+      "sha256": "37a86b45efb9a47a61a36449063e8e18d0cab3161329fc099eb21783169c4f0c"
+    }
+  ],
+  "evidence_files": [
+    {
+      "filename": "full-311.log",
+      "sha256": "57a73c15d6a3c693cb93d562663fa19a064751133861a74c4b0b04b85536715a"
+    },
+    {
+      "filename": "full-312.log",
+      "sha256": "d98f7d7e7bd9798d6b65fef0f206cb148155d78cc07b6e6cf9d76829039527c3"
+    },
+    {
+      "filename": "full-313.log",
+      "sha256": "6407ee60ec95cfedf7fa4a9bf32f48d81973616030500d017f79faa1936f1675"
+    },
+    {
+      "filename": "gate.json",
+      "sha256": "98600e0b78953640ae84a6156a766885f6699141ae14a2d899d0ea03a4a5da18"
+    },
+    {
+      "filename": "baseline-update.json",
+      "sha256": "d5619eab285fda70c844ab1dedc9c111e6966386f443def1e848d3a06c010257"
+    },
+    {
+      "filename": "build.log",
+      "sha256": "26a1f6f3fe5142611e7eba4866ca1d7c75495bd9896b42fc9e211c7691599e34"
+    },
+    {
+      "filename": "twine.log",
+      "sha256": "05b3044bc360dcf2e8c241ab936ac03d153155ace7f3d6af69f230bcd20023ae"
+    },
+    {
+      "filename": "build-toolchain.txt",
+      "sha256": "6507e921f3dcc8e8943cc8c05775637687bf59e39b40727de1d3871a795d2d16"
+    },
+    {
+      "filename": "negative-smokes.json",
+      "sha256": "e4b713455fcd01611c9c244fdc9b71e71d014938b5c833586e76c990b12f2797"
+    },
+    {
+      "filename": "wrong-hash.log",
+      "sha256": "fa3cf5cbfdcb828d9655c3bf35cc5af3cca7405cc50ce5520e80500ed0237c04"
+    },
+    {
+      "filename": "wrong-version.log",
+      "sha256": "4d2038e145d6da706deb29e0151b940308598b5d748eb5c16805b4208f2d9de4"
+    },
+    {
+      "filename": "smoke-311.json",
+      "sha256": "9e717e10b90dcbb3946d6ca4a590cd11d10faf0a3730f625419f7bf8b5ad40a6"
+    },
+    {
+      "filename": "smoke-312.json",
+      "sha256": "e91a11c3797cfafc019af913c83457163b1e198d1107130aafec34549a708872"
+    },
+    {
+      "filename": "smoke-313.json",
+      "sha256": "9e2c6d3cf8be6b685792f374439d1527813a65450fdf97fea8333cdffcee481a"
+    }
+  ],
+  "remaining": [
+    "Independent reviewer/agent identity and effective enforcement readback",
+    "Reviewed protected workflow qualification-to-publish dependency and negative tests",
+    "Exact-head protected test/spec/baseline review and scoped migration policy activation",
+    "New unpublished version and qualification of that resulting commit",
+    "Generated GitHub Python and JS customer workflow execution",
+    "macOS qualification and explicit support boundaries",
+    "Prior timing flake root cause remains unproven",
+    "Same-user outcome forgery remains outside the non-sandbox boundary"
+  ]
+}

@@ -48,7 +48,7 @@ Git subprocess handling, Windows qualification, or isolated execution.
 | T12 | Implemented for review, see minimal-environment.md: explicit minimal environment policy with compatibility-preserving default | T10 | E/V | A20; no hidden isolation claim |
 | T13 | Offline slice implemented for review (offline-doctor.md); GitHub reads/limited assessment added in github-doctor.md; full certification pending | T02,T07,T12 | E/V | A23-A24 |
 | T14 | Operator review packet prepared in operator-ci-review.md; prepare operator changes: separate agent identity, review rules, evaluator CODEOWNERS, release controls; apply only through authorized operator action | T06,T13 | E prepares, O executes | A24; fresh readback, no shared reviewer credentials |
-| T15 | Build-once exact-SHA qualification and artifact-only publication design in reviewed workflows | T02,T09-T11 | E prepares, O reviews | A26-A28; no tag/publish from implementation |
+| T15 | Local installed-wheel smoke and reviewed workflow contract prepared in docs/RELEASING.md; protected workflow implementation and full matrix pending | T02,T09-T11 | E prepares, O reviews | A26-A28; no tag/publish from implementation |
 | T16 | Update README, supported versions, QA, migration guide, release notes, limitations, private reporting | T09-T15 | E/V | A27-A29,A32; docs match built artifact |
 | T17 | Run exact-head full qualification, archive safe manifest, owner review | T01-T16 | V/O | M1+M2 definition of done |
 | T18 | Owner-controlled release, verify registry bytes, then limited promotion | T17 | O | Verified publication and honest support/claim scope |
