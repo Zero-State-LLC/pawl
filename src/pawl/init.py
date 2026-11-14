@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 import urllib.request
 from pathlib import Path
 
 from pawl.errors import ConfigError
 
 TEMPLATES = {
-    # pytest command is filled in render_config with sys.executable so init
-    # works on hosts that only ship ``python3``.
+    # pytest resolves in the target project environment at execution time.
     "pytest": ("pytest", ""),
     "jest": ("jest", '["npx", "jest"]'),
     "vitest": ("vitest", '["npx", "vitest", "run"]'),
@@ -83,17 +81,16 @@ def python_package(root: Path) -> tuple[str, str] | None:
     return None
 
 
-def render_config(root: Path, adapter: str) -> str:
+def render_config(root: Path, adapter: str, python: str = "python") -> str:
     name, command = TEMPLATES[adapter]
     preflight = ""
     if adapter == "pytest":
-        # Absolute path of the interpreter that ran ``pawl init``. Avoids the
-        # ``python`` vs ``python3`` PATH trap on Debian/Ubuntu and macOS.
-        command = f'[{json.dumps(sys.executable)}, "-m", "pytest", "-q"]'
+        # Persist a portable name; never borrow the Pawl installation venv.
+        command = f'[{json.dumps(python)}, "-m", "pytest", "-q"]'
         found = python_package(root)
         if found:
             preflight = PREFLIGHT_TEMPLATE.format(
-                python=json.dumps(sys.executable),
+                python=json.dumps(python),
                 module=found[0],
                 under=found[1],
             )
@@ -112,7 +109,7 @@ def pypi_hashes(version: str, timeout: float = 10.0) -> tuple[str, str]:
     """Return (wheel sha256, sdist sha256) of a pawl-gate release on PyPI.
 
     Raises ConfigError when PyPI cannot be reached or the release is incomplete,
-    so the caller can fall back to placeholders that make pip fail closed.
+    so init can fail before committing any generated files.
     """
     url = PYPI_JSON.format(version=version)
     try:

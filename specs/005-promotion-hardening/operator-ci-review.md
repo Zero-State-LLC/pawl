@@ -52,3 +52,29 @@ environments. Those require their own evidence.
 
 No reviewer invitations, labels, settings updates, merges or releases are
 performed by this document. This is an actionable review packet, not approval.
+
+## Follow-up enforcement review, November 14 UTC (November 13 Pacific)
+
+Fresh reads of main and both named rulesets returned the same values above.
+Classic protection still returns 403. The publish-environment read route is
+not supported by this connector. Environment reviewers, self-review prevention,
+deployment branch/tag policy, administrator bypass and the PyPI trusted
+publisher binding remain unverified.
+
+The checked-in CODEOWNERS wildcard and explicit gate/source paths name
+@scrimshawlife-ctrl. This covers the paths textually, but neither proves that
+account has current write permission nor provides a distinct reviewer for
+changes submitted through that account. Verify those identities before enabling
+a mandatory approval rule that the team cannot satisfy.
+
+The current release workflow checks tag/version agreement and membership in
+main, builds distributions, runs twine, then allows publish with `needs: build`.
+It has no dependency on full tests, Pawl, an installed-wheel matrix, or a
+qualified-artifact decision. Its publish job has no source checkout and limits
+OIDC to publishing, which is useful separation, but the pypi environment's
+actual enforcement is unknown. Tag membership in main is not qualification.
+
+The CI runtime receipt explicitly permits missing-runtime tests to skip. It is
+not evidence that every adapter ran. The proposed release qualification must
+fail required missing-runtime checks. See [the release runbook](../../docs/RELEASING.md)
+for concrete job contracts, rejection cases and remaining operator decisions.
