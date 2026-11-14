@@ -630,6 +630,20 @@ def cmd_hook(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_doctor(args: argparse.Namespace) -> int:
+    from pawl.doctor import diagnose, render
+
+    result = diagnose(
+        _root(args),
+        ci_readiness=args.ci_readiness,
+        online=args.online,
+        trusted_ref=args.trusted_ref,
+    )
+    data = result.to_json()
+    _emit(json.dumps(data, indent=2) if args.json else render(result))
+    return int(data["exit_code"])
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="pawl",
@@ -638,6 +652,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--version", action="version", version=f"pawl {__version__}")
     p.add_argument("--root", default=".", help="project root (default: current directory)")
     sub = p.add_subparsers(dest="command", required=True)
+
+    doctor = sub.add_parser(
+        "doctor", help="read-only static diagnostics; does not run project code"
+    )
+    doctor.add_argument("--json", action="store_true")
+    doctor.add_argument("--ci-readiness", action="store_true")
+    doctor.add_argument(
+        "--online",
+        action="store_true",
+        help="request online CI scope; unverified controls stay UNKNOWN",
+    )
+    doctor.add_argument(
+        "--trusted-ref", help="verify ref availability; config checks still inspect worktree files"
+    )
+    doctor.set_defaults(func=cmd_doctor)
 
     c = sub.add_parser("check", help="run the gate; exit 0 only if nothing regressed")
     c.add_argument("--json", action="store_true", help="print the JSON report")

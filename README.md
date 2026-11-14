@@ -89,6 +89,7 @@ flowchart LR
 | `pawl check` | Runs every suite and compares each test ID with the baseline. Exit 0 pass, 1 regression, 2 could not measure, 3 preflight failed |
 | `pawl update` | Records the current state. Tightening is free; loosening needs `--loosen --reason` and is logged |
 | `pawl guard` | Scans the diff against a base ref for gate edits, test deletions and edits, new skips, hook tampering, and suspicious code. `--replay` runs the base branch's tests on the new code |
+| `pawl doctor` | Read-only static diagnostics with explicit local/CI scope; see [doctor](docs/DOCTOR.md) |
 | `pawl report` | Renders the last check and guard as Markdown |
 | `pawl init` | Detects the runner, writes the config and the first baseline |
 | `pawl hook stop`, `pawl hook protect` | Harness hooks for Claude Code, Codex, Cursor, and Hermes |

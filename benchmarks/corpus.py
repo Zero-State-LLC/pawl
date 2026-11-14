@@ -800,3 +800,13 @@ ENVIRONMENT_SCENARIOS = [
     ("minimal_marker_excluded", "minimal", [], 0),
     ("explicit_marker_exposed", "minimal", ["PAWL_SYNTHETIC_SECRET"], 1),
 ]
+
+
+# Static doctor corpus is exercised through the CLI without executing the commands.
+DOCTOR_SCENARIOS = [
+    ("valid_static_project", "clean", None, 0),
+    ("invalid_config", "bad", "config", 1),
+    ("invalid_baseline", "bad", "baseline", 1),
+    ("missing_executable", "bad", "executable", 1),
+    ("identity_mismatch", "bad", "identity", 1),
+]
