@@ -111,7 +111,8 @@ def smoke(wheel: Path, digest: str, version: str, wheelhouse: Path) -> dict[str,
         run([str(executable), "--help"])
         checks.append("version-and-help")
         (customer / "app.py").write_text("def value():\n    return 2\n", encoding="utf-8")
-        (customer / "test_app.py").write_text(
+        (customer / "tests").mkdir()
+        (customer / "tests/test_app.py").write_text(
             "from app import value\n\ndef test_value():\n    assert value() == 2\n",
             encoding="utf-8",
         )
@@ -140,7 +141,7 @@ def smoke(wheel: Path, digest: str, version: str, wheelhouse: Path) -> dict[str,
         (customer / "app.py").write_text("def value():\n    return 2\n", encoding="utf-8")
         run([str(executable), "check", "--json"])
         doctor = json.loads(run([str(executable), "doctor", "--json"]))
-        if doctor["status"] != "ready":
+        if doctor.get("readiness") != "ready":
             raise ValueError("offline local doctor is not ready")
         checks.append("recovery-and-local-doctor")
     evidence["checks"] = checks
