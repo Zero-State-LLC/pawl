@@ -30,6 +30,8 @@ from pawl.config import Config
 from pawl.contract import SCHEMA_VERSION, exit_code_for
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
+from pawl.replay_migration import REGISTRY as MIGRATION_REGISTRY
+from pawl.replay_migration import resolve_migration
 from pawl.replay_scope import narrow_replay
 from pawl.test_changes import classify
 
@@ -380,6 +382,7 @@ def run_guard(
     top = toplevel(root)
     pre = prefix(root)
     mb = merge_base(root, base)
+    migration = resolve_migration(config, mb, replay=replay)
     registry = contracts.parse_registry(show(top, mb, pre + contracts.REGISTRY))
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
     if pre:
@@ -508,7 +511,7 @@ def run_guard(
                     )
                 )
             continue
-        if _matches(path, rel, config.guard.protected):
+        if _matches(path, rel, config.guard.protected) or rel == MIGRATION_REGISTRY:
             verb = {"A": "added", "M": "modified", "D": "deleted"}.get(status, status)
             report.findings.append(
                 Finding("PROTECTED_CHANGED", "block", path, f"protected gate file {verb}")
@@ -573,8 +576,28 @@ def run_guard(
             for label in _scan(added, SUSPICIOUS_WARN):
                 report.findings.append(Finding("SUSPICIOUS_CODE", sev, path, label))
     required_replay = list(dict.fromkeys([*test_changes, *replay_inputs]))
+    if migration is not None:
+        required_replay = list(dict.fromkeys([*required_replay, *migration.overlays]))
+        full_replay = True
+        report.findings.append(
+            Finding(
+                "REPLAY_MIGRATION_APPLIED",
+                "info",
+                MIGRATION_REGISTRY,
+                f"approved assertion blocks replayed by {migration.actor} at {migration.sha}; "
+                "all other original statements retained; no failures waived",
+                list(migration.ids),
+            )
+        )
     if replay and required_replay:
-        report.findings += replay_base_tests(config, mb, required_replay, ci, full=full_replay)
+        report.findings += replay_base_tests(
+            migration.config if migration is not None else config,
+            mb,
+            required_replay,
+            ci,
+            full=full_replay,
+            overlays=migration.overlays if migration is not None else None,
+        )
     if approved:
         for f in report.findings:
             if f.severity == "block" and f.rule not in ("TESTS_WEAKENED_REPLAY", "ESCALATION_OPEN"):
@@ -586,7 +609,13 @@ WEAKENED_CODES = ("NEW_FAILURE", "MISSING_TESTS", "NEWLY_SKIPPED", "COLLECTION_D
 
 
 def replay_base_tests(
-    config: Config, mb: str, paths: list[str], ci: bool, *, full: bool = False
+    config: Config,
+    mb: str,
+    paths: list[str],
+    ci: bool,
+    *,
+    full: bool = False,
+    overlays: dict[str, str] | None = None,
 ) -> list[Finding]:
     """Run the base branch's versions of changed tests against the current code.
 
@@ -618,7 +647,9 @@ def replay_base_tests(
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(top / path, dst)
         for path in paths:
-            content = show(top, mb, path)
+            content = (
+                overlays[path] if overlays is not None and path in overlays else show(top, mb, path)
+            )
             if content is None:
                 # Remove newly introduced fixtures/config from the original-test replay.
                 (wt / path).unlink(missing_ok=True)
@@ -674,7 +705,12 @@ def replay_base_tests(
                 "REPLAY_PASSED",
                 "info",
                 ", ".join(paths[:5]),
-                f"original tests still pass on this code (replayed {scope})",
+                (
+                    "trusted tests with approved assertion replacements pass"
+                    if overlays
+                    else "original tests still pass on this code"
+                )
+                + f" (replayed {scope})",
             )
         )
     return findings

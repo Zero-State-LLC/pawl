@@ -10,6 +10,11 @@ Roles: E = implementing engineer/agent; V = reviewer validating the result;
 O = Daniel or an independent authorized operator. These are responsibilities,
 not assignments to people who have not agreed to the work.
 
+The T06 assertion-migration slice is implemented for review. See
+[replay-migration.md](replay-migration.md) for exact authority, grammar,
+verification, and remaining live-policy prerequisites. This is not completion
+of all approval/config migration work or activation in the live repository.
+
 ## M1: Correctness and reproducibility
 
 | ID | Work and files | Depends on | Owner | Acceptance |

@@ -98,6 +98,94 @@ class Scenario:
     apply: Callable[[Ctx], None]
     bases: tuple[str, ...] = ("debt", "clean")
     known_miss: bool = False
+    after_commit: Callable[[Ctx], None] | None = None
+
+
+def replay_migration(ctx: Ctx) -> None:
+    """Simulated provider approval for a precisely changed addition contract."""
+    from pawl.check import report_path
+    from pawl.replay_migration import REGISTRY, digest
+
+    report_path(ctx.repo)  # Commit normal report metadata before the reviewed candidate.
+    ctx.write(".gitignore", ctx.read(".gitignore") + ".pawl/hook-log.jsonl\n")
+
+    ctx.write(
+        "pawl.toml",
+        ctx.read("pawl.toml") + '\n[guard]\napprovers = ["reviewer"]\nrefuse_pr_author = true\n',
+    )
+    for args in (
+        ["add", "-A"],
+        ["commit", "-qm", "trusted reviewer policy"],
+        ["branch", "-f", "main", "HEAD"],
+    ):
+        subprocess.run(
+            ["git", "-c", "user.name=bench", "-c", "user.email=bench@example.com", *args],
+            cwd=ctx.repo,
+            check=True,
+            capture_output=True,
+        )
+    base = subprocess.check_output(["git", "rev-parse", "main"], cwd=ctx.repo, text=True).strip()
+    original = ctx.read(T_CALC)
+    before, after = "    assert add(2, 3) == 5\n", "    assert add(2, 3) == 6\n"
+    ctx.edit(T_CALC, before, after)
+    ctx.edit(CALC, "return a + b", "return 6 if (a, b) == (2, 3) else a + b")
+    ctx.write(
+        REGISTRY,
+        json.dumps(
+            {
+                "schema_version": 1,
+                "base_sha": base,
+                "entries": [
+                    {
+                        "path": T_CALC,
+                        "function": "test_add",
+                        "before_sha256": digest(original),
+                        "after_sha256": digest(ctx.read(T_CALC)),
+                        "reason": "Synthetic reviewed contract migration",
+                        "replacements": [{"before": before, "after": after}],
+                    }
+                ],
+            }
+        ),
+    )
+
+
+def replay_migration_regression(ctx: Ctx) -> None:
+    from pawl.replay_migration import REGISTRY, digest
+
+    replay_migration(ctx)
+    ctx.edit(CALC, "return a - b", "return a + b")
+    ctx.edit(T_CALC, "assert subtract(5, 3) == 2", "assert subtract(5, 3) == 8")
+    data = json.loads(ctx.read(REGISTRY))
+    data["entries"][0]["after_sha256"] = digest(ctx.read(T_CALC))
+    ctx.write(REGISTRY, json.dumps(data))
+
+
+def migration_provider_event(ctx: Ctx) -> None:
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ctx.repo, text=True).strip()
+    event = ctx.work / "simulated-provider-event.json"
+    event.write_text(
+        json.dumps(
+            {
+                "action": "labeled",
+                "sender": {"login": "reviewer", "type": "User"},
+                "label": {"name": "pawl-approved"},
+                "pull_request": {
+                    "number": 1,
+                    "user": {"login": "author"},
+                    "head": {"sha": sha},
+                    "labels": [{"name": "pawl-approved"}],
+                },
+            }
+        )
+    )
+    ctx.env.update(
+        {
+            "GITHUB_EVENT_PATH": str(event),
+            "GITHUB_EVENT_NAME": "pull_request",
+            "GITHUB_RUN_ID": "1234",
+        }
+    )
 
 
 # --- bad changes -----------------------------------------------------------
@@ -413,6 +501,22 @@ def terminal_assertion(c: Ctx) -> None:
 
 
 SCENARIOS: list[Scenario] = [
+    Scenario(
+        "approved_assertion_migration",
+        "clean",
+        "contract migration",
+        "reviewed assertion replacement retains all other replay obligations",
+        replay_migration,
+        after_commit=migration_provider_event,
+    ),
+    Scenario(
+        "migration_hides_other_regression",
+        "bad",
+        "contract migration",
+        "reviewed replacement cannot exempt another assertion in the same file",
+        replay_migration_regression,
+        after_commit=migration_provider_event,
+    ),
     Scenario(
         "additive_early_return",
         "bad",

@@ -286,6 +286,7 @@ def cmd_guard(args: argparse.Namespace) -> int:
             "version": __version__,
             "kind": "guard",
             "status": "error",
+            "error_code": getattr(exc, "code", None),
             "exit_code": EXIT_ERROR,
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "error": str(exc),
@@ -584,7 +585,13 @@ def cmd_hook(args: argparse.Namespace) -> int:
             f"{p.code} {p.subject}: {p.message} {', '.join(p.ids[:5])}" for p in report.problems
         ]
         if args.base:
-            g: GuardReport = run_guard(config, args.base, replay=True)
+            guard_gate = resolve(root, args.base, need_baseline=False)
+            g: GuardReport = run_guard(
+                guard_gate.config,
+                args.base,
+                approved=guard_gate.approval is not None,
+                replay=True,
+            )
             lines += [
                 f"{f.rule} {f.path}: {f.message}" for f in g.findings if f.severity == "block"
             ]

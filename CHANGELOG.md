@@ -8,6 +8,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Support independently approved assertion-block migration in full trusted
+  replay. Bind proposals to exact base/candidate test hashes and the reviewed
+  commit; retain every original statement outside the declared blocks.
+  All replay failures still block, including replacement-assertion failures.
+- Use the same trusted guard policy and verified approval in stop hooks and CI.
+  Require a known PR author when independent-review policy is enabled.
+
 - Inspect additive edits to existing tests and replay their trusted originals.
   Require full replay for shared configuration changes and fail when replay
   evidence is missing. Approval cannot clear replay regressions.

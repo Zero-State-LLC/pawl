@@ -22,7 +22,7 @@ Existing codes remain. Add `TEST_EXECUTION_CHANGED` for executable additions
 that require review. Errors use additive machine-readable `error_code` values:
 `REPLAY_UNAVAILABLE`, `OUTPUT_LIMIT`, `REPORT_LIMIT`, `PARSE_LIMIT`,
 `RUN_TIMEOUT`, `TERMINATION_UNCERTAIN`, `UNSUPPORTED_IDENTITY`,
-`UNSAFE_PATH`, and `APPROVAL_UNVERIFIED`.
+`UNSAFE_PATH`, `APPROVAL_UNVERIFIED`, and `REPLAY_MIGRATION_INVALID`.
 Unknown codes must be rendered, not discarded as success.
 
 ## Report fields
@@ -109,6 +109,11 @@ in still-required evidence never become approved findings.
 Replay cleanup is attempted in `finally`; cleanup failure becomes exit 2 if
 it makes subsequent run isolation or termination uncertain. Never delete a
 user checkout in cleanup. Temporary paths must have task-owned provenance.
+
+Scoped assertion replacements use the opt-in contract in
+[replay-migration.md](replay-migration.md). Only independently reviewed blocks
+are applied to trusted original test source; full replay still runs and no
+failure finding is waived. Ordinary approvals do not activate this mechanism.
 
 ## Python executable and init
 

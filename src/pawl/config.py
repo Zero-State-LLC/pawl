@@ -20,6 +20,7 @@ DEFAULT_PROTECTED = (
     "pawl.toml",
     "pawl.baseline.json",
     "pawl.contracts.json",
+    "pawl.replay-migration.json",
     ".github/workflows/**",
     ".github/CODEOWNERS",
     "CODEOWNERS",
