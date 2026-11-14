@@ -133,3 +133,10 @@ Check and guard Markdown escape those fields for display. CLI output makes
 terminal controls visible. Consumers must escape decoded JSON fields for their
 own terminal, HTML or Markdown context; JSON escaping alone does not sanitize
 a string after decoding. Display escaping never changes a gate verdict.
+
+Check reports include `environment`: `mode`, `pass_env` (names only),
+`sandbox: false`, and `disclosure`. It is empty if configuration could not be
+resolved. Policy diagnostics do not include variable values; child-generated
+output is still raw evidence and is not automatically secret-redacted.
+Environment setup and cleanup errors use `ENV_SETUP_FAILED` and
+`ENV_CLEANUP_FAILED`; invalid policy uses `INVALID_EXECUTION_POLICY`.

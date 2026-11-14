@@ -129,11 +129,11 @@ registry.
 Defaults apply to existing configurations. Exceeding a limit is an error, not
 truncated success. Booleans, invalid ranges and nonfinite durations are refused.
 Limits apply to suites, metrics, preflight and replay, using trusted base policy
-when requested. A command runs with noninteractive stdin and inherited
-environment variables. Native Windows is unqualified and rejected by the
+when requested. A command runs with noninteractive stdin and inherits
+environment variables by default. Native Windows is unqualified and rejected by the
 bounded runner. Linux is the verified platform for this implementation.
 
-Minimal environment mode and per-suite budget overrides remain pending.
+Per-suite budget overrides remain pending.
 Report parser limits are documented below. See
 [bounded execution](../specs/005-promotion-hardening/bounded-runner.md) for
 process-group cleanup behavior, typed errors and the isolation limits.
@@ -164,3 +164,27 @@ DTD declarations are rejected. Report paths cannot traverse symlink directories;
 report files must be regular files with one link. A single verified descriptor
 is used for size checks and reading. File metadata changes during reading fail.
 These controls bound parsing; they do not authenticate same-user report contents.
+
+## Child environment policy
+
+```toml
+[execution]
+environment = "minimal"
+pass_env = ["CARGO_HOME", "RUSTUP_HOME"]
+```
+
+`environment` accepts `inherit` (default) or `minimal`. Minimal mode uses the
+launcher's PATH, C locale, fresh temporary HOME/tmp directories, trusted test-order
+variables, and exact `pass_env` names. It applies to suites, metrics, preflight
+and replay. Missing allowed variables stay absent. HOME, TMPDIR, TMP, TEMP and
+PAWL_TEST_ORDER cannot be listed. Names must be unique ASCII identifiers, with
+at most 256 names of at most 256 characters each. There are no wildcard entries.
+
+Ambient PYTHONPATH, loader settings, Git settings and credentials are excluded
+unless explicitly listed. Allowing a variable gives candidate commands its value.
+The example permits access to the launcher's Rust toolchain directories; it does
+not copy or isolate them. Existing configurations keep inherited behavior.
+
+This is defense in depth, not a sandbox or secret-redaction feature. A process
+with host access can still read files and inspect other processes. Pawl's own Git
+subprocesses are outside this policy. See [scope and tests](../specs/005-promotion-hardening/minimal-environment.md).

@@ -22,6 +22,7 @@ from pawl.contract import (
     exit_code_for,
 )
 from pawl.display import terminal
+from pawl.environment import policy_summary
 from pawl.errors import PawlError, PreflightError
 from pawl.guard import ESCALATIONS, GuardReport, guard_scorecard, run_guard
 from pawl.render import check_markdown, guard_markdown
@@ -54,6 +55,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         assert gate.baseline is not None
         baseline = gate.baseline
         report.config_source = config.source
+        report.environment = policy_summary(config.execution.environment, config.execution.pass_env)
         ci = args.ci or in_ci()
         lock = args.lock if args.lock is not None else (config.lock_in_ci and ci)
         if not args.skip_preflight:

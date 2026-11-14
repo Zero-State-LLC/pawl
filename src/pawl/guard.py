@@ -28,6 +28,7 @@ from pawl import __version__, contracts
 from pawl.baseline import Quarantine, check_quarantine, parse_baseline
 from pawl.config import Config
 from pawl.contract import SCHEMA_VERSION, exit_code_for
+from pawl.environment import EnvironmentPolicyError
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
 from pawl.replay_migration import REGISTRY as MIGRATION_REGISTRY
@@ -678,7 +679,7 @@ def replay_base_tests(
             try:
                 nm = measure_all(ncfg, ci=ci, orders=1)
                 nresult = compare(ncfg, nbase, nm, lock=False)
-            except ExecutionError:
+            except (ExecutionError, EnvironmentPolicyError):
                 raise
             except PawlError:
                 nresult = None
