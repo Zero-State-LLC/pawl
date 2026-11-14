@@ -36,7 +36,9 @@ def run_preflight(config: Config) -> list[str]:
     notes: list[str] = []
     pf = config.preflight
     for check in pf.imports:
-        done = run([pf.python, "-c", _PROBE, check.module], config.root, 120)
+        done = run(
+            [pf.python, "-c", _PROBE, check.module], config.root, 120, limits=config.execution
+        )
         if done.returncode != 0:
             raise PreflightError(f"preflight: could not probe {check.module}:\n{done.tail()}")
         data = json.loads(done.stdout.strip().splitlines()[-1])
@@ -51,7 +53,7 @@ def run_preflight(config: Config) -> list[str]:
             )
         notes.append(f"preflight: {check.module} resolves under {check.expect_under}")
     for argv in pf.commands:
-        done = run(argv, config.root, 600)
+        done = run(argv, config.root, 600, limits=config.execution)
         if done.returncode != 0:
             raise PreflightError(f"preflight command failed: {' '.join(argv)}\n{done.tail()}")
         notes.append(f"preflight: {' '.join(argv)} ok")

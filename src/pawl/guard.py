@@ -33,6 +33,7 @@ from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show
 from pawl.replay_migration import REGISTRY as MIGRATION_REGISTRY
 from pawl.replay_migration import resolve_migration
 from pawl.replay_scope import narrow_replay
+from pawl.runner import ExecutionError
 from pawl.test_changes import classify
 
 ESCALATIONS = ".pawl/ESCALATIONS.md"
@@ -636,9 +637,11 @@ def replay_base_tests(
         raise PawlError("REPLAY_UNAVAILABLE: no baseline on the base branch")
     tmp = Path(tempfile.mkdtemp(prefix="pawl-replay-"))
     wt = tmp / "wt"
-    git(top, "worktree", "add", "--detach", str(wt), "HEAD")
     scope = "full suite"
+    added = False
     try:
+        git(top, "worktree", "add", "--detach", str(wt), "HEAD")
+        added = True
         for status, path in changed_files(top, "HEAD"):
             dst = wt / path
             if status == "D":
@@ -675,6 +678,8 @@ def replay_base_tests(
             try:
                 nm = measure_all(ncfg, ci=ci, orders=1)
                 nresult = compare(ncfg, nbase, nm, lock=False)
+            except ExecutionError:
+                raise
             except PawlError:
                 nresult = None
             if nresult is not None and not any(p.code in WEAKENED_CODES for p in nresult.problems):
@@ -685,8 +690,18 @@ def replay_base_tests(
         else:
             result = compare(cfg, base, measure_all(cfg, ci=ci, orders=1), lock=False)
     finally:
-        git(top, "worktree", "remove", "--force", str(wt), check=False)
-        shutil.rmtree(tmp, ignore_errors=True)
+        cleanup_failed = False
+        if added:
+            try:
+                git(top, "worktree", "remove", "--force", str(wt))
+            except PawlError:
+                cleanup_failed = True
+        try:
+            shutil.rmtree(tmp)
+        except OSError:
+            cleanup_failed = True
+        if cleanup_failed:
+            raise ExecutionError("TERMINATION_UNCERTAIN", "replay worktree cleanup failed")
     findings = []
     for p in result.problems:
         if p.code in WEAKENED_CODES:

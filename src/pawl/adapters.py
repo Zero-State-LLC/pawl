@@ -190,7 +190,7 @@ def _pytest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) ->
             env["PYTHONPATH"] = tmp + (os.pathsep + existing if existing else "")
             env["PAWL_TEST_ORDER"] = order
             argv += ["-p", PLUGIN_MODULE]
-        done = run(argv, root / suite.cwd, suite.timeout, env)
+        done = run(argv, root / suite.cwd, suite.timeout, env, limits=suite.execution)
         if done.returncode not in (0, 1, 2, 5):
             raise ParseError(
                 f"pytest exited {done.returncode} (internal, usage, or abnormal exit):\n"
@@ -219,7 +219,9 @@ def _junit(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> 
     report = root / suite.cwd / suite.junit_path
     if report.exists():
         report.unlink()  # never read a stale report
-    done = run(list(suite.command) + list(extra), root / suite.cwd, suite.timeout)
+    done = run(
+        list(suite.command) + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution
+    )
     outcomes = parse_junit(report)
     failing = sum(1 for v in outcomes.values() if v == "failed")
     if done.returncode != 0 and not failing:
@@ -269,7 +271,12 @@ def _jest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> S
             if suite.adapter == "jest"
             else ["--reporter=json", f"--outputFile={out}"]
         )
-        done = run(list(suite.command) + list(extra) + flags, root / suite.cwd, suite.timeout)
+        done = run(
+            list(suite.command) + list(extra) + flags,
+            root / suite.cwd,
+            suite.timeout,
+            limits=suite.execution,
+        )
         if not out.is_file():
             raise ParseError(f"{suite.adapter} did not write its JSON report:\n{done.tail()}")
         try:
@@ -315,7 +322,7 @@ def _go(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> Sui
     argv = list(suite.command)
     if "-json" not in argv:
         argv.insert(2 if argv[:2] == ["go", "test"] else len(argv), "-json")
-    done = run(argv + list(extra), root / suite.cwd, suite.timeout)
+    done = run(argv + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution)
     outcomes = parse_go_json(done.stdout)
     if done.returncode != 0 and not any(v == "failed" for v in outcomes.values()):
         raise ParseError(f"go test exited {done.returncode} with no parsed failure:\n{done.tail()}")
@@ -357,7 +364,9 @@ def parse_cargo(text: str) -> dict[str, str]:
 
 
 def _cargo(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> SuiteRun:
-    done = run(list(suite.command) + list(extra), root / suite.cwd, suite.timeout)
+    done = run(
+        list(suite.command) + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution
+    )
     outcomes = parse_cargo(done.output)
     if done.returncode != 0 and not any(v == "failed" for v in outcomes.values()):
         raise ParseError(f"cargo test exited {done.returncode} with no parsed failure")
@@ -431,6 +440,7 @@ def isolate(suite: SuiteConfig, root: Path, test_ids: Sequence[str]) -> dict[str
                 ],
                 root / suite.cwd,
                 suite.timeout,
+                limits=suite.execution,
             )
             outs = parse_go_json(done.stdout)
             verdicts[test_id] = "reproduces" if outs.get(test_id) == "failed" else "passes-alone"

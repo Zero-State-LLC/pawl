@@ -119,6 +119,25 @@ editing it, still blocks. A registered file that moves reports a
 `SPEC_AUTHORITY_MOVED` warning until `pawl contracts update` rewrites the
 registry.
 
+## `[execution]`
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `max_output_bytes` | `8388608` | Combined raw stdout/stderr budget per command; integer 65536..67108864 |
+| `terminate_grace_seconds` | `5` | POSIX termination grace before force-kill; finite number 0..30 |
+
+Defaults apply to existing configurations. Exceeding a limit is an error, not
+truncated success. Booleans, invalid ranges and nonfinite durations are refused.
+Limits apply to suites, metrics, preflight and replay, using trusted base policy
+when requested. A command runs with noninteractive stdin and inherited
+environment variables. Native Windows is unqualified and rejected by the
+bounded runner. Linux is the verified platform for this implementation.
+
+Report parser limits, minimal environment mode and per-suite budget overrides
+are not implemented by these fields. See
+[bounded execution](../specs/005-promotion-hardening/bounded-runner.md) for
+process-group cleanup behavior, typed errors and the isolation limits.
+
 ## Exit codes
 
 See [JSON.md](JSON.md) for the full machine-readable contract.

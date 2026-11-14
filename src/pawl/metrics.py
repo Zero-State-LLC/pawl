@@ -62,7 +62,7 @@ def measure(metric: MetricConfig, root: Path) -> float:
     anything, even if its output happens to parse (a crashed linter prints no
     findings, which a count would read as 0).
     """
-    done = run(metric.command, root / metric.cwd, metric.timeout)
+    done = run(metric.command, root / metric.cwd, metric.timeout, limits=metric.execution)
     if done.returncode not in metric.ok_exit_codes:
         allowed = ", ".join(str(c) for c in metric.ok_exit_codes)
         raise ParseError(

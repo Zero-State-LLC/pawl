@@ -68,6 +68,7 @@ def cmd_check(args: argparse.Namespace) -> int:
         report.status, report.error, code = "error", str(exc), EXIT_PREFLIGHT
     except PawlError as exc:
         report.status, report.error, code = "error", str(exc), EXIT_ERROR
+        report.error_code = getattr(exc, "code", None)
     report.exit_code = code
     data = report.to_json()
     with contextlib.suppress(OSError):

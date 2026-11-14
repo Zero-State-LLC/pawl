@@ -87,6 +87,7 @@ class Report:
     isolation: dict[str, dict[str, str]] = field(default_factory=dict)
     config_source: str = ""
     error: str = ""
+    error_code: str | None = None
     approval: dict[str, Any] | None = None
     approval_provenance: dict[str, Any] | None = None
     exit_code: int | None = None  # set for preflight failures (3); else derived from status
@@ -106,6 +107,7 @@ class Report:
             "approval": self.approval,
             "approval_provenance": self.approval_provenance,
             "error": self.error,
+            "error_code": self.error_code,
             "problems": [p.to_json() for p in self.problems],
             "notes": self.notes,
             "suites": self.suites,
