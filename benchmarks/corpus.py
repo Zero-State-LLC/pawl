@@ -792,3 +792,11 @@ DIAGNOSTIC_SCENARIOS = [
     ("unicode_direction", "bad", "case\u202ePASS\u2066"),
     ("ordinary_unicode", "clean", "tests/café.py::test_ok[雪]"),
 ]
+
+
+# Real CLI metric probes use only a synthetic marker; values are never printed.
+ENVIRONMENT_SCENARIOS = [
+    ("inherited_marker", "inherit", [], 1),
+    ("minimal_marker_excluded", "minimal", [], 0),
+    ("explicit_marker_exposed", "minimal", ["PAWL_SYNTHETIC_SECRET"], 1),
+]

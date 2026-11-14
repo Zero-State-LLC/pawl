@@ -26,6 +26,13 @@ def check_markdown(data: dict[str, Any]) -> str:
     data = display_tree(data)
     out = [f"### Pawl check: {ICON.get(data['status'], data['status'])}", ""]
     out += _provenance(data)
+    if data.get("environment"):
+        policy = data["environment"]
+        out += [
+            f"Environment: {policy['mode']}; "
+            f"pass_env: {', '.join(policy['pass_env']) or '(none)'}. " + policy["disclosure"],
+            "",
+        ]
     if data.get("error"):
         out += [f"Error (fail closed): `{data['error']}`", ""]
     if data.get("suites"):

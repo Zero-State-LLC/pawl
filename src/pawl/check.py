@@ -13,6 +13,7 @@ from pawl.adapters import SuiteRun, isolate, run_suite
 from pawl.baseline import Baseline, SuiteBaseline
 from pawl.config import Config, MetricConfig, SuiteConfig
 from pawl.contract import SCHEMA_VERSION, exit_code_for
+from pawl.environment import policy_summary
 from pawl.metrics import measure, metric_delta
 
 MAX_LISTED = 25
@@ -86,6 +87,7 @@ class Report:
     metrics: list[dict[str, Any]] = field(default_factory=list)
     isolation: dict[str, dict[str, str]] = field(default_factory=dict)
     config_source: str = ""
+    environment: dict[str, object] = field(default_factory=dict)
     error: str = ""
     error_code: str | None = None
     approval: dict[str, Any] | None = None
@@ -104,6 +106,7 @@ class Report:
             else exit_code_for(self.status),
             "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
             "config_source": self.config_source,
+            "environment": self.environment,
             "approval": self.approval,
             "approval_provenance": self.approval_provenance,
             "error": self.error,
@@ -271,7 +274,10 @@ def compare(
 ) -> Report:
     """Compare a measurement with the baseline."""
     today = today or dt.date.today()
-    report = Report(config_source=config.source)
+    report = Report(
+        config_source=config.source,
+        environment=policy_summary(config.execution.environment, config.execution.pass_env),
+    )
     configured = {s.name for s in config.suites} | {x.name for x in config.metrics}
     for orphan in sorted((set(baseline.suites) | set(baseline.metrics)) - configured):
         report.problems.append(

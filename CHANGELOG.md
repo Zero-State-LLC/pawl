@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Add opt-in minimal child environments with explicit variable inheritance,
+  fresh temporary HOME/tmp directories, and names-only policy reporting. Keep
+  inherited environments as the compatibility default.
+
 - Escape terminal controls and Markdown-breaking report fields without changing
   raw JSON evidence, test identities or gate verdicts.
 

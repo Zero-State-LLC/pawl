@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from pawl.environment import command_environment, validate_policy
 from pawl.errors import PawlError
 
 MAX_OUTPUT_BYTES = 8388608
@@ -28,7 +29,11 @@ class ExecutionLimits:
     max_test_records: int = 200000
     max_parse_depth: int = 128
 
+    environment: str = "inherit"
+    pass_env: tuple[str, ...] = ()
+
     def validate(self) -> None:
+        validate_policy(self.environment, self.pass_env)
         if (
             any(
                 type(v) is not int or not low <= v <= high
@@ -99,6 +104,20 @@ def run(
     limits: ExecutionLimits = ExecutionLimits(),
 ) -> Completed:
     """Run ``argv`` in ``cwd``. Raises PawlError on timeout or a missing executable."""
+    limits.validate()
+    with command_environment(limits.environment, limits.pass_env, env) as merged:
+        return _run(argv, cwd, timeout, merged, limits=limits)
+
+
+def _run(
+    argv: Sequence[str],
+    cwd: Path,
+    timeout: float,
+    env: Mapping[str, str] | None = None,
+    *,
+    limits: ExecutionLimits = ExecutionLimits(),
+) -> Completed:
+    """Run ``argv`` in ``cwd``. Raises PawlError on timeout or a missing executable."""
     if not POSIX:
         raise ExecutionError("UNSUPPORTED_PLATFORM", "bounded process groups require POSIX")
     limits.validate()
@@ -109,15 +128,12 @@ def run(
     if not valid_timeout:
         raise ExecutionError("INVALID_EXECUTION_POLICY", "invalid command timeout")
     max_output_bytes = limits.max_output_bytes
-    merged = dict(os.environ)
-    if env:
-        merged.update(env)
     start = time.monotonic()
     try:
         proc = subprocess.Popen(
             list(argv),
             cwd=cwd,
-            env=merged,
+            env=env,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

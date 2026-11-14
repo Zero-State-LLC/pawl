@@ -165,7 +165,12 @@ def _pytest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) ->
             (Path(tmp) / f"{PLUGIN_MODULE}.py").write_text(PLUGIN_SOURCE, encoding="utf-8")
             import os
 
-            existing = os.environ.get("PYTHONPATH", "")
+            existing = (
+                os.environ.get("PYTHONPATH", "")
+                if suite.execution.environment == "inherit"
+                or "PYTHONPATH" in suite.execution.pass_env
+                else ""
+            )
             env["PYTHONPATH"] = tmp + (os.pathsep + existing if existing else "")
             env["PAWL_TEST_ORDER"] = order
             argv += ["-p", PLUGIN_MODULE]

@@ -9,6 +9,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
+from pawl.environment import EnvironmentPolicyError
 from pawl.errors import ConfigError
 from pawl.runner import ExecutionError, ExecutionLimits
 
@@ -375,13 +376,20 @@ def _parse_execution(raw: Any) -> ExecutionLimits:
             "max_report_bytes",
             "max_test_records",
             "max_parse_depth",
+            "environment",
+            "pass_env",
         },
         "[execution]",
     )
+    raw = dict(raw)
+    if "pass_env" in raw:
+        if not isinstance(raw["pass_env"], list):
+            raise ConfigError("pass_env must be an array of exact variable names")
+        raw["pass_env"] = tuple(raw["pass_env"])
     limits = ExecutionLimits(**raw)
     try:
         limits.validate()
-    except ExecutionError as exc:
+    except (ExecutionError, EnvironmentPolicyError) as exc:
         raise ConfigError(str(exc)) from exc
     return limits
 
