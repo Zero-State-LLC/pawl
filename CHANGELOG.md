@@ -8,6 +8,13 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Bound combined subprocess output and clean up POSIX process groups on
+  timeout, interruption and completion. Resource or cleanup errors cannot
+  become a partial PASS. Apply trusted execution limits across adapters,
+  metrics, preflight and replay; reject invalid limits and timeouts.
+- Treat replay cleanup failure as an error and avoid retrying resource failures
+  as a wider replay. Bound long single-line failure diagnostics.
+
 - Support independently approved assertion-block migration in full trusted
   replay. Bind proposals to exact base/candidate test hashes and the reviewed
   commit; retain every original statement outside the declared blocks.

@@ -5,11 +5,12 @@ from __future__ import annotations
 import math
 import shlex
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 from pawl.errors import ConfigError
+from pawl.runner import ExecutionError, ExecutionLimits
 
 CONFIG_NAME = "pawl.toml"
 ADAPTERS = ("pytest", "junit", "jest", "vitest", "go", "cargo")
@@ -69,6 +70,7 @@ class SuiteConfig:
     check_orders: int = 1
     order_args: tuple[tuple[str, ...], ...] = ()
     cwd: str = "."
+    execution: ExecutionLimits = field(default_factory=ExecutionLimits)
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,7 @@ class MetricConfig:
     ok_exit_codes: tuple[int, ...] = (0,)
     cwd: str = "."
     tolerance: float = 0.0
+    execution: ExecutionLimits = field(default_factory=ExecutionLimits)
 
 
 @dataclass(frozen=True)
@@ -130,6 +133,7 @@ class Config:
     preflight: PreflightConfig = field(default_factory=PreflightConfig)
     guard: GuardConfig = field(default_factory=GuardConfig)
     source: str = CONFIG_NAME
+    execution: ExecutionLimits = field(default_factory=ExecutionLimits)
 
     @property
     def baseline_path(self) -> Path:
@@ -163,6 +167,16 @@ def _check_keys(table: dict[str, Any], allowed: set[str], where: str) -> None:
     unknown = sorted(set(table) - allowed)
     if unknown:
         raise ConfigError(f"{where}: unknown key(s) {', '.join(unknown)}")
+
+
+def _timeout(value: Any) -> float:
+    try:
+        valid = type(value) in (int, float) and math.isfinite(value) and value > 0
+    except OverflowError:
+        valid = False
+    if not valid:
+        raise ConfigError("timeout must be a finite positive number")
+    return float(value)
 
 
 def _parse_suite(raw: Any, index: int) -> SuiteConfig:
@@ -208,7 +222,7 @@ def _parse_suite(raw: Any, index: int) -> SuiteConfig:
         command=_command(raw.get("command"), where),
         identity=identity,
         isolate_max=int(raw.get("isolate_max", 10)),
-        timeout=float(raw.get("timeout", 3600)),
+        timeout=_timeout(raw.get("timeout", 3600)),
         junit_path=junit_path if isinstance(junit_path, str) else None,
         ci_only=bool(raw.get("ci_only", False)),
         check_orders=check_orders,
@@ -249,7 +263,7 @@ def _parse_metric(raw: Any, index: int) -> MetricConfig:
         command=_command(raw.get("command"), where),
         direction=direction,
         extract=extract,
-        timeout=float(raw.get("timeout", 1800)),
+        timeout=_timeout(raw.get("timeout", 1800)),
         ci_only=bool(raw.get("ci_only", False)),
         ok_exit_codes=_exit_codes(raw.get("ok_exit_codes", [0]), where),
         cwd=_str(raw, "cwd", where, "."),
@@ -348,19 +362,40 @@ def _parse_guard(raw: Any) -> GuardConfig:
     )
 
 
+def _parse_execution(raw: Any) -> ExecutionLimits:
+    if raw is None:
+        return ExecutionLimits()
+    if not isinstance(raw, dict):
+        raise ConfigError("[execution] must be a table")
+    _check_keys(raw, {"max_output_bytes", "terminate_grace_seconds"}, "[execution]")
+    limits = ExecutionLimits(**raw)
+    try:
+        limits.validate()
+    except ExecutionError as exc:
+        raise ConfigError(str(exc)) from exc
+    return limits
+
+
 def parse_config(text: str, root: Path, source: str = CONFIG_NAME) -> Config:
     """Parse config text. Raises ConfigError on any problem (fail closed)."""
     try:
         data = tomllib.loads(text)
     except tomllib.TOMLDecodeError as exc:
         raise ConfigError(f"{source}: invalid TOML: {exc}") from exc
-    _check_keys(data, {"pawl", "suite", "metric", "preflight", "guard"}, source)
+    _check_keys(data, {"pawl", "suite", "metric", "preflight", "guard", "execution"}, source)
+    execution = _parse_execution(data.get("execution"))
     top = data.get("pawl", {})
     if not isinstance(top, dict):
         raise ConfigError("[pawl] must be a table")
     _check_keys(top, {"baseline", "debt_log", "lock_in_ci", "quarantine_max_days"}, "[pawl]")
-    suites = tuple(_parse_suite(s, i) for i, s in enumerate(data.get("suite", [])))
-    metrics = tuple(_parse_metric(m, i) for i, m in enumerate(data.get("metric", [])))
+    suites = tuple(
+        replace(_parse_suite(s, i), execution=execution)
+        for i, s in enumerate(data.get("suite", []))
+    )
+    metrics = tuple(
+        replace(_parse_metric(m, i), execution=execution)
+        for i, m in enumerate(data.get("metric", []))
+    )
     names = [s.name for s in suites] + [m.name for m in metrics]
     if len(names) != len(set(names)):
         raise ConfigError("suite and metric names must be unique")
@@ -377,6 +412,7 @@ def parse_config(text: str, root: Path, source: str = CONFIG_NAME) -> Config:
         preflight=_parse_preflight(data.get("preflight")),
         guard=_parse_guard(data.get("guard")),
         source=source,
+        execution=execution,
     )
 
 

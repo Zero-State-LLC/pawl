@@ -500,7 +500,32 @@ def terminal_assertion(c: Ctx) -> None:
     c.edit(T_CALC, "assert subtract(5, 3) == 2", "assert subtract(5, 3) == 2\n    assert 2 < 3")
 
 
+def output_flood(ctx: Ctx) -> None:
+    ctx.write("tools/todo_lint.py", "import os; os.write(1, b'x' * 8388609)\n")
+
+
+def bounded_metric_output(ctx: Ctx) -> None:
+    ctx.write(
+        "tools/todo_lint.py",
+        ctx.read("tools/todo_lint.py") + "\nprint('diagnostic ' + 'x' * 65536)\n",
+    )
+
+
 SCENARIOS: list[Scenario] = [
+    Scenario(
+        "metric_output_flood",
+        "bad",
+        "resource limit",
+        "output flood cannot be parsed as a clean metric",
+        output_flood,
+    ),
+    Scenario(
+        "bounded_metric_diagnostic",
+        "clean",
+        "resource limit",
+        "valid metric plus bounded diagnostic output",
+        bounded_metric_output,
+    ),
     Scenario(
         "approved_assertion_migration",
         "clean",

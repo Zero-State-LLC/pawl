@@ -36,6 +36,11 @@ documented tightening workflow and required protected-file review.
 
 ## M2: Bounded operation and releasable product
 
+T10's shared-runner slice is implemented for review. See
+[bounded-runner.md](bounded-runner.md). It covers command output/lifecycle and
+replay cleanup, not completion of report parsing, environment control, hostile
+Git subprocess handling, Windows qualification, or isolated execution.
+
 | ID | Work and files | Depends on | Owner | Acceptance |
 | --- | --- | --- | --- | --- |
 | T10 | Streaming bounded runner, POSIX process cleanup, interruption handling | T02 | E/V | A17,A19 across suite/metric/preflight/replay |
