@@ -1,4 +1,4 @@
-# Pawl gates its own repository. Changes here need human approval.
+# Pawl gates its own repository. Changes here need an owner-authorized reviewer.
 [pawl]
 baseline = "pawl.baseline.json"
 debt_log = "PAWL_DEBT.md"
@@ -21,10 +21,9 @@ extract = "count-regex:^\\S+:\\d+:\\d+: "
 python = "python"
 imports = [{ module = "pawl", expect_under = "src" }]
 
-# Approval policy (Danny 2026-10-10): enable both once the agent machine
-# account exists. Today the agent logs in as the code owner, so turning these
-# on would let it approve nothing and block every agent PR on a human that
-# shares its login. Uncomment the table below at that point.
-# [guard]
-# approvers = ["scrimshawlife-ctrl"]
-# refuse_pr_author = true
+# Daniel explicitly delegated independent review to Prabu on 2026-11-14 UTC.
+# This policy becomes authority for a candidate only from its trusted base.
+# See specs/005-promotion-hardening/delegated-review.md.
+[guard]
+approvers = ["prabu-openclaw"]
+refuse_pr_author = true
