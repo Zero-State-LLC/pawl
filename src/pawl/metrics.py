@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
 from pawl.config import MetricConfig
 from pawl.errors import ParseError
+from pawl.evidence import load_json
 from pawl.runner import run
 
 
@@ -36,10 +36,7 @@ def extract(metric: MetricConfig, stdout: str, stderr: str) -> float:
         except ValueError as exc:
             raise ParseError(f"metric {metric.name}: {value!r} is not a number") from exc
     if spec.startswith("json:"):
-        try:
-            node: object = json.loads(stdout)
-        except json.JSONDecodeError as exc:
-            raise ParseError(f"metric {metric.name}: output is not JSON") from exc
+        node: object = load_json(stdout, metric.execution)
         for key in spec.split(":", 1)[1].split("."):
             if key == "length()" and isinstance(node, list):
                 node = len(node)

@@ -367,7 +367,17 @@ def _parse_execution(raw: Any) -> ExecutionLimits:
         return ExecutionLimits()
     if not isinstance(raw, dict):
         raise ConfigError("[execution] must be a table")
-    _check_keys(raw, {"max_output_bytes", "terminate_grace_seconds"}, "[execution]")
+    _check_keys(
+        raw,
+        {
+            "max_output_bytes",
+            "terminate_grace_seconds",
+            "max_report_bytes",
+            "max_test_records",
+            "max_parse_depth",
+        },
+        "[execution]",
+    )
     limits = ExecutionLimits(**raw)
     try:
         limits.validate()

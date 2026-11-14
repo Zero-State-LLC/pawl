@@ -54,7 +54,7 @@ revocation note.
 | Field | Meaning |
 | --- | --- |
 | `error` | Error text when `status` is `error`, else `""` |
-| `error_code` | Typed execution code when available, otherwise null; resource failures never produce partial success |
+| `error_code` | Typed execution or report code when available (`REPORT_LIMIT`, `PARSE_LIMIT`), otherwise null; resource failures never produce partial success |
 | `problems` | List of `{code, subject, message, ids, ids_total}`; `ids` holds at most 25 entries |
 | `suites` | Per-suite summary: `name`, `failures`, `baseline_failures`, `collected`, `baseline_collected`, `orders` |
 | `metrics` | Per-metric: `name`, `value`, `baseline`, `direction` |

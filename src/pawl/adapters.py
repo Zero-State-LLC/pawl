@@ -9,10 +9,8 @@ gate that guesses is not a gate (UTBoost found log-parser annotation errors in
 from __future__ import annotations
 
 import contextlib
-import json
 import re
 import shutil
-import stat
 import tempfile
 import xml.etree.ElementTree as ET
 from collections.abc import Sequence
@@ -21,7 +19,10 @@ from pathlib import Path
 
 from pawl.config import SuiteConfig
 from pawl.errors import ParseError
-from pawl.runner import run
+from pawl.evidence import BoundedXML, ReportError, bounded_text, load_json, read_report
+from pawl.runner import ExecutionLimits, run
+
+DEFAULT_LIMITS = ExecutionLimits()
 
 PLUGIN_MODULE = "_pawl_pytest_order"
 PLUGIN_SOURCE = '''"""Pawl test-order plugin. Loaded only for alternate-order runs."""
@@ -74,37 +75,15 @@ def _record(outcomes: dict[str, str], test_id: str, outcome: str) -> None:
         outcomes[test_id] = outcome
 
 
-def _require_regular_report(path: Path, kind: str = "JUnit") -> None:
-    """Refuse symlinks, hard links, and non-regular files before parsing a report.
-
-    Same-user forged reports remain possible by overwriting a regular file in
-    place; that needs a supervisor receipt (see docs/CI_TRUST_REVIEW.md). Links
-    are a cheap false-PASS path and are rejected here.
-    """
-    if path.is_symlink():
-        raise ParseError(f"{kind} report must be a regular file, not a symlink: {path}")
-    try:
-        st = path.lstat()
-    except OSError as exc:
-        raise ParseError(f"{kind} report not written: {path}") from exc
-    if not stat.S_ISREG(st.st_mode):
-        raise ParseError(f"{kind} report must be a regular file: {path}")
-    if st.st_nlink > 1:
-        raise ParseError(f"{kind} report must not be a hard link: {path}")
-
-
-def parse_junit(path: Path, pytest_ids: bool = False) -> dict[str, str]:
+def parse_junit(
+    path: Path, pytest_ids: bool = False, *, limits: ExecutionLimits = DEFAULT_LIMITS
+) -> dict[str, str]:
     """Parse a JUnit XML file into ``{test_id: outcome}``."""
-    if not path.exists():
-        raise ParseError(f"JUnit report not written: {path}")
-    _require_regular_report(path)
+    data = read_report(path, limits)
     try:
-        # The report is written by the local test run; expat (2.4+) refuses entity
-        # expansion attacks, and Pawl must stay stdlib-only.
-        tree = ET.parse(path)  # noqa: S314
+        root = ET.fromstring(data, parser=ET.XMLParser(target=BoundedXML(limits)))  # noqa: S314
     except ET.ParseError as exc:
         raise ParseError(f"JUnit report is not valid XML: {exc}") from exc
-    root = tree.getroot()
     if root.tag not in ("testsuite", "testsuites"):
         raise ParseError(f"JUnit report has an unsupported root: {root.tag}")
     # Summaries are optional, but when present they must agree with the cases.
@@ -198,7 +177,7 @@ def _pytest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) ->
             )
         if not report.is_file():
             raise ParseError(f"pytest wrote no JUnit report. Runner output:\n{done.tail()}")
-        outcomes = parse_junit(report, pytest_ids=True)
+        outcomes = parse_junit(report, pytest_ids=True, limits=suite.execution)
     failing = sum(1 for v in outcomes.values() if v == "failed")
     if done.returncode == 5 and outcomes:
         raise ParseError("pytest exited 5 (no tests collected) but the report lists test cases")
@@ -222,7 +201,7 @@ def _junit(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> 
     done = run(
         list(suite.command) + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution
     )
-    outcomes = parse_junit(report)
+    outcomes = parse_junit(report, limits=suite.execution)
     failing = sum(1 for v in outcomes.values() if v == "failed")
     if done.returncode != 0 and not failing:
         raise ParseError(
@@ -233,19 +212,34 @@ def _junit(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> 
     return SuiteRun(outcomes, done.returncode, done.seconds, done.tail(), order)
 
 
-def parse_jest_json(data: object, root: Path) -> dict[str, str]:
+def parse_jest_json(
+    data: object, root: Path, *, limits: ExecutionLimits = DEFAULT_LIMITS
+) -> dict[str, str]:
     """Parse Jest or Vitest ``--json`` output."""
     if not isinstance(data, dict) or "testResults" not in data:
         raise ParseError("jest/vitest JSON has no testResults")
     outcomes: dict[str, str] = {}
+    limits.validate()
+    if not isinstance(data["testResults"], list):
+        raise ParseError("jest testResults must be a list")
+    records = 0
     for suite in data["testResults"]:
+        if not isinstance(suite, dict):
+            raise ParseError("jest suite must be an object")
         file = str(suite.get("name", suite.get("testFilePath", "?")))
         with contextlib.suppress(ValueError):
             file = str(Path(file).resolve().relative_to(root.resolve()))
         assertions = suite.get("assertionResults", [])
+        if not isinstance(assertions, list):
+            raise ParseError("jest assertionResults must be a list")
+        records += max(1, len(assertions))
+        if records > limits.max_test_records:
+            raise ReportError("REPORT_LIMIT", "test record count exceeds limit")
         if suite.get("status") == "failed" and not assertions:
             _record(outcomes, f"{file}::<suite>", "failed")
         for a in assertions:
+            if not isinstance(a, dict):
+                raise ParseError("jest assertion must be an object")
             status = a.get("status")
             test_id = f"{file}::{a.get('fullName') or a.get('title')}"
             if status == "passed":
@@ -258,7 +252,9 @@ def parse_jest_json(data: object, root: Path) -> dict[str, str]:
                 raise ParseError(f"unknown jest status {status!r} for {test_id}")
     claimed = data.get("numFailedTests")
     counted = sum(1 for k, v in outcomes.items() if v == "failed" and not k.endswith("::<suite>"))
-    if isinstance(claimed, int) and claimed != counted:
+    if claimed is not None and (type(claimed) is not int or claimed < 0):
+        raise ParseError("jest failure count must be a nonnegative integer")
+    if claimed is not None and claimed != counted:
         raise ParseError(f"jest reports {claimed} failed tests but {counted} were parsed")
     return outcomes
 
@@ -280,27 +276,31 @@ def _jest(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> S
         if not out.is_file():
             raise ParseError(f"{suite.adapter} did not write its JSON report:\n{done.tail()}")
         try:
-            data = json.loads(out.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+            data = load_json(read_report(out, suite.execution).decode("utf-8"), suite.execution)
+        except UnicodeError as exc:
             raise ParseError(f"{suite.adapter} JSON report is invalid: {exc}") from exc
-    outcomes = parse_jest_json(data, root / suite.cwd)
+    outcomes = parse_jest_json(data, root / suite.cwd, limits=suite.execution)
     if done.returncode != 0 and not any(v == "failed" for v in outcomes.values()):
         raise ParseError(f"{suite.adapter} exited {done.returncode} with no parsed failure")
     return SuiteRun(outcomes, done.returncode, done.seconds, done.tail(), order)
 
 
-def parse_go_json(text: str) -> dict[str, str]:
+def parse_go_json(text: str, *, limits: ExecutionLimits = DEFAULT_LIMITS) -> dict[str, str]:
     """Parse ``go test -json`` event lines."""
     outcomes: dict[str, str] = {}
+    bounded_text(text, limits)
+    records = 0
     seen_any = False
     for raw in text.splitlines():
         line = raw.strip()
         if not line.startswith("{"):
             continue
-        try:
-            event = json.loads(line)
-        except json.JSONDecodeError as exc:
-            raise ParseError(f"go test -json line is not JSON: {line[:80]}") from exc
+        event = load_json(line, limits)
+        if not isinstance(event, dict):
+            raise ParseError("go event must be an object")
+        records += 1
+        if records > limits.max_test_records:
+            raise ReportError("REPORT_LIMIT", "Go event count exceeds limit")
         seen_any = True
         action = event.get("Action")
         pkg = event.get("Package", "?")
@@ -323,7 +323,7 @@ def _go(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> Sui
     if "-json" not in argv:
         argv.insert(2 if argv[:2] == ["go", "test"] else len(argv), "-json")
     done = run(argv + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution)
-    outcomes = parse_go_json(done.stdout)
+    outcomes = parse_go_json(done.stdout, limits=suite.execution)
     if done.returncode != 0 and not any(v == "failed" for v in outcomes.values()):
         raise ParseError(f"go test exited {done.returncode} with no parsed failure:\n{done.tail()}")
     return SuiteRun(outcomes, done.returncode, done.seconds, done.tail(), order)
@@ -335,9 +335,10 @@ _CARGO_RESULT = re.compile(
 )
 
 
-def parse_cargo(text: str) -> dict[str, str]:
+def parse_cargo(text: str, *, limits: ExecutionLimits = DEFAULT_LIMITS) -> dict[str, str]:
     """Parse libtest output from ``cargo test``. Per-test lines must match summaries."""
     outcomes: dict[str, str] = {}
+    bounded_text(text, limits)
     lines = {"passed": 0, "failed": 0, "skipped": 0}
     totals = [0, 0, 0]
     saw_result = False
@@ -350,6 +351,8 @@ def parse_cargo(text: str) -> dict[str, str]:
             outcome = {"ok": "passed", "FAILED": "failed", "ignored": "skipped"}[m.group(2)]
             _record(outcomes, f"{binary}::{m.group(1)}", outcome)
             lines[outcome] += 1
+            if sum(lines.values()) > limits.max_test_records:
+                raise ReportError("REPORT_LIMIT", "test record count exceeds limit")
             continue
         r = _CARGO_RESULT.match(raw.strip())
         if r:
@@ -367,7 +370,7 @@ def _cargo(suite: SuiteConfig, root: Path, order: str, extra: Sequence[str]) -> 
     done = run(
         list(suite.command) + list(extra), root / suite.cwd, suite.timeout, limits=suite.execution
     )
-    outcomes = parse_cargo(done.output)
+    outcomes = parse_cargo(done.output, limits=suite.execution)
     if done.returncode != 0 and not any(v == "failed" for v in outcomes.values()):
         raise ParseError(f"cargo test exited {done.returncode} with no parsed failure")
     return SuiteRun(outcomes, done.returncode, done.seconds, done.tail(), order)
@@ -442,7 +445,7 @@ def isolate(suite: SuiteConfig, root: Path, test_ids: Sequence[str]) -> dict[str
                 suite.timeout,
                 limits=suite.execution,
             )
-            outs = parse_go_json(done.stdout)
+            outs = parse_go_json(done.stdout, limits=suite.execution)
             verdicts[test_id] = "reproduces" if outs.get(test_id) == "failed" else "passes-alone"
         return verdicts
     return dict.fromkeys(ids, "unknown")
