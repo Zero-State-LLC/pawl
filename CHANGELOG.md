@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Inspect additive edits to existing tests and replay their trusted originals.
+  Require full replay for shared configuration changes and fail when replay
+  evidence is missing. Approval cannot clear replay regressions.
+- Parse Git paths with NUL delimiters and reject unsafe symlink paths.
+- Reject manual approval overrides in CI and malformed approval actors.
+- Pin development tooling to the environment compatible with existing baseline
+  IDs, without removing baseline entries or changing existing test assertions.
+
 ### Documentation
 
 - Propose PAWL-005: promotion hardening, additive-test integrity, portable

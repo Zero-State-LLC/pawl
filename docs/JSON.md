@@ -86,10 +86,17 @@ Finding rules (stable):
 
 `PROTECTED_CHANGED`, `SPEC_AUTHORITY_CHANGED`, `SPEC_AUTHORITY_MOVED`, `BASELINE_LOOSENED`,
 `BASELINE_TIGHTENED`, `DEBT_LOG_REWRITTEN`, `DEBT_LOG_CHANGED`,
-`TEST_DELETED`, `TEST_MODIFIED`, `SKIP_ADDED`, `TEST_SHADOWED`,
+`TEST_DELETED`, `TEST_MODIFIED`, `TEST_EXECUTION_CHANGED`, `SKIP_ADDED`, `TEST_SHADOWED`,
 `HOOK_TAMPER`, `TEST_CONFIG_CHANGED`, `SUSPICIOUS_CODE`,
 `ESCALATION_OPEN`, `ESCALATION_RESOLVED`,
 `TESTS_WEAKENED_REPLAY`, `REPLAY_PASSED`, `REPLAY_SKIPPED`.
+
+`TEST_EXECUTION_CHANGED` requires review when an existing test's executable
+structure changes outside the narrow safe-addition policy. Every modified
+existing test enters replay, including additions. Shared configuration changes
+require full replay. Missing replay evidence is an error, not a skipped success.
+Approval cannot clear `TESTS_WEAKENED_REPLAY` or an open escalation. The local
+`--approved` override is rejected in CI.
 
 ## `pawl update --json`
 

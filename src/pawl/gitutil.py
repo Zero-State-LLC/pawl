@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from pawl.errors import PawlError
 
@@ -11,7 +11,12 @@ from pawl.errors import PawlError
 def git(root: Path, *args: str, check: bool = True) -> str:
     try:
         proc = subprocess.run(
-            ["git", *args], cwd=root, capture_output=True, text=True, errors="replace", check=False
+            ["git", *args],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            errors="surrogateescape",
+            check=False,
         )
     except FileNotFoundError as exc:
         raise PawlError("git is not installed") from exc
@@ -57,18 +62,42 @@ def changed_files(root: Path, base: str) -> list[tuple[str, str]]:
     Status is A, M, D. Renames are reported as a delete plus an add so a rename
     out of the collected pattern is visible.
     """
-    out = git(root, "diff", "--name-status", "--no-renames", base, "--")
+    out = git(root, "diff", "--name-status", "-z", "--no-renames", base, "--")
     changes: list[tuple[str, str]] = []
-    for line in out.splitlines():
-        if not line.strip():
-            continue
-        status, _, path = line.partition("\t")
-        changes.append((status[0], path))
-    for path in git(root, "ls-files", "--others", "--exclude-standard").splitlines():
-        if path.strip():
+    fields = out.split("\0")
+    if fields[-1] != "" or (len(fields) - 1) % 2:
+        raise PawlError("malformed NUL-delimited Git change inventory")
+    for index in range(0, len(fields) - 1, 2):
+        status, path = fields[index : index + 2]
+        if status not in ("A", "M", "D", "T") or not path:
+            raise PawlError("unsupported Git change status or empty path")
+        safe_path(root, path)
+        changes.append(("M" if status == "T" else status, path))
+    for path in git(root, "ls-files", "-z", "--others", "--exclude-standard").split("\0"):
+        if path:
+            safe_path(root, path)
             changes.append(("A", path))
     return changes
 
 
 def diff_text(root: Path, base: str, path: str) -> str:
-    return git(root, "diff", "--no-renames", "-U0", base, "--", path, check=False)
+    return git(root, "--literal-pathspecs", "diff", "--no-renames", "-U0", base, "--", path)
+
+
+def safe_path(root: Path, path: str) -> Path:
+    """Resolve a Git path without following candidate links or escaping the tree."""
+    try:
+        path.encode("utf-8", errors="strict")
+    except UnicodeError as exc:
+        raise PawlError("Git path is not valid UTF-8") from exc
+    parts = PurePosixPath(path)
+    if not path or parts.is_absolute() or ".." in parts.parts:
+        raise PawlError(f"unsafe repository path: {path!r}")
+    current = root.resolve()
+    for part in parts.parts:
+        current /= part
+        if current.is_symlink():
+            raise PawlError(f"refusing linked candidate path: {path!r}")
+    if not current.resolve().is_relative_to(root.resolve()):
+        raise PawlError(f"repository path escapes root: {path!r}")
+    return current

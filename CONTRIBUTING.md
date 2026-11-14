@@ -8,7 +8,7 @@ Thanks for helping. Pawl is small on purpose: standard library only, Python
 ```bash
 python -m venv .venv
 . .venv/bin/activate
-pip install -e ".[dev]"
+pip install -c requirements-dev.txt -e ".[dev]"
 pre-commit install   # optional
 ```
 

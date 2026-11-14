@@ -43,6 +43,10 @@ def cmd_check(args: argparse.Namespace) -> int:
     report = Report()
     code = 0
     try:
+        if args.approved and (args.ci or in_ci()):
+            raise PawlError(
+                "APPROVAL_UNVERIFIED: --approved is local-only; CI needs verified approval"
+            )
         gate = resolve(root, args.trusted_ref, approved=args.approved, bootstrap=args.bootstrap)
         config, notes = gate.config, list(gate.notes)
         assert gate.baseline is not None
@@ -258,6 +262,10 @@ def cmd_init(args: argparse.Namespace) -> int:
 def cmd_guard(args: argparse.Namespace) -> int:
     root = _root(args)
     try:
+        if args.approved and (args.ci or in_ci()):
+            raise PawlError(
+                "APPROVAL_UNVERIFIED: --approved is local-only; CI needs verified approval"
+            )
         gate = resolve(
             root, args.base, approved=args.approved, bootstrap=args.bootstrap, need_baseline=False
         )

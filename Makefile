@@ -3,7 +3,7 @@
 PY ?= python3
 
 install:
-	$(PY) -m pip install -e ".[dev]"
+	$(PY) -m pip install -c requirements-dev.txt -e ".[dev]"
 
 lint:
 	ruff check .
