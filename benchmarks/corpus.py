@@ -783,3 +783,12 @@ REPORT_BOUND_SCENARIOS = [
         "REPORT_LIMIT",
     ),
 ]
+
+
+# Rendering cases preserve gate verdicts and raw IDs while escaping display text.
+DIAGNOSTIC_SCENARIOS = [
+    ("terminal_controls", "bad", "case\x1b[2J\rPASS\x08"),
+    ("markdown_breakout", "bad", "case`|\n# PASS <img src=x>"),
+    ("unicode_direction", "bad", "case\u202ePASS\u2066"),
+    ("ordinary_unicode", "clean", "tests/café.py::test_ok[雪]"),
+]

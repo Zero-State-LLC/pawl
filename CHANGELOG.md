@@ -8,6 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Escape terminal controls and Markdown-breaking report fields without changing
+  raw JSON evidence, test identities or gate verdicts.
+
 - Bound report bytes, XML/JSON nesting and raw record counts before accepting
   evidence. Reject DTD declarations, unsafe report links and observed file
   substitution; read checked files through the same descriptor.
