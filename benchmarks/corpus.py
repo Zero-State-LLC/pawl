@@ -769,3 +769,17 @@ SCENARIOS: list[Scenario] = [
         metric_clean_change,
     ),
 ]
+
+
+# Resource-bound fixtures exercise the real CLI in test_report_bounds.py.
+REPORT_BOUND_SCENARIOS = [
+    ("deep_xml", "bad", "<testsuites>" * 129 + "</testsuites>" * 129, "PARSE_LIMIT"),
+    ("clean_xml", "clean", '<testsuite><testcase name="ok"/></testsuite>', None),
+    ("entity_xml", "bad", '<!DOCTYPE testsuite [<!ENTITY x "ok">]><testsuite/>', None),
+    (
+        "duplicate_records",
+        "bad",
+        "<testsuite>" + '<testcase name="ok"/>' * 3 + "</testsuite>",
+        "REPORT_LIMIT",
+    ),
+]

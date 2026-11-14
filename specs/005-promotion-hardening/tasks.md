@@ -44,7 +44,7 @@ Git subprocess handling, Windows qualification, or isolated execution.
 | ID | Work and files | Depends on | Owner | Acceptance |
 | --- | --- | --- | --- | --- |
 | T10 | Streaming bounded runner, POSIX process cleanup, interruption handling | T02 | E/V | A17,A19 across suite/metric/preflight/replay |
-| T11 | Verified bounded report reads, parser budgets, escaped diagnostics | T10 | E/V | A18 plus existing malformed-report suite |
+| T11 | First parser slice under review, see report-bounds.md; remaining escaped diagnostics. Verified bounded report reads, parser budgets, escaped diagnostics | T10 | E/V | A18 plus existing malformed-report suite |
 | T12 | Explicit minimal environment policy with compatibility-preserving default | T10 | E/V | A20; no hidden isolation claim |
 | T13 | Real offline doctor, scope/status schema, optional online settings reads | T02,T07,T12 | E/V | A23-A24 |
 | T14 | Prepare operator changes: separate agent identity, review rules, evaluator CODEOWNERS, release controls; apply only through authorized operator action | T06,T13 | E prepares, O executes | A24; fresh readback, no shared reviewer credentials |

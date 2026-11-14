@@ -133,8 +133,8 @@ when requested. A command runs with noninteractive stdin and inherited
 environment variables. Native Windows is unqualified and rejected by the
 bounded runner. Linux is the verified platform for this implementation.
 
-Report parser limits, minimal environment mode and per-suite budget overrides
-are not implemented by these fields. See
+Minimal environment mode and per-suite budget overrides remain pending.
+Report parser limits are documented below. See
 [bounded execution](../specs/005-promotion-hardening/bounded-runner.md) for
 process-group cleanup behavior, typed errors and the isolation limits.
 
@@ -148,3 +148,19 @@ See [JSON.md](JSON.md) for the full machine-readable contract.
 | 1 | Regression or tampering found |
 | 2 | Could not measure (fail closed) |
 | 3 | Preflight failed: fix the environment |
+
+Report parsing also uses `[execution]`:
+
+| Key | Default | Allowed range |
+| --- | --- | --- |
+| `max_report_bytes` | 16777216 | 65536 to 268435456 bytes |
+| `max_test_records` | 200000 | 1 to 1000000 |
+| `max_parse_depth` | 128 | 8 to 256 |
+
+Limits apply before deduplication. Go counts all JSON events, including output
+and lifecycle events. Jest counts assertions, with at least one record per suite.
+XML also limits total elements to eight times the record limit plus 1024.
+DTD declarations are rejected. Report paths cannot traverse symlink directories;
+report files must be regular files with one link. A single verified descriptor
+is used for size checks and reading. File metadata changes during reading fail.
+These controls bound parsing; they do not authenticate same-user report contents.

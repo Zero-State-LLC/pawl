@@ -24,9 +24,21 @@ class ExecutionLimits:
     max_output_bytes: int = MAX_OUTPUT_BYTES
     terminate_grace_seconds: float = TERMINATE_GRACE_SECONDS
 
+    max_report_bytes: int = 16777216
+    max_test_records: int = 200000
+    max_parse_depth: int = 128
+
     def validate(self) -> None:
         if (
-            type(self.max_output_bytes) is not int
+            any(
+                type(v) is not int or not low <= v <= high
+                for v, low, high in (
+                    (self.max_report_bytes, 65536, 268435456),
+                    (self.max_test_records, 1, 1000000),
+                    (self.max_parse_depth, 8, 256),
+                )
+            )
+            or type(self.max_output_bytes) is not int
             or not 65536 <= self.max_output_bytes <= 67108864
             or type(self.terminate_grace_seconds) not in (int, float)
             or not 0 <= self.terminate_grace_seconds <= 30

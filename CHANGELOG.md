@@ -8,6 +8,10 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Bound report bytes, XML/JSON nesting and raw record counts before accepting
+  evidence. Reject DTD declarations, unsafe report links and observed file
+  substitution; read checked files through the same descriptor.
+
 - Bound combined subprocess output and clean up POSIX process groups on
   timeout, interruption and completion. Resource or cleanup errors cannot
   become a partial PASS. Apply trusted execution limits across adapters,
