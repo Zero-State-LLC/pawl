@@ -66,3 +66,47 @@ environment selection, not a committed dependency constraint or release fix.
 blocks for the new specification and ADR files. This is expected protected
 authority review, not an implementation regression. No approval label or
 manual override was applied. The PR must remain a draft pending owner review.
+
+## Core implementation slice, 2026-11-14 UTC
+
+Implementation starts from spec commit `067b907c85a525c32133633e6d14009fb1f814b0`.
+Daniel authorized proceeding with implementation in this conversation. This is
+not a merge approval, release receipt, or proof of active operator controls.
+
+The slice covers additive-test classification, replay of every changed existing
+test, full replay for shared configuration, missing-evidence errors, NUL-safe
+Git paths, CI override rejection, malformed approval actors, and pinned dev
+dependencies. It adds 25 test cases without editing existing test lines.
+
+Focused integrity/replay/approval tests: 71 passed. Real effectiveness corpus:
+Pawl CI caught 23/25 bad clean-baseline changes and 24/26 bad debt-baseline
+changes; 0/9 and 0/10 clean changes blocked, respectively. The early-return and
+module-binding attacks are caught in both baseline modes. A terminal assertion
+addition passes in both. See generated BENCHMARKS.md and benchmarks/results.json.
+These are finite corpus results, not general guarantees.
+
+T02's pins preserve existing IDs. A future explicit-ID migration is still
+reviewed work. T06's scope here rejects manual CI overrides and prevents
+approval from clearing replay regressions or open escalations; the full scoped
+approval migration remains open. T07-T08, M2, M3, and M4 remain unimplemented.
+
+`make check` passed: Ruff lint and format, strict Mypy (24 source files),
+271 tests, no skips, 90.04% coverage. Environment: Python 3.12.14 and the
+committed requirements-dev.txt constraints; real Go 1.27.4 and Rust 1.100.0
+were on PATH. The first full run exposed a missing JSON rule description;
+that documentation was added before the passing run.
+
+`pawl update --ci --json` recorded a tightening from 243 to 268 unit tests,
+confirmed in two orders. All 243 existing IDs remain; 25 were added, none
+removed, no failing IDs and no order dependence. No loosening option was used.
+Runtime adapters are tested by make check, excluded from the self-gate as in
+the unchanged repository configuration.
+
+`pawl guard --ci --base origin/main --json` reports eight authority-review
+blocks for the specification/ADR files. No existing tests or runner tool tables
+were edited. No approval override was applied. Independent review remains
+required before merge.
+
+`pawl check --ci --json`: PASS, 268 collected unit tests, zero failures,
+zero missing or unbaselined tests, zero Ruff findings (2026-11-14 03:16 UTC).
+This verifies the core slice locally, not the unfinished promotion milestone.

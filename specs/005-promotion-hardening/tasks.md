@@ -1,6 +1,7 @@
 # PAWL-005 implementation queue
 
-T01's collection diagnosis is complete; other tasks remain TODO. Order by
+T01's collection diagnosis is complete. T02-T06 and T09 have a first
+implementation slice under review; their full acceptance closure remains open. Order by
 dependency, not perceived feature size. A task
 is DONE only with its acceptance evidence and required review. No task is
 complete merely because a spec, test stub, or UI label exists.
@@ -90,7 +91,7 @@ PR #42 is an independent dependency maintenance review. PR #33 stays separate.
 | ID | Evidence | Effect | Resolution owner |
 | --- | --- | --- | --- |
 | B01 | Pytest 9.1.1 matches stored IDs; 9.2.0 emits `text6-unique` for one case | Unconstrained fresh self-gate red before this spec | T02 pins qualification environment; stable-ID migration separately reviewed |
-| B02 | Full local suite lacks usable Go compiler and Cargo | Cannot certify these adapters here | T15 installs actual toolchains on qualification workers |
+| B02 | RESOLVED locally: real Go 1.27.4 and Rust 1.100.0 installed for verification | Runtime adapter tests can execute | T15 must still qualify release workers |
 | B03 | Spec/ADR additions are protected authority changes | Draft cannot be treated as approved merge | Independent code-owner review and exact-head approval |
 | B04 | Live ruleset lacks review/current-base controls; release settings unknown | Promotion cannot be declared ready | T14 fresh verification and operator action |
 

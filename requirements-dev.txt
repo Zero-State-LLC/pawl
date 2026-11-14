@@ -1,0 +1,16 @@
+# Qualification environment. Runtime dependencies remain empty.
+# Install with: python -m pip install -c requirements-dev.txt -e '.[dev]'
+ast-serialize==0.13.1
+coverage==7.17.3
+iniconfig==2.3.1
+librt==0.16.0
+mypy==2.4.1
+mypy-extensions==1.2.0
+packaging==26.3
+pathspec==1.1.1
+pluggy==1.7.0
+pygments==2.21.0
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.17.5
+typing-extensions==4.16.0

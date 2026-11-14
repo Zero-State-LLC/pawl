@@ -31,6 +31,7 @@ from pawl.contract import SCHEMA_VERSION, exit_code_for
 from pawl.errors import PawlError
 from pawl.gitutil import changed_files, diff_text, git, merge_base, prefix, show, toplevel
 from pawl.replay_scope import narrow_replay
+from pawl.test_changes import classify
 
 ESCALATIONS = ".pawl/ESCALATIONS.md"
 
@@ -383,6 +384,7 @@ def run_guard(
     report = GuardReport(base=f"{base} ({mb[:12]})", approved=approved, config_source=config.source)
     if pre:
         report.notes.append(f"root is {pre.rstrip('/')}/ inside the repository")
+    inventory = changed_files(top, mb)
     changes = [
         contracts.Change(
             path,
@@ -393,7 +395,7 @@ def run_guard(
             if (top / path).is_file()
             else None,
         )
-        for status, path in changed_files(top, mb)
+        for status, path in inventory
     ]
     moves = contracts.detect_moves(changes, config.guard.contracts)
     for old, new in sorted(moves.files.items()):
@@ -425,13 +427,19 @@ def run_guard(
             )
         )
     test_changes: list[str] = []
-    for status, path in changed_files(top, mb):
+    replay_inputs: list[str] = []
+    full_replay = False
+    for status, path in inventory:
         rel = root_relative(path, pre)
         head_file = top / path
         head_text = (
             head_file.read_text(encoding="utf-8", errors="replace") if head_file.is_file() else None
         )
         base_text = show(top, mb, path) if status != "A" else None
+        # Shared collection inputs can affect tests without editing a test body.
+        if Path(path).name in (*SHARED_CONFIGS, "conftest.py", "pytest.ini", "tox.ini"):
+            replay_inputs.append(path)
+            full_replay = True
         removed, added = (
             split_diff(diff_text(top, mb, path))
             if status != "A"
@@ -507,9 +515,17 @@ def run_guard(
             )
         is_test = _matches(path, rel, config.guard.tests)
         if is_test:
+            if status != "A":
+                test_changes.append(path)
+            if status == "M" and base_text is not None and head_text is not None:
+                disposition = classify(base_text, head_text, path)
+                full_replay = full_replay or disposition.full_replay
+                if disposition.review_required:
+                    report.findings.append(
+                        Finding("TEST_EXECUTION_CHANGED", "block", path, disposition.reason)
+                    )
             if status == "D":
                 report.findings.append(Finding("TEST_DELETED", "block", path, "test file deleted"))
-                test_changes.append(path)
                 continue
             gone = _meaningful(removed)
             if gone:
@@ -522,7 +538,6 @@ def run_guard(
                         "existing tests are read-only for agents",
                     )
                 )
-                test_changes.append(path)
             for label in _scan(added, SKIP_MARKERS):
                 report.findings.append(Finding("SKIP_ADDED", "block", path, f"added {label}"))
             if path.endswith(".py") and head_text:
@@ -557,11 +572,12 @@ def run_guard(
             sev = "block" if config.guard.fail_on_suspicious else "warn"
             for label in _scan(added, SUSPICIOUS_WARN):
                 report.findings.append(Finding("SUSPICIOUS_CODE", sev, path, label))
-    if replay and test_changes:
-        report.findings += replay_base_tests(config, mb, test_changes, ci)
+    required_replay = list(dict.fromkeys([*test_changes, *replay_inputs]))
+    if replay and required_replay:
+        report.findings += replay_base_tests(config, mb, required_replay, ci, full=full_replay)
     if approved:
         for f in report.findings:
-            if f.severity == "block":
+            if f.severity == "block" and f.rule not in ("TESTS_WEAKENED_REPLAY", "ESCALATION_OPEN"):
                 f.severity = "approved"
     return report
 
@@ -569,7 +585,9 @@ def run_guard(
 WEAKENED_CODES = ("NEW_FAILURE", "MISSING_TESTS", "NEWLY_SKIPPED", "COLLECTION_DROP")
 
 
-def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> list[Finding]:
+def replay_base_tests(
+    config: Config, mb: str, paths: list[str], ci: bool, *, full: bool = False
+) -> list[Finding]:
     """Run the base branch's versions of changed tests against the current code.
 
     If the original tests fail where the edited tests pass, the edit weakened
@@ -586,7 +604,7 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
     pre = prefix(config.root)
     base_baseline_text = show(top, mb, pre + config.baseline)
     if base_baseline_text is None:
-        return [Finding("REPLAY_SKIPPED", "warn", "", "no baseline on the base branch")]
+        raise PawlError("REPLAY_UNAVAILABLE: no baseline on the base branch")
     tmp = Path(tempfile.mkdtemp(prefix="pawl-replay-"))
     wt = tmp / "wt"
     git(top, "worktree", "add", "--detach", str(wt), "HEAD")
@@ -602,6 +620,8 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
         for path in paths:
             content = show(top, mb, path)
             if content is None:
+                # Remove newly introduced fixtures/config from the original-test replay.
+                (wt / path).unlink(missing_ok=True)
                 continue
             (wt / path).parent.mkdir(parents=True, exist_ok=True)
             (wt / path).write_text(content, encoding="utf-8")
@@ -616,7 +636,7 @@ def replay_base_tests(config: Config, mb: str, paths: list[str], ci: bool) -> li
             root_relative_paths = list(paths)
         narrowed = (
             narrow_replay(cfg, base, root_relative_paths)
-            if root_relative_paths is not None
+            if root_relative_paths is not None and not full
             else None
         )
         if narrowed is not None:

@@ -102,9 +102,16 @@ def label_approval(
     if not isinstance(data, dict):
         return None, None
     pr = data.get("pull_request") or {}
-    action = str(data.get("action", ""))
-    applied = (data.get("label") or {}).get("name")
     sender = data.get("sender") or {}
+    label_data = data.get("label") or {}
+    if not all(isinstance(value, dict) for value in (pr, sender, label_data)):
+        return None, "approval event has malformed actor, label, or pull request data"
+    head = pr.get("head") or {}
+    user = pr.get("user") or {}
+    if not isinstance(head, dict) or not isinstance(user, dict):
+        return None, "approval event has malformed head or author data"
+    action = str(data.get("action", ""))
+    applied = label_data.get("name")
     actor = str(sender.get("login") or "")
     actor_type = str(sender.get("type") or "")
     if action == "unlabeled" and applied == label:
@@ -121,7 +128,7 @@ def label_approval(
             f"(event '{action}'); it approves only the commit it was applied at. "
             "Re-apply the label to approve the current commit."
         )
-    head_sha = str((pr.get("head") or {}).get("sha", ""))
+    head_sha = str(head.get("sha", ""))
     checked = _checked_out(root)
     if not head_sha or head_sha not in checked:
         return None, (
@@ -136,9 +143,11 @@ def label_approval(
         )
     if actor_type == "Bot" or actor.endswith("[bot]"):
         return None, f"label '{label}' was applied by bot {actor}; only a human approves"
+    if actor_type != "User":
+        return None, f"label '{label}' has no verified human actor type"
     if approvers and actor not in approvers:
         return None, f"label '{label}' was applied by {actor}, who is not in guard.approvers"
-    author = str(((pr.get("user") or {}).get("login")) or "")
+    author = str(user.get("login") or "")
     if refuse_pr_author and author and actor == author:
         return None, (
             f"label '{label}' was applied by the pull request author {actor}; "
