@@ -7,12 +7,13 @@ import contextlib
 import datetime as dt
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 from pawl import __version__
 from pawl.baseline import Quarantine, check_quarantine, load_baseline, write_baseline
 from pawl.check import Measurement, Report, compare, in_ci, measure_all, report_path
-from pawl.config import CONFIG_NAME, Config, load_config
+from pawl.config import CONFIG_NAME, Config, load_config, parse_config
 from pawl.contract import (
     EXIT_ERROR,
     EXIT_FAIL,
@@ -177,8 +178,8 @@ def cmd_update(args: argparse.Namespace) -> int:
     )
 
 
-def _write_github_workflow(root: Path, args: argparse.Namespace) -> str:
-    """Write the workflow pinned to this Pawl version and its PyPI hashes."""
+def _prepare_github_workflow(args: argparse.Namespace) -> tuple[str, str]:
+    """Resolve release hashes before any generated file is committed."""
     from pawl.init import pypi_hashes
     from pawl.templates import github_workflow
 
@@ -188,20 +189,13 @@ def _write_github_workflow(root: Path, args: argparse.Namespace) -> str:
     else:
         try:
             wheel, sdist = pypi_hashes(__version__)
-            note = f"Pinned pawl-gate=={__version__} to its PyPI wheel and sdist sha256."
         except PawlError as exc:
-            wheel = sdist = ""
-            note = (
-                f"warning: {exc}. The Pawl install step in .github/workflows/pawl.yml "
-                "has placeholder hashes and fails until they are replaced. Hashes: "
-                f"https://pypi.org/project/pawl-gate/{__version__}/#files. Or pass "
-                "--wheel-sha256 and --sdist-sha256."
-            )
-    kwargs = {"wheel_sha256": wheel, "sdist_sha256": sdist} if wheel else {}
-    wf = root / ".github" / "workflows" / "pawl.yml"
-    wf.parent.mkdir(parents=True, exist_ok=True)
-    wf.write_text(github_workflow(__version__, **kwargs), encoding="utf-8")
-    return note
+            raise PawlError(
+                f"{exc}. Offline init --github requires both --wheel-sha256 "
+                "and --sdist-sha256; no setup files were written."
+            ) from exc
+        note = f"Pinned pawl-gate=={__version__} to its PyPI wheel and sdist sha256."
+    return github_workflow(__version__, wheel, sdist), note
 
 
 def _sha256_arg(value: str) -> str:
@@ -227,26 +221,58 @@ def cmd_init(args: argparse.Namespace) -> int:
         _emit(f"error: {CONFIG_NAME} exists; use --force to overwrite")
         return 2
     try:
+        from pawl.init_transaction import commit_files, validate_targets, verify_runner
+
         adapter = args.runner or detect(root)
-        cfg_path.write_text(render_config(root, adapter), encoding="utf-8")
-        config = load_config(root)
-        notes: list[str] = []
+        if args.python and adapter != "pytest":
+            raise PawlError("--python applies only to the pytest runner")
+        config_text = render_config(root, adapter, args.python or "python")
+        config = parse_config(config_text, root)
+        names = [CONFIG_NAME, config.baseline, config.debt_log]
+        if args.github:
+            names.append(".github/workflows/pawl.yml")
+        validate_targets(root, names, force=args.force, append=config.debt_log)
+        config, notes = verify_runner(config)
+        workflow = None
+        if args.github:
+            workflow, note = _prepare_github_workflow(args)
+            notes.append(note)
         if not args.skip_preflight:
             from pawl.preflight import run_preflight
 
-            notes = run_preflight(config)
+            notes += run_preflight(config)
         m = _measure_for_update(config, args)
+        for suite in config.suites:
+            for measurement in m.suites.get(suite.name, []):
+                if measurement.collected == 0 or (
+                    suite.adapter == "pytest" and measurement.exit_code not in (0, 1)
+                ):
+                    raise PawlError(f"cannot initialize from incomplete collection: {suite.name}")
         new, delta = compute(config, None, m, dt.date.today())
+        if delta.order_dependent:
+            raise PawlError("cannot initialize from order-dependent test outcomes")
+        with tempfile.TemporaryDirectory(prefix="pawl-init-content-") as temp:
+            staged = Path(temp)
+            write_baseline(staged / "baseline", new)
+            if config.debt_log_path.exists():
+                (staged / "debt").write_bytes(config.debt_log_path.read_bytes())
+            append_debt_log(
+                staged / "debt", "init", delta, "initial baseline from the current state"
+            )
+            files = {
+                CONFIG_NAME: config_text.encode(),
+                config.baseline: (staged / "baseline").read_bytes(),
+                config.debt_log: (staged / "debt").read_bytes(),
+            }
+            if workflow is not None:
+                files[".github/workflows/pawl.yml"] = workflow.encode()
+            commit_files(root, files, force=args.force, append=config.debt_log)
     except PreflightError as exc:
-        _emit(f"error: {exc}\nEdit [preflight] in {CONFIG_NAME} if the module guess is wrong.")
+        _emit(f"error: {exc}\nActivate the target project environment and retry init.")
         return 3
-    except PawlError as exc:
+    except (PawlError, OSError) as exc:
         _emit(f"error: {exc}")
         return 2
-    write_baseline(config.baseline_path, new)
-    append_debt_log(config.debt_log_path, "init", delta, "initial baseline from the current state")
-    if args.github:
-        notes.append(_write_github_workflow(root, args))
     for n in notes:
         _emit(n)
     _print_delta(delta)
@@ -665,7 +691,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     i = sub.add_parser("init", help="detect the runner, write pawl.toml and the first baseline")
     i.add_argument("--runner", choices=["pytest", "jest", "vitest", "go", "cargo"])
-    i.add_argument("--force", action="store_true")
+    i.add_argument(
+        "--force", action="store_true", help="replace existing setup files transactionally"
+    )
+    i.add_argument("--python", help="target pytest interpreter (default: python from project PATH)")
     i.add_argument("--github", action="store_true", help="also write .github/workflows/pawl.yml")
     i.add_argument(
         "--wheel-sha256",
