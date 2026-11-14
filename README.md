@@ -157,6 +157,8 @@ in this repository:
   migrating from the Abraxas ratchet script.
 - [Benchmarks](BENCHMARKS.md): methods, results, and limits.
 - [QA completion](docs/QA_COMPLETION.md): post-0.3.0 hardening checklist.
+- [Promotion hardening specification](specs/005-promotion-hardening/spec.md):
+  proposed requirements, contracts, acceptance tests, and implementation tasks.
 - [Integrations](integrations/): Claude Code, Codex, Cursor, Hermes, GitHub
   Actions, pre-commit, and an `AGENTS.md` contract.
 

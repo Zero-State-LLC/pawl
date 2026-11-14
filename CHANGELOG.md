@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Documentation
+
+- Propose PAWL-005: promotion hardening, additive-test integrity, portable
+  setup, bounded execution, scoped approvals, diagnostics, exact-artifact
+  release qualification, and a dependency-ordered implementation queue.
+  This specification does not claim the controls are implemented.
+
 ## [0.5.0] - 2026-10-13
 
 ### Fixed
