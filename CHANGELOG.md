@@ -8,6 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- Add read-only offline doctor diagnostics for config, baseline, executables
+  and refs. Label local/CI scope and preserve UNKNOWN for unverified controls.
+
 - Add opt-in minimal child environments with explicit variable inheritance,
   fresh temporary HOME/tmp directories, and names-only policy reporting. Keep
   inherited environments as the compatibility default.

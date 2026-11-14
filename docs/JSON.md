@@ -140,3 +140,13 @@ resolved. Policy diagnostics do not include variable values; child-generated
 output is still raw evidence and is not automatically secret-redacted.
 Environment setup and cleanup errors use `ENV_SETUP_FAILED` and
 `ENV_CLEANUP_FAILED`; invalid policy uses `INVALID_EXECUTION_POLICY`.
+
+## Doctor diagnostics
+
+`pawl doctor --json` uses `doctor_schema_version: 1`. Fields include `scope`,
+`generated_at`, `readiness`, `exit_code`, `checks`, and `limitation`. Each check
+includes `id`, `status`, `severity`, `required`, `message`, `evidence_source`,
+`observed_at`, and `remediation`. Status is pass/fail/unknown/not_applicable.
+Only required checks decide readiness: fail gives not_ready/1, otherwise unknown
+gives unknown/2, otherwise ready/0. The scope must accompany any readiness claim.
+No doctor report is written to disk. See [doctor scope](DOCTOR.md).
