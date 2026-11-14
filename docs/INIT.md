@@ -1,4 +1,4 @@
-# Portable setup (PAWL-005 implementation proposal)
+# Portable setup (PAWL-005 implementation)
 
 Activate the target project's environment before running Pawl. Pawl may be
 installed separately with pipx or in its own virtual environment. The default
@@ -36,5 +36,6 @@ new generated files. Linked destinations are rejected. An incomplete rollback
 is reported as an error. This is not crash recovery for power loss or process
 kill, and it cannot undo arbitrary side effects from project test commands.
 
-This proposal is blocked on the existing-test amendments listed in
+The owner-authorized test amendments and verification are recorded in
 [the onboarding review](../specs/005-promotion-hardening/onboarding-review.md).
+Independent gate-file review is still required before merge.

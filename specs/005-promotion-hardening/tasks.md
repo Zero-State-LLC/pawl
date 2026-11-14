@@ -1,7 +1,9 @@
 # PAWL-005 implementation queue
 
 T01's collection diagnosis is complete. T02-T06 and T09 have a first
-implementation slice under review; their full acceptance closure remains open. Order by
+implementation slice under review; T07-T08 now have the portable setup and
+transaction slice implemented with owner-authorized test amendments. Their
+full acceptance closure remains open. Order by
 dependency, not perceived feature size. A task
 is DONE only with its acceptance evidence and required review. No task is
 complete merely because a spec, test stub, or UI label exists.
